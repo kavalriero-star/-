@@ -3,14 +3,18 @@ const path = require('path');
 
 const MEMORY_DIR = path.join(__dirname, '../../public/memory');
 
+// 8개 부서 카테고리
+const DEPARTMENTS = ['기획', '개발', '영업', '구매', '제조', '품질', '인사', '재무'];
+
 const CATEGORIES = {
-  '기획': ['기획', '계획', '아이디어', '전략', '방향', '로드맵', 'plan'],
-  '개발': ['개발', '코딩', '구현', '기능', '시스템', '서버', '앱', 'dev', 'api'],
-  '마케팅': ['마케팅', '광고', '홍보', '캠페인', '브랜드', '프로모션'],
-  '디자인': ['디자인', 'ui', 'ux', '화면', '레이아웃', '와이어프레임'],
-  '분석': ['분석', '데이터', '통계', '리포트', '보고서', '결과', '성과'],
-  'QA': ['테스트', 'qa', '검토', '검수', '버그', '오류'],
-  '재무': ['비용', '예산', '수익', '투자', '재무', '회계'],
+  '기획': ['기획', '계획', '전략', '방향', '로드맵', '아이디어', 'plan'],
+  '개발': ['개발', '코딩', '구현', '기능', '시스템', '서버', '앱', 'dev', 'api', '소프트웨어'],
+  '영업': ['영업', '판매', '매출', '고객', '계약', '수주', '마케팅', '홍보'],
+  '구매': ['구매', '조달', '발주', '공급', '협력사', '자재', '재고'],
+  '제조': ['제조', '생산', '공정', '제품', '품목', '설비', '라인'],
+  '품질': ['품질', '테스트', 'qa', '검토', '검수', '버그', '오류', '기준', '표준'],
+  '인사': ['인사', '채용', '교육', '복리', '직원', '조직', '급여', '평가'],
+  '재무': ['재무', '비용', '예산', '수익', '투자', '회계', '결산', '세금'],
 };
 
 function detectCategory(title) {
@@ -25,8 +29,10 @@ function sanitizeFilename(str) {
   return str.replace(/[<>:"/\\|?*\x00-\x1f]/g, '_').substring(0, 50).trim();
 }
 
-function saveMemory(title, workLogs, pdfUrl) {
-  const category = detectCategory(title);
+function saveMemory(title, workLogs, pdfUrl, department = null) {
+  const category = (department && DEPARTMENTS.includes(department))
+    ? department
+    : detectCategory(title);
   const date = new Date().toISOString().slice(0, 10);
   const safeTitle = sanitizeFilename(title);
   const dirName = `${date}_${safeTitle}`;
@@ -122,4 +128,4 @@ function formatMemoryContext(memories) {
   return `\n## 관련 과거 업무 기록\n${lines.join('\n---\n')}`;
 }
 
-module.exports = { saveMemory, loadMemories, getRelevantMemories, formatMemoryContext, detectCategory };
+module.exports = { saveMemory, loadMemories, getRelevantMemories, formatMemoryContext, detectCategory, DEPARTMENTS };

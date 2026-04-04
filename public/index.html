@@ -55,13 +55,26 @@
         </div>
         <div id="chat-container">
           <h3>💬 채팅</h3>
+          <div id="dept-selector">
+            <label>부서:</label>
+            <select id="dept-select">
+              <option value="기획">📋 기획</option>
+              <option value="개발">💻 개발</option>
+              <option value="영업">📊 영업</option>
+              <option value="구매">🛒 구매</option>
+              <option value="제조">🏭 제조</option>
+              <option value="품질">✅ 품질</option>
+              <option value="인사">👥 인사</option>
+              <option value="재무">💰 재무</option>
+            </select>
+          </div>
           <div id="agent-selector">
-            <label>대상:</label>
+            <label>담당:</label>
             <select id="target-agent"></select>
           </div>
           <div id="chat-messages"></div>
           <div id="chat-input-area">
-            <input type="text" id="chat-input" placeholder="에이전트에게 명령을 입력하세요..." />
+            <input type="text" id="chat-input" placeholder="업무 내용을 입력하세요..." />
             <button id="chat-send">전송</button>
           </div>
         </div>

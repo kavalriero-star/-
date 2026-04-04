@@ -77,9 +77,11 @@ class ChatPanel {
     if (!message) return;
 
     const agentId = this.selectorEl.value;
-    this.addMessage('나', message, 'user');
+    const deptEl = document.getElementById('dept-select');
+    const department = deptEl ? deptEl.value : '기획';
 
-    window.socketManager.emit('chat:message', { agentId, message });
+    this.addMessage('나', `[${department}] ${message}`, 'user');
+    window.socketManager.emit('chat:message', { agentId, message, department });
     this.inputEl.value = '';
     this.inputEl.focus();
   }
