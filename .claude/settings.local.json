@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e \"const {PNG} = require\\(''pngjs''\\); const fs = require\\(''fs''\\); const p = PNG.sync.read\\(fs.readFileSync\\(''public/assets/sprites/agent.png''\\)\\); console.log\\(''Agent spritesheet:'', p.width, ''x'', p.height\\); const t = PNG.sync.read\\(fs.readFileSync\\(''public/assets/tiles/office-tiles.png''\\)\\); console.log\\(''Tileset:'', t.width, ''x'', t.height\\);\")"
+    ]
+  }
+}
