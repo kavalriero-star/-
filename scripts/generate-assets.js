@@ -156,57 +156,116 @@ function buildAgentSprite() {
 // ──────────────────────────────────────────────
 // Build tileset (office-tiles.png)
 // 8×8 tile atlas, each tile 16×16
-// tile(0,0)=transparent, tile(1,0)=floor beige, tile(2,0)=wall dark, tile(3,0)=desk wood
-// tile(0,1)=chair, tile(1,1)=carpet, tile(2,1)=window, tile(3,1)=door
+// GID mapping (firstgid=1):
+//   GID1=transparent, GID2=floor, GID3=wall, GID4=desk
+//   GID5=chair,       GID6=carpet, GID7=window, GID8=door
 // ──────────────────────────────────────────────
 function buildTileset() {
   const TW = 16, TH = 16;
-  const TCOLS = 8, TROWS = 8;
-  const W = TW * TCOLS;
-  const H = TH * TROWS;
+  const W = TW * 8;
+  const H = TH * 8;
   const png = new PNG({ width: W, height: H, filterType: -1 });
   const data = png.data;
   data.fill(0);
 
-  function tile(tx, ty, col, col2 = null) {
+  function fillTile(tx, ty, col, col2 = null) {
     const ox = tx * TW, oy = ty * TH;
-    for (let dy = 0; dy < TH; dy++) {
+    for (let dy = 0; dy < TH; dy++)
       for (let dx = 0; dx < TW; dx++) {
         const c = (col2 && ((dx + dy) % 2 === 0)) ? col2 : col;
         setPixel(data, W, ox + dx, oy + dy, c[0], c[1], c[2]);
       }
-    }
   }
 
-  // tile(0,0) = transparent (empty)
-  // tile(1,0) = floor beige
-  tile(1, 0, [210, 190, 160], [200, 180, 150]);
-  // tile(2,0) = wall dark blue
-  tile(2, 0, [22, 33, 62]);
-  // border on wall bottom
-  for (let dx = 0; dx < TW; dx++)
-    setPixel(data, W, 2 * TW + dx, 0 * TH + TH - 1, 40, 60, 100);
-  // tile(3,0) = desk brown wood
-  tile(3, 0, [140, 90, 50]);
+  function borderTile(tx, ty, inner, border) {
+    const ox = tx * TW, oy = ty * TH;
+    for (let dy = 0; dy < TH; dy++)
+      for (let dx = 0; dx < TW; dx++) {
+        const onEdge = (dx === 0 || dy === 0 || dx === TW-1 || dy === TH-1);
+        const c = onEdge ? border : inner;
+        setPixel(data, W, ox + dx, oy + dy, c[0], c[1], c[2]);
+      }
+  }
+
+  // GID1 (col0): transparent — leave as-is
+  // GID2 (col1): floor — warm beige with subtle checker
+  fillTile(1, 0, [200, 182, 150], [192, 174, 142]);
+
+  // GID3 (col2): wall — dark navy with highlight edge
+  fillTile(2, 0, [18, 28, 56]);
   for (let dx = 0; dx < TW; dx++) {
-    setPixel(data, W, 3 * TW + dx, 0 * TH, 100, 60, 30);
-    setPixel(data, W, 3 * TW + dx, 0 * TH + TH - 1, 100, 60, 30);
+    setPixel(data, W, 2*TW+dx, 0*TH,      38, 55, 100);
+    setPixel(data, W, 2*TW+dx, 0*TH+TH-1, 10, 16, 36);
   }
-  // tile(4,0) = chair dark gray
-  tile(4, 0, [60, 60, 80]);
-  // tile(5,0) = carpet (light blue-gray)
-  tile(5, 0, [80, 100, 130], [70, 90, 120]);
-  // tile(6,0) = window (light blue)
-  tile(6, 0, [160, 200, 240]);
+  for (let dy = 0; dy < TH; dy++) {
+    setPixel(data, W, 2*TW,      0*TH+dy, 38, 55, 100);
+    setPixel(data, W, 2*TW+TW-1, 0*TH+dy, 10, 16, 36);
+  }
+
+  // GID4 (col3): desk — warm wood brown
+  fillTile(3, 0, [130, 82, 42]);
+  for (let dx = 0; dx < TW; dx++) {
+    setPixel(data, W, 3*TW+dx, 0*TH,     90, 55, 25);
+    setPixel(data, W, 3*TW+dx, 0*TH+1,   160, 110, 60);
+    setPixel(data, W, 3*TW+dx, 0*TH+TH-1, 90, 55, 25);
+  }
+  for (let dy = 2; dy < TH-1; dy++) {
+    setPixel(data, W, 3*TW, 0*TH+dy,      90, 55, 25);
+    setPixel(data, W, 3*TW+TW-1, 0*TH+dy, 90, 55, 25);
+  }
+
+  // GID5 (col4): chair — dark slate
+  borderTile(4, 0, [50, 55, 75], [35, 38, 55]);
+  // Seat cushion center
+  for (let dy = 3; dy < TH-3; dy++)
+    for (let dx = 3; dx < TW-3; dx++)
+      setPixel(data, W, 4*TW+dx, 0*TH+dy, 65, 70, 95);
+
+  // GID6 (col5): carpet — dark blue-gray with dot pattern
+  fillTile(5, 0, [55, 70, 100], [50, 65, 95]);
+  // Small dots
+  for (let dy = 2; dy < TH; dy += 4)
+    for (let dx = 2; dx < TW; dx += 4)
+      setPixel(data, W, 5*TW+dx, 0*TH+dy, 75, 92, 130);
+
+  // GID7 (col6): window — sky blue with cross frame
+  fillTile(6, 0, [140, 195, 240]);
+  // Frame
   for (let d = 0; d < TW; d++) {
-    setPixel(data, W, 6 * TW + d, 0 * TH,          30, 50, 80);
-    setPixel(data, W, 6 * TW + d, 0 * TH + TH - 1, 30, 50, 80);
-    setPixel(data, W, 6 * TW + 0, 0 * TH + d,       30, 50, 80);
-    setPixel(data, W, 6 * TW + TW - 1, 0 * TH + d,  30, 50, 80);
+    setPixel(data, W, 6*TW+d,      0*TH,      25, 45, 75);
+    setPixel(data, W, 6*TW+d,      0*TH+TH-1, 25, 45, 75);
+    setPixel(data, W, 6*TW,        0*TH+d,    25, 45, 75);
+    setPixel(data, W, 6*TW+TW-1,   0*TH+d,    25, 45, 75);
   }
-  // tile(7,0) = door
-  tile(7, 0, [120, 70, 30]);
-  setPixel(data, W, 7 * TW + 10, 0 * TH + 8, 200, 160, 50);
+  // Cross divider
+  for (let d = 1; d < TH-1; d++) {
+    setPixel(data, W, 6*TW+TW/2, 0*TH+d, 25, 45, 75);
+    setPixel(data, W, 6*TW+d,    0*TH+TH/2, 25, 45, 75);
+  }
+  // Glint
+  setPixel(data, W, 6*TW+3, 0*TH+3, 200, 230, 255);
+  setPixel(data, W, 6*TW+4, 0*TH+3, 200, 230, 255);
+
+  // GID8 (col7): door — warm brown with knob
+  fillTile(7, 0, [110, 65, 28]);
+  for (let dx = 0; dx < TW; dx++) {
+    setPixel(data, W, 7*TW+dx, 0*TH, 70, 40, 15);
+    setPixel(data, W, 7*TW+dx, 0*TH+TH-1, 70, 40, 15);
+  }
+  for (let dy = 0; dy < TH; dy++) {
+    setPixel(data, W, 7*TW,      0*TH+dy, 70, 40, 15);
+    setPixel(data, W, 7*TW+TW-1, 0*TH+dy, 70, 40, 15);
+  }
+  // Door panel detail
+  for (let dy = 3; dy < TH/2-1; dy++)
+    for (let dx = 3; dx < TW-3; dx++)
+      setPixel(data, W, 7*TW+dx, 0*TH+dy, 130, 80, 38);
+  for (let dy = TH/2+1; dy < TH-3; dy++)
+    for (let dx = 3; dx < TW-3; dx++)
+      setPixel(data, W, 7*TW+dx, 0*TH+dy, 130, 80, 38);
+  // Knob
+  setPixel(data, W, 7*TW+11, 0*TH+8, 210, 170, 50);
+  setPixel(data, W, 7*TW+12, 0*TH+8, 210, 170, 50);
 
   ensureDir(TILES_DIR);
   const buf = PNG.sync.write(png);
@@ -215,37 +274,99 @@ function buildTileset() {
 }
 
 // ──────────────────────────────────────────────
-// Build Tiled JSON map
-// 30×20 tiles, firstgid=1
-// empty=0, floor=2 (tile 1,0), wall=3 (tile 2,0), desk=4 (tile 3,0)
+// Build Tiled JSON map  (30×20 tiles, firstgid=1)
+//
+// GID key:
+//   0=empty  2=floor  3=wall  4=desk
+//   5=chair  6=carpet 7=window 8=door
+//
+// Layout:
+//   y=0      : outer top wall (windows at x=5,10,15,20,25)
+//   y=1-7    : [open office left] | [meeting room, carpet] | [CEO office, carpet]
+//              CEO left wall at x=21 (y=1-6), door at (21,6)
+//              Meeting left wall at x=12 (y=1-4), door at (12,4)
+//   y=8-13   : [QA/Analyst desks] | [open corridor] | [server room right]
+//   y=14-17  : [kitchen left] | [open space] | [server racks right]
+//   y=18     : outer bottom wall (entrance opening at x=14-15)
+//   y=19     : outer bottom wall
 // ──────────────────────────────────────────────
 function buildMap() {
   const MW = 30, MH = 20;
 
-  // floor layer: all floor (GID 2)
+  // ── Floor layer ──────────────────────────────
   const floorData = new Array(MW * MH).fill(2);
 
-  // wall layer: top row walls (GID 3), desks scattered (GID 4)
+  // Carpet in CEO office (x=22-28, y=1-7)
+  for (let y = 1; y <= 7; y++)
+    for (let x = 22; x <= 28; x++)
+      floorData[y * MW + x] = 6;
+
+  // Carpet in meeting room (x=13-20, y=1-7)
+  for (let y = 1; y <= 7; y++)
+    for (let x = 13; x <= 20; x++)
+      floorData[y * MW + x] = 6;
+
+  // ── Objects layer ─────────────────────────────
   const objData = new Array(MW * MH).fill(0);
 
-  // Top wall row
-  for (let x = 0; x < MW; x++) objData[x] = 3;
-  // Bottom wall row
-  for (let x = 0; x < MW; x++) objData[(MH - 1) * MW + x] = 3;
-  // Left wall col
-  for (let y = 0; y < MH; y++) objData[y * MW] = 3;
-  // Right wall col
-  for (let y = 0; y < MH; y++) objData[y * MW + MW - 1] = 3;
+  const setObj = (x, y, gid) => {
+    if (x >= 0 && x < MW && y >= 0 && y < MH) objData[y * MW + x] = gid;
+  };
 
-  // Desk positions (matching server DESK_POSITIONS)
-  const deskPositions = [
-    [4, 3], [4, 6], [4, 9],
-    [10, 3], [10, 6], [10, 9],
-    [16, 3], [22, 3],
-  ];
-  for (const [dx, dy] of deskPositions) {
-    if (dy < MH && dx < MW) objData[dy * MW + dx] = 4;
-  }
+  // Outer walls
+  for (let x = 0; x < MW; x++) { setObj(x, 0, 3); setObj(x, MH-1, 3); }
+  for (let y = 0; y < MH; y++) { setObj(0, y, 3); setObj(MW-1, y, 3); }
+
+  // Windows on top wall
+  for (const wx of [5, 10, 15, 20, 25]) setObj(wx, 0, 7);
+  // Windows on right outer wall (CEO office side)
+  for (const wy of [2, 4, 6]) setObj(MW-1, wy, 7);
+
+  // CEO office inner left wall (x=21, y=1-6)
+  for (let y = 1; y <= 6; y++) setObj(21, y, 3);
+  setObj(21, 6, 8); // door
+
+  // Meeting room left wall (x=12, y=1-4) — open at bottom
+  for (let y = 1; y <= 4; y++) setObj(12, y, 3);
+  setObj(12, 4, 8); // door
+
+  // ── Desks ────────────────────────────────────
+  // PM desk area (top-left)
+  setObj(3, 3, 4);   setObj(5, 3, 4);   // PM row1
+  setObj(3, 5, 4);   setObj(5, 5, 4);   // PM row2
+
+  // Dev desk area (top-left, adjacent to PM)
+  setObj(8, 3, 4);   setObj(10, 3, 4);  // Dev row1
+
+  // Meeting room table
+  setObj(15, 3, 4);  setObj(17, 3, 4);
+  setObj(15, 5, 4);  setObj(17, 5, 4);
+
+  // CEO desk
+  setObj(25, 3, 4);
+
+  // QA area (middle-left)
+  setObj(3, 9, 4);   setObj(5, 9, 4);
+
+  // Analyst area
+  setObj(8, 9, 4);   setObj(10, 9, 4);
+
+  // Designer area (left, lower)
+  setObj(3, 13, 4);  setObj(5, 13, 4);
+
+  // Server racks (bottom-right)
+  setObj(23, 14, 4); setObj(25, 14, 4); setObj(27, 14, 4);
+  setObj(23, 16, 4); setObj(25, 16, 4); setObj(27, 16, 4);
+
+  // Whiteboard (top-center)
+  setObj(11, 2, 4);
+
+  // Plant corner (top-left inner)
+  setObj(2, 2, 5);   // use chair tile as plant placeholder
+
+  // Entrance opening (bottom wall gap)
+  setObj(14, MH-1, 8);
+  setObj(15, MH-1, 8);
 
   const map = {
     type: 'map',

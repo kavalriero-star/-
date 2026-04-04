@@ -1,18 +1,18 @@
 const EventEmitter = require('events');
 
 const NAMED_LOCATIONS = {
-  desk_1: { x: 4, y: 5, label: '민준 책상' },
-  desk_2: { x: 8, y: 5, label: '지훈 책상' },
-  desk_3: { x: 23, y: 5, label: '소연 책상' },
-  desk_4: { x: 4, y: 12, label: '현우 책상' },
-  desk_5: { x: 8, y: 12, label: '유나 책상' },
-  ceo_office: { x: 19, y: 12, label: 'CEO 집무실' },
-  meeting_room: { x: 15, y: 6, label: 'Meeting Room' },
-  kitchen: { x: 26, y: 16, label: 'Kitchen' },
-  entrance: { x: 15, y: 18, label: 'Entrance' },
-  whiteboard: { x: 15, y: 4, label: 'Whiteboard' },
-  plant_corner: { x: 1, y: 2, label: 'Plant Corner' },
-  server_area: { x: 26, y: 11, label: 'Server Area' },
+  desk_1:       { x: 4,  y: 4,  label: 'PM 책상 (민준)' },
+  desk_2:       { x: 9,  y: 4,  label: '개발자 책상 (지훈)' },
+  desk_3:       { x: 4,  y: 13, label: '디자이너 책상 (소연)' },
+  desk_4:       { x: 4,  y: 10, label: 'QA 책상 (현우)' },
+  desk_5:       { x: 9,  y: 10, label: '분석가 책상 (유나)' },
+  ceo_office:   { x: 25, y: 4,  label: 'CEO 집무실 (태호)' },
+  meeting_room: { x: 16, y: 5,  label: '미팅룸' },
+  kitchen:      { x: 4,  y: 16, label: '키친/휴게실' },
+  entrance:     { x: 15, y: 17, label: '입구' },
+  whiteboard:   { x: 11, y: 3,  label: '화이트보드' },
+  plant_corner: { x: 2,  y: 2,  label: '화분 코너' },
+  server_area:  { x: 25, y: 15, label: '서버룸' },
 };
 
 // Tiles that are not walkable (walls, desks, etc.)
