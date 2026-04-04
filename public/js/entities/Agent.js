@@ -15,7 +15,7 @@ class AgentSprite {
     this.container = scene.add.container(worldX, worldY);
     this.container.setDepth(10);
 
-    // Sprite (48x72 HD frames, 6 characters × 12 frames)
+    // Sprite (64x96 HD 2D frames, Canvas API, 6 characters × 12 frames)
     // 초기 프레임: 위쪽(up) 방향 - 책상 쪽을 바라보는 모습
     this.sprite = scene.add.sprite(0, 0, 'agent', agentData.spriteIndex * 12 + 9);
     this.sprite.setOrigin(0.5, 1);
@@ -33,13 +33,13 @@ class AgentSprite {
     this.container.add(this.nameLabel);
 
     // State indicator
-    this.stateIndicator = scene.add.circle(22, -66, 5, 0x4ade80);
+    this.stateIndicator = scene.add.circle(28, -88, 5, 0x4ade80);
     this.stateIndicator.setStrokeStyle(1, 0x000000, 0.3);
     this.container.add(this.stateIndicator);
 
     // Speech bubble (hidden by default)
     this.bubbleBg = scene.add.graphics();
-    this.bubbleText = scene.add.text(0, -82, '', {
+    this.bubbleText = scene.add.text(0, -104, '', {
       fontSize: '9px',
       fontFamily: 'Courier New',
       color: '#000000',
@@ -63,7 +63,7 @@ class AgentSprite {
     });
 
     // Selection highlight
-    this.selectionRect = scene.add.rectangle(0, -36, 52, 74);
+    this.selectionRect = scene.add.rectangle(0, -48, 66, 96);
     this.selectionRect.setStrokeStyle(2, 0xe94560);
     this.selectionRect.setFillStyle(0xe94560, 0.1);
     this.selectionRect.setVisible(false);
@@ -168,7 +168,7 @@ class AgentSprite {
     const bw = Math.max(bounds.width + padding * 2, 40);
     const bh = bounds.height + padding * 2;
     const bx = -bw / 2;
-    const by = -82 - bh;
+    const by = -104 - bh;
 
     this.bubbleBg.fillStyle(0xffffff, 0.95);
     this.bubbleBg.fillRoundedRect(bx, by, bw, bh, 6);

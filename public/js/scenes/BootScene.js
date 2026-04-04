@@ -34,8 +34,8 @@ class BootScene extends Phaser.Scene {
 
     // Load assets
     this.load.spritesheet('agent', 'assets/sprites/agent.png', {
-      frameWidth: 48,
-      frameHeight: 72,
+      frameWidth: 64,
+      frameHeight: 96,
     });
 
     this.load.image('tiles', 'assets/tiles/office-tiles.png');

@@ -94,6 +94,9 @@ class OfficeScene extends Phaser.Scene {
 
     // Add grid overlay (subtle)
     this.addGridOverlay(map.width, map.height);
+
+    // Request fresh sync (initial sync:state may have fired before this scene was ready)
+    sm.requestSync();
   }
 
   createAgentSprite(agentData) {
