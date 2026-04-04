@@ -1,0 +1,6 @@
+node_modules/
+.env
+public/assets/sprites/
+public/assets/tiles/
+public/assets/maps/
+*.log

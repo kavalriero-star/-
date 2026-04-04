@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pixel Office AI - 가상 오피스 AI 에이전트</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
+  <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+</head>
+<body>
+  <div id="app">
+    <div id="header">
+      <h1>🏢 Pixel Office AI</h1>
+      <span id="status-bar">연결 중...</span>
+    </div>
+    <div id="main-container">
+      <div id="game-container"></div>
+      <div id="sidebar">
+        <div id="agent-info">
+          <h3>에이전트 정보</h3>
+          <div id="agent-list"></div>
+        </div>
+        <div id="chat-container">
+          <h3>💬 채팅</h3>
+          <div id="agent-selector">
+            <label>대상:</label>
+            <select id="target-agent"></select>
+          </div>
+          <div id="chat-messages"></div>
+          <div id="chat-input-area">
+            <input type="text" id="chat-input" placeholder="에이전트에게 명령을 입력하세요..." />
+            <button id="chat-send">전송</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/managers/SocketManager.js"></script>
+  <script type="module" src="js/managers/AgentManager.js"></script>
+  <script type="module" src="js/entities/Agent.js"></script>
+  <script type="module" src="js/entities/Furniture.js"></script>
+  <script type="module" src="js/scenes/BootScene.js"></script>
+  <script type="module" src="js/scenes/OfficeScene.js"></script>
+  <script type="module" src="js/scenes/UIScene.js"></script>
+  <script type="module" src="js/ui/ChatPanel.js"></script>
+  <script type="module" src="js/ui/AgentInfoPanel.js"></script>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
