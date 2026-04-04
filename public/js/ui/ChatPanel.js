@@ -35,6 +35,19 @@ class ChatPanel {
       this.removeTyping();
       this.addMessage(data.agentName || 'Agent', data.message, 'agent', data.toolCalls);
     });
+
+    sm.on('report:ready', (data) => {
+      this.removeTyping();
+      const msgEl = document.createElement('div');
+      msgEl.className = 'chat-msg report-ready';
+      msgEl.innerHTML = `
+        <div class="msg-name">📄 보고서 완성</div>
+        <div class="msg-text">${this.escapeHtml(data.title.substring(0, 40))}</div>
+        <a href="${data.url}" target="_blank" class="report-link">📥 PDF 다운로드</a>
+      `;
+      this.messagesEl.appendChild(msgEl);
+      this.messagesEl.scrollTop = this.messagesEl.scrollHeight;
+    });
   }
 
   updateAgentSelector(agents) {

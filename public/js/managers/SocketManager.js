@@ -25,6 +25,7 @@ class SocketManager {
     const events = [
       'sync:state', 'agent:move', 'agent:speak', 'agent:state',
       'agent:spawn', 'agent:remove', 'chat:response', 'chat:typing',
+      'report:ready', 'memory:saved', 'memory:list',
     ];
 
     for (const event of events) {

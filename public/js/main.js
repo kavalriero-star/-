@@ -9,6 +9,8 @@ window.addEventListener('DOMContentLoaded', () => {
   // Initialize UI panels
   new window.ChatPanel();
   new window.AgentInfoPanel();
+  new window.MemoryPanel();
+  new window.Settings();
 
   // Start Phaser game
   const config = {

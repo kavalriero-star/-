@@ -1,17 +1,18 @@
 const EventEmitter = require('events');
 
 const NAMED_LOCATIONS = {
-  desk_1: { x: 4, y: 4, label: "Atlas's Desk" },
-  desk_2: { x: 8, y: 4, label: "Nova's Desk" },
-  desk_3: { x: 23, y: 4, label: "Pixel's Desk" },
-  desk_4: { x: 4, y: 11, label: 'Desk 4' },
-  desk_5: { x: 8, y: 11, label: 'Desk 5' },
-  meeting_room: { x: 15, y: 4, label: 'Meeting Room' },
+  desk_1: { x: 4, y: 5, label: '민준 책상' },
+  desk_2: { x: 8, y: 5, label: '지훈 책상' },
+  desk_3: { x: 23, y: 5, label: '소연 책상' },
+  desk_4: { x: 4, y: 12, label: '현우 책상' },
+  desk_5: { x: 8, y: 12, label: '유나 책상' },
+  ceo_office: { x: 19, y: 12, label: 'CEO 집무실' },
+  meeting_room: { x: 15, y: 6, label: 'Meeting Room' },
   kitchen: { x: 26, y: 16, label: 'Kitchen' },
   entrance: { x: 15, y: 18, label: 'Entrance' },
-  whiteboard: { x: 15, y: 2, label: 'Whiteboard' },
-  plant_corner: { x: 1, y: 1, label: 'Plant Corner' },
-  server_area: { x: 26, y: 10, label: 'Server Area' },
+  whiteboard: { x: 15, y: 4, label: 'Whiteboard' },
+  plant_corner: { x: 1, y: 2, label: 'Plant Corner' },
+  server_area: { x: 26, y: 11, label: 'Server Area' },
 };
 
 // Tiles that are not walkable (walls, desks, etc.)
@@ -112,6 +113,24 @@ class AgentManager extends EventEmitter {
     if (!agent) return false;
     this.emit('agent:speak', { agentId: id, message, duration });
     return true;
+  }
+
+  // 특정 에이전트들을 지정 위치로 집합
+  gatherAgents(agentIds, location) {
+    const loc = this.resolveLocation(location);
+    if (!loc) return;
+    // 미팅룸(15,6) 주변 고정 좌표 - 겹치지 않게
+    const seats = [
+      { x: 13, y: 7 },
+      { x: 15, y: 7 },
+      { x: 17, y: 7 },
+      { x: 14, y: 9 },
+      { x: 16, y: 9 },
+    ];
+    agentIds.forEach((id, i) => {
+      const pos = seats[i % seats.length];
+      this.moveAgent(id, pos.x, pos.y);
+    });
   }
 
   getNamedLocations() {

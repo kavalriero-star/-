@@ -12,7 +12,31 @@
   <div id="app">
     <div id="header">
       <h1>🏢 Pixel Office AI</h1>
-      <span id="status-bar">연결 중...</span>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <span id="ai-mode-badge"></span>
+        <span id="status-bar">연결 중...</span>
+        <button id="settings-btn" title="API 키 설정">⚙️</button>
+      </div>
+    </div>
+
+    <div id="settings-modal" class="modal-overlay" style="display:none;">
+      <div class="modal-box">
+        <h3>⚙️ API 키 설정</h3>
+        <p class="modal-desc">Anthropic 또는 Gemini 중 하나만 입력하면 됩니다.<br>Anthropic이 있으면 우선 사용합니다.</p>
+        <div class="modal-field">
+          <label>Anthropic API Key</label>
+          <input type="password" id="input-anthropic-key" placeholder="sk-ant-..." />
+        </div>
+        <div class="modal-field">
+          <label>Google Gemini API Key</label>
+          <input type="password" id="input-gemini-key" placeholder="AIza..." />
+        </div>
+        <div id="settings-msg"></div>
+        <div class="modal-actions">
+          <button id="settings-save">저장</button>
+          <button id="settings-cancel">취소</button>
+        </div>
+      </div>
     </div>
     <div id="main-container">
       <div id="game-container"></div>
@@ -20,6 +44,14 @@
         <div id="agent-info">
           <h3>에이전트 정보</h3>
           <div id="agent-list"></div>
+        </div>
+        <div id="memory-panel">
+          <div id="memory-header">
+            <span>🗂️ 업무 기억</span>
+            <span id="memory-count"></span>
+            <button id="memory-toggle">▼</button>
+          </div>
+          <div id="memory-list"></div>
         </div>
         <div id="chat-container">
           <h3>💬 채팅</h3>
@@ -46,6 +78,8 @@
   <script type="module" src="js/scenes/UIScene.js"></script>
   <script type="module" src="js/ui/ChatPanel.js"></script>
   <script type="module" src="js/ui/AgentInfoPanel.js"></script>
+  <script type="module" src="js/ui/MemoryPanel.js"></script>
+  <script type="module" src="js/ui/Settings.js"></script>
   <script type="module" src="js/main.js"></script>
 </body>
 </html>

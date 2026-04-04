@@ -34,8 +34,8 @@ class BootScene extends Phaser.Scene {
 
     // Load assets
     this.load.spritesheet('agent', 'assets/sprites/agent.png', {
-      frameWidth: 16,
-      frameHeight: 24,
+      frameWidth: 48,
+      frameHeight: 72,
     });
 
     this.load.image('tiles', 'assets/tiles/office-tiles.png');
@@ -43,6 +43,23 @@ class BootScene extends Phaser.Scene {
   }
 
   create() {
+    // Create walk animations for each character (4 characters × 4 directions)
+    const dirNames = ['down', 'left', 'right', 'up'];
+    for (let i = 0; i < 6; i++) {
+      const base = i * 12;
+      for (let d = 0; d < 4; d++) {
+        const dirBase = base + d * 3;
+        this.anims.create({
+          key: `agent${i}_walk_${dirNames[d]}`,
+          frames: this.anims.generateFrameNumbers('agent', {
+            frames: [dirBase, dirBase + 1, dirBase, dirBase + 2],
+          }),
+          frameRate: 6,
+          repeat: -1,
+        });
+      }
+    }
+
     this.scene.start('OfficeScene');
   }
 }

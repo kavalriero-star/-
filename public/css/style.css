@@ -282,6 +282,85 @@ body {
   background: #c02d44;
 }
 
+/* Settings button */
+#settings-btn {
+  background: transparent;
+  border: 1px solid #0f3460;
+  color: #e0e0e0;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+#settings-btn:hover { background: #0f3460; }
+
+/* AI mode badge */
+#ai-mode-badge {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: #1a1a3e;
+  border: 1px solid #0f3460;
+  color: #7ec8e3;
+}
+#ai-mode-badge.claude { border-color: #e94560; color: #e94560; }
+#ai-mode-badge.gemini { border-color: #4ade80; color: #4ade80; }
+#ai-mode-badge.mock   { border-color: #888;    color: #888; }
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.modal-box {
+  background: #16213e;
+  border: 2px solid #0f3460;
+  border-radius: 10px;
+  padding: 24px;
+  width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.modal-box h3 { color: #e94560; font-size: 16px; }
+.modal-desc { font-size: 12px; color: #888; line-height: 1.6; }
+.modal-field { display: flex; flex-direction: column; gap: 6px; }
+.modal-field label { font-size: 12px; color: #7ec8e3; }
+.modal-field input {
+  background: #0a0a1a;
+  border: 1px solid #0f3460;
+  color: #e0e0e0;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 13px;
+  outline: none;
+}
+.modal-field input:focus { border-color: #e94560; }
+.modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+.modal-actions button {
+  padding: 8px 18px;
+  border-radius: 6px;
+  border: none;
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  font-weight: bold;
+}
+#settings-save { background: #e94560; color: white; }
+#settings-save:hover { background: #d63851; }
+#settings-cancel { background: #1a1a3e; color: #e0e0e0; border: 1px solid #0f3460; }
+#settings-cancel:hover { background: #0f3460; }
+#settings-msg { font-size: 12px; min-height: 16px; }
+#settings-msg.success { color: #4ade80; }
+#settings-msg.error   { color: #e94560; }
+
 /* Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
@@ -299,3 +378,125 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #1a4a7e;
 }
+
+/* Memory Panel */
+#memory-panel {
+  border-bottom: 1px solid #0f3460;
+  max-height: 220px;
+  display: flex;
+  flex-direction: column;
+}
+
+#memory-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: #e94560;
+  font-weight: bold;
+  cursor: default;
+  flex-shrink: 0;
+}
+
+#memory-count {
+  font-size: 11px;
+  color: #7ec8e3;
+  font-weight: normal;
+}
+
+#memory-toggle {
+  margin-left: auto;
+  background: transparent;
+  border: none;
+  color: #888;
+  cursor: pointer;
+  font-size: 11px;
+  padding: 2px 4px;
+}
+
+#memory-list {
+  overflow-y: auto;
+  flex: 1;
+  padding: 0 8px 8px;
+}
+
+.memory-empty {
+  font-size: 11px;
+  color: #555;
+  padding: 8px;
+  text-align: center;
+}
+
+.memory-category {
+  margin-bottom: 6px;
+}
+
+.memory-cat-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  background: #1a1a3e;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  color: #7ec8e3;
+}
+.memory-cat-header:hover { background: #0f3460; }
+
+.memory-cat-icon { font-size: 13px; }
+.memory-cat-name { flex: 1; font-weight: bold; }
+.memory-cat-count {
+  font-size: 10px;
+  background: #0f3460;
+  padding: 1px 5px;
+  border-radius: 8px;
+  color: #e0e0e0;
+}
+
+.memory-items { padding: 2px 0 0 10px; }
+
+.memory-item {
+  padding: 4px 6px;
+  margin-bottom: 2px;
+  border-radius: 3px;
+  cursor: pointer;
+  border-left: 2px solid #0f3460;
+  transition: border-color 0.15s;
+}
+.memory-item:hover { border-left-color: #e94560; background: #1a1a3e; }
+
+.memory-item-title {
+  font-size: 11px;
+  color: #e0e0e0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 260px;
+}
+.memory-item-date { font-size: 10px; color: #555; }
+.memory-item-pdf {
+  font-size: 10px;
+  color: #4ade80;
+  text-decoration: none;
+  display: inline-block;
+  margin-top: 2px;
+}
+.memory-item-pdf:hover { text-decoration: underline; }
+
+/* Report */
+.chat-msg.report-ready {
+  background: #0f3460;
+  border: 1px solid #4ade80;
+  margin: 4px 0;
+}
+.report-link {
+  display: inline-block;
+  margin-top: 6px;
+  color: #4ade80;
+  font-weight: bold;
+  font-size: 12px;
+  text-decoration: none;
+}
+.report-link:hover { color: #86efac; text-decoration: underline; }
