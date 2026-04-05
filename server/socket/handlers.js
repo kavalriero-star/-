@@ -2,16 +2,18 @@ const { sendAgentMessage } = require('../services/claude');
 const { generateReport } = require('../services/pdfGenerator');
 const { saveMemory, getRelevantMemories, formatMemoryContext } = require('../services/memoryManager');
 
-// 역할별 작업 위치
+// 역할별 작업 위치 (NAMED_LOCATIONS 키와 일치)
 const ROLE_LOCATIONS = {
-  'CEO':    'ceo_office',
+  'CEO':          'ceo_office',
   '프로젝트 매니저': 'whiteboard',
-  '매니저': 'whiteboard',
-  'PM':     'whiteboard',
-  '개발자': 'desk_2',
-  '디자이너': 'desk_3',
-  'QA':     'desk_4',
-  '데이터 분석가': 'desk_5',
+  '매니저':        'whiteboard',
+  'PM':           'whiteboard',
+  '개발자':        'desk_2',
+  '디자이너':       'desk_3',
+  'QA':           'desk_4',
+  '테스터':        'desk_4',
+  '데이터 분석가':  'desk_5',
+  '분석가':        'desk_5',
 };
 
 function getWorkLocation(role) {
@@ -297,7 +299,9 @@ function setupSocketHandlers(io, agentManager) {
 
       await processAgentChain(targetAgentId, interactCall.input.message, depth + 1);
 
-    } else if (depth > 1) {
+    } else if (depth > 1 && (agent.role.includes('데이터 분석가') || agent.role.includes('분석가'))) {
+      // 체인의 마지막 에이전트(데이터 분석가)만 QA/CEO 게이트를 실행한다.
+      // depth > 1인 중간 단계에서 interact_with_agent가 없을 때 조기 실행되는 버그 방지.
       await new Promise(r => setTimeout(r, 1000));
 
       // ── QA 품질 게이트 ──

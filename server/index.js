@@ -17,13 +17,13 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, '..', 'public')));
 app.use('/api', apiRoutes);
 
-// Initialize default agents
-agentManager.createAgent('태호', 'CEO', 2, { x: 19, y: 12 });
-agentManager.createAgent('민준', '프로젝트 매니저', 0, { x: 4, y: 5 });
-agentManager.createAgent('지훈', '개발자', 1, { x: 8, y: 5 });
-agentManager.createAgent('소연', '디자이너', 3, { x: 23, y: 5 });
-agentManager.createAgent('현우', 'QA 테스터', 4, { x: 4, y: 12 });
-agentManager.createAgent('유나', '데이터 분석가', 5, { x: 8, y: 12 });
+// Initialize default agents — 새 오피스 레이아웃 좌표 기준
+agentManager.createAgent('태호', 'CEO',          2, { x: 25, y: 4  }); // CEO 집무실
+agentManager.createAgent('민준', '프로젝트 매니저', 0, { x:  4, y: 4  }); // desk_1
+agentManager.createAgent('지훈', '개발자',        1, { x:  9, y: 4  }); // desk_2
+agentManager.createAgent('소연', '디자이너',       3, { x:  4, y: 13 }); // desk_3
+agentManager.createAgent('현우', 'QA 테스터',      4, { x:  4, y: 10 }); // desk_4
+agentManager.createAgent('유나', '데이터 분석가',   5, { x:  9, y: 10 }); // desk_5
 
 // Setup socket
 setupSocketHandlers(io, agentManager);

@@ -25,7 +25,7 @@ class Settings {
       const geminiKey = document.getElementById('input-gemini-key')?.value.trim();
 
       try {
-        const res = await fetch('/api/settings', {
+        const res = await fetch('/api/settings/api-key', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ anthropicKey, geminiKey }),
