@@ -16,6 +16,9 @@ const ROLE_LOCATIONS = {
   '분석가':        'desk_5',
 };
 
+// ── 체인 순서 강제 (AI가 잘못된 에이전트로 보내는 문제 방지) ──
+const CHAIN_ROLES = ['CEO', '프로젝트 매니저', '개발자', '디자이너', 'QA 테스터', '데이터 분석가'];
+
 function getWorkLocation(role) {
   for (const [keyword, loc] of Object.entries(ROLE_LOCATIONS)) {
     if (role.includes(keyword)) return loc;
@@ -273,33 +276,35 @@ function setupSocketHandlers(io, agentManager) {
       });
     }
 
+    // ── 서버 강제 체인 순서 (AI 판단에 의존하지 않음) ──
+    // interact_with_agent가 있으면 메시지만 사용, 대상은 서버가 결정
     const interactCall = (result.toolCalls || []).find(
-      tc => tc.name === 'interact_with_agent' && tc.result?.targetAgentId
+      tc => tc.name === 'interact_with_agent'
     );
 
-    if (interactCall) {
-      const targetAgentId = interactCall.result.targetAgentId;
-      const targetAgent   = agentManager.getAgent(targetAgentId);
+    // 현재 역할의 체인 위치 찾기
+    const chainIdx = CHAIN_ROLES.findIndex(r => agent.role.includes(r));
+    const isLastInChain = (chainIdx === -1 || chainIdx === CHAIN_ROLES.length - 1);
 
-      if (targetAgent) {
-        const targetWorkLoc = getWorkLocation(targetAgent.role);
-        const meetX = targetWorkLoc
-          ? agentManager.resolveLocation(targetWorkLoc)?.x ?? targetAgent.x
-          : targetAgent.x;
-        const meetY = targetWorkLoc
-          ? (agentManager.resolveLocation(targetWorkLoc)?.y ?? targetAgent.y) + 1
-          : targetAgent.y + 1;
+    if (!isLastInChain) {
+      // 다음 역할의 에이전트를 강제 지정
+      const nextRole = CHAIN_ROLES[chainIdx + 1];
+      const nextAgent = agentManager.getAllAgents().find(a => a.role.includes(nextRole));
 
-        agentManager.moveAgent(agent.id, meetX, meetY);
-        agentManager.speakAgent(agent.id, `📄 ${targetAgent.name}에게 전달!`, 3000);
-        await new Promise(r => setTimeout(r, 2000));
+      if (nextAgent) {
+        const forwardMsg = interactCall
+          ? interactCall.input.message
+          : `${agent.name}(${agent.role}) 작업 완료. 이어서 진행해주세요: ${message}`;
+
+        agentManager.speakAgent(agent.id, `📄 ${nextAgent.name}에게 전달!`, 3000);
+        await new Promise(r => setTimeout(r, 1500));
+
+        console.log(`[Chain] ${agent.name} → ${nextAgent.name} (서버 강제 순서)`);
+        await processAgentChain(nextAgent.id, forwardMsg, depth + 1);
       }
 
-      await processAgentChain(targetAgentId, interactCall.input.message, depth + 1);
-
-    } else if (depth > 1 && (agent.role.includes('데이터 분석가') || agent.role.includes('분석가'))) {
-      // 체인의 마지막 에이전트(데이터 분석가)만 QA/CEO 게이트를 실행한다.
-      // depth > 1인 중간 단계에서 interact_with_agent가 없을 때 조기 실행되는 버그 방지.
+    } else if (isLastInChain && depth > 1) {
+      // 마지막 에이전트(데이터 분석가) → QA/CEO 게이트
       await new Promise(r => setTimeout(r, 1000));
 
       // ── QA 품질 게이트 ──

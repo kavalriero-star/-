@@ -46,8 +46,9 @@ function generateReport(taskTitle, workLogs) {
       doc.fontSize(13).font(fontBold).fillColor('#1a1a3e')
         .text(`[${log.role}] ${log.agentName}`);
       doc.moveDown(0.3);
+      const content = typeof log.content === 'string' ? log.content : JSON.stringify(log.content || '', null, 2);
       doc.fontSize(11).font(fontRegular).fillColor('#222222')
-        .text(log.content, { width: 480, align: 'left' });
+        .text(content, { width: 480, align: 'left' });
       doc.moveDown(0.5);
       doc.moveTo(50, doc.y).lineTo(550, doc.y).strokeColor('#eeeeee').dash(3, { space: 3 }).stroke();
       doc.undash();
