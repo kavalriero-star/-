@@ -159,6 +159,7 @@ function buildAgentSprite() {
 // GID mapping (firstgid=1):
 //   GID1=transparent, GID2=floor, GID3=wall, GID4=desk
 //   GID5=chair,       GID6=carpet, GID7=window, GID8=door
+//   GID9=round_table (row1, col0)
 // ──────────────────────────────────────────────
 function buildTileset() {
   const TW = 16, TH = 16;
@@ -267,6 +268,31 @@ function buildTileset() {
   setPixel(data, W, 7*TW+11, 0*TH+8, 210, 170, 50);
   setPixel(data, W, 7*TW+12, 0*TH+8, 210, 170, 50);
 
+  // GID9 (col0, row1): round table — dark mahogany with circular surface
+  {
+    const tx = 0, ty = 1;
+    const ox = tx * TW, oy = ty * TH;
+    const cx = 7.5, cy = 7.5, r = 7;
+    for (let dy = 0; dy < TH; dy++)
+      for (let dx = 0; dx < TW; dx++) {
+        const dist = Math.sqrt((dx - cx) ** 2 + (dy - cy) ** 2);
+        if (dist <= r) {
+          // Dark mahogany with radial gradient
+          const t = dist / r;
+          const R = Math.round(100 + 40 * (1 - t));
+          const G = Math.round(50 + 25 * (1 - t));
+          const B = Math.round(20 + 15 * (1 - t));
+          setPixel(data, W, ox + dx, oy + dy, R, G, B);
+          // Rim highlight
+          if (dist > r - 1.5 && dist <= r)
+            setPixel(data, W, ox + dx, oy + dy, 70, 35, 12);
+        }
+      }
+    // Center highlight (gloss)
+    setPixel(data, W, ox + 6, oy + 6, 160, 100, 50);
+    setPixel(data, W, ox + 7, oy + 6, 160, 100, 50);
+  }
+
   ensureDir(TILES_DIR);
   const buf = PNG.sync.write(png);
   fs.writeFileSync(path.join(TILES_DIR, 'office-tiles.png'), buf);
@@ -338,9 +364,10 @@ function buildMap() {
   // Dev desk area (top-left, adjacent to PM)
   setObj(8, 3, 4);   setObj(10, 3, 4);  // Dev row1
 
-  // Meeting room table
-  setObj(15, 3, 4);  setObj(17, 3, 4);
-  setObj(15, 5, 4);  setObj(17, 5, 4);
+  // Meeting room — 원형 테이블 (3×3 ring, GID9)
+  setObj(15, 3, 9);  setObj(16, 3, 9);  setObj(17, 3, 9);
+  setObj(15, 4, 9);                      setObj(17, 4, 9);
+  setObj(15, 5, 9);  setObj(16, 5, 9);  setObj(17, 5, 9);
 
   // CEO desk
   setObj(25, 3, 4);

@@ -7,7 +7,7 @@ const NAMED_LOCATIONS = {
   desk_4:       { x: 4,  y: 10, label: 'QA 책상 (현우)' },
   desk_5:       { x: 9,  y: 10, label: '분석가 책상 (유나)' },
   ceo_office:   { x: 25, y: 4,  label: 'CEO 집무실 (태호)' },
-  meeting_room: { x: 16, y: 5,  label: '미팅룸' },
+  meeting_room: { x: 16, y: 4,  label: '미팅룸 (원형 테이블)' },
   kitchen:      { x: 4,  y: 16, label: '키친/휴게실' },
   entrance:     { x: 15, y: 17, label: '입구' },
   whiteboard:   { x: 11, y: 3,  label: '화이트보드' },
@@ -115,17 +115,18 @@ class AgentManager extends EventEmitter {
     return true;
   }
 
-  // 특정 에이전트들을 지정 위치로 집합
+  // 특정 에이전트들을 원형 테이블 주변에 착석
   gatherAgents(agentIds, location) {
     const loc = this.resolveLocation(location);
     if (!loc) return;
-    // 미팅룸(15,6) 주변 고정 좌표 - 겹치지 않게
+    // 원형 테이블(15-17, 3-5) 둘레 6석 — 시계방향 배치
     const seats = [
-      { x: 13, y: 7 },
-      { x: 15, y: 7 },
-      { x: 17, y: 7 },
-      { x: 14, y: 9 },
-      { x: 16, y: 9 },
+      { x: 16, y: 2 },  // 상단 중앙 (CEO/PM 자리)
+      { x: 18, y: 3 },  // 우상
+      { x: 18, y: 5 },  // 우하
+      { x: 16, y: 6 },  // 하단 중앙
+      { x: 14, y: 5 },  // 좌하
+      { x: 14, y: 3 },  // 좌상
     ];
     agentIds.forEach((id, i) => {
       const pos = seats[i % seats.length];

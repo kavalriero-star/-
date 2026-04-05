@@ -220,23 +220,21 @@ function setupSocketHandlers(io, agentManager) {
     }
 
     if (depth === 1 && (agent.role === 'CEO' || agent.role.includes('매니저') || agent.role.includes('PM'))) {
-      if (agent.role === 'CEO') {
-        await moveAndWait(agent.id, 'ceo_office', 1200);
-        agentManager.speakAgent(agent.id, '📣 전체 회의 소집합니다!', 3000);
-        await new Promise(r => setTimeout(r, 1500));
-      } else {
-        await moveAndWait(agent.id, 'whiteboard', 1500);
-        agentManager.speakAgent(agent.id, '📋 기획 시작합니다!', 3000);
-        await new Promise(r => setTimeout(r, 2000));
-      }
+      // CEO/PM 포함 전원을 원형 테이블에 모음
+      agentManager.speakAgent(agent.id,
+        agent.role === 'CEO' ? '📣 전체 회의 소집합니다!' : '📋 기획 회의 시작합니다!',
+        3000
+      );
+      await new Promise(r => setTimeout(r, 800));
 
-      const others = agentManager.getAllAgents().filter(a => a.id !== agent.id);
-      agentManager.gatherAgents(others.map(a => a.id), 'meeting_room');
+      // 전원(6명) 원형 테이블에 착석 — CEO/PM이 첫 좌석(상단 중앙)
+      const allAgents = agentManager.getAllAgents();
+      const ordered = [agent, ...allAgents.filter(a => a.id !== agent.id)];
+      agentManager.gatherAgents(ordered.map(a => a.id), 'meeting_room');
+
       io.emit('chat:response', {
         agentId: agent.id, agentName: agent.name,
-        message: agent.role === 'CEO'
-          ? `📢 전 팀원 집합! [${currentDepartment}부서] 업무 지시합니다.`
-          : `📢 팀원 여러분! [${currentDepartment}부서] 업무를 시작합니다.`,
+        message: `📢 [${currentDepartment}부서] 전원 원형 테이블에 모입니다!`,
         toolCalls: [],
       });
       await new Promise(r => setTimeout(r, 2500));
