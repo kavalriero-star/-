@@ -23,6 +23,7 @@ class AgentManager extends EventEmitter {
     super();
     this.agents = new Map();
     this.nextId = 1;
+    this.movementLocked = false; // 회의 중 이동 잠금
   }
 
   createAgent(name, role, spriteIndex, position = { x: 15, y: 10 }) {
@@ -69,6 +70,12 @@ class AgentManager extends EventEmitter {
   moveAgent(id, x, y) {
     const agent = this.agents.get(id);
     if (!agent) return false;
+
+    // 회의 중 이동 잠금 (gatherAgents 제외)
+    if (this.movementLocked) {
+      console.log(`[Move BLOCKED] ${agent.name} → (${x},${y}) — 회의 중 잠금`);
+      return true;
+    }
 
     // Clamp to map bounds (1-28 for x, 1-18 for y, inside walls)
     x = Math.max(1, Math.min(28, Math.round(x)));
@@ -117,22 +124,28 @@ class AgentManager extends EventEmitter {
 
   // 전원을 큰 원형 테이블 둘레에 착석 (6석, 시계방향, 넓은 간격)
   // 테이블: 5×5 다이아몬드 (x=14-18, y=2-6)
-  // 좌석: 테이블 바깥 1타일 + 충분한 간격 (각 좌석 간 3~4타일)
+  // 좌석: 테이블 바깥 1~2타일 + 충분한 간격 (각 좌석 간 3~4타일)
   gatherAgents(agentIds, location) {
     const loc = this.resolveLocation(location);
     if (!loc) return;
     const seats = [
-      { x: 16, y: 1 },  // 상단 중앙 (CEO/PM)
-      { x: 19, y: 2 },  // 우상
-      { x: 19, y: 6 },  // 우하
-      { x: 16, y: 7 },  // 하단 중앙
-      { x: 13, y: 6 },  // 좌하
-      { x: 13, y: 2 },  // 좌상
+      { x: 16, y: 1 },   // 상단 중앙 (CEO/PM)
+      { x: 20, y: 2 },   // 우상
+      { x: 20, y: 6 },   // 우하
+      { x: 16, y: 9 },   // 하단 중앙 (스프라이트 높이 고려, y=6+3)
+      { x: 12, y: 6 },   // 좌하
+      { x: 12, y: 2 },   // 좌상
     ];
+    // 잠금을 우회해서 직접 좌표 설정
+    const wasLocked = this.movementLocked;
+    this.movementLocked = false;
     agentIds.forEach((id, i) => {
       const pos = seats[i % seats.length];
+      const agent = this.agents.get(id);
+      console.log(`[Gather] ${agent?.name || id} → seat ${i} (${pos.x}, ${pos.y})`);
       this.moveAgent(id, pos.x, pos.y);
     });
+    this.movementLocked = wasLocked;
   }
 
   getNamedLocations() {

@@ -66,6 +66,7 @@ function setupSocketHandlers(io, agentManager) {
   let currentDepartment = '기획';
   let qaRollbackCount   = 0;
   let ceoRollbackCount  = 0;
+  let chainRunning      = false; // 동시 체인 실행 방지
 
   agentManager.on('agent:move',   (data) => io.emit('agent:move',   data));
   agentManager.on('agent:speak',  (data) => io.emit('agent:speak',  data));
@@ -235,12 +236,16 @@ function setupSocketHandlers(io, agentManager) {
       const ordered = [agent, ...allAgents.filter(a => a.id !== agent.id)];
       agentManager.gatherAgents(ordered.map(a => a.id), 'meeting_room');
 
+      // 회의 중 이동 잠금 — AI 응답의 move_to가 테이블 배치를 깨지 않도록
+      agentManager.movementLocked = true;
+
       io.emit('chat:response', {
         agentId: agent.id, agentName: agent.name,
         message: `📢 [${currentDepartment}부서] 전원 원형 테이블에 모입니다!`,
         toolCalls: [],
       });
-      await new Promise(r => setTimeout(r, 2500));
+      // 모든 에이전트 이동 완료 대기 (가장 먼 거리 ~5초 + 여유 3초)
+      await new Promise(r => setTimeout(r, 8000));
     } else if (depth > 1) {
       const workLoc = getWorkLocation(agent.role);
       if (workLoc) await moveAndWait(agent.id, workLoc, 1800);
@@ -260,6 +265,13 @@ function setupSocketHandlers(io, agentManager) {
         message: `오류: ${err.message}`, toolCalls: [],
       });
       return;
+    }
+
+    // 회의 잠금 해제 (depth=1의 AI 응답 처리 완료 후, 3초 대기)
+    if (depth === 1 && agentManager.movementLocked) {
+      // CEO/PM 발언을 테이블에서 보여준 후 충분히 대기
+      await new Promise(r => setTimeout(r, 3000));
+      agentManager.movementLocked = false;
     }
 
     io.emit('chat:response', {
@@ -330,18 +342,17 @@ function setupSocketHandlers(io, agentManager) {
         return;
       }
 
-      // ── 전원 복귀 + 완료 ──
+      // ── 전원 복귀 + 완료 (setTimeout 제거 — 다음 체인과 충돌 방지) ──
       const allAgents   = agentManager.getAllAgents();
       const deskByAgent = { '태호':'ceo_office','민준':'desk_1','지훈':'desk_2','소연':'desk_3','현우':'desk_4','유나':'desk_5' };
       const deskLocs    = ['desk_1','desk_2','desk_3','desk_4','desk_5'];
       const reactions   = ['수고했어요! 👏','좋은 결과네요! ✅','확인했습니다 👍','완료! 🎉','훌륭해요! ⭐'];
-      allAgents.forEach((a, i) => {
-        setTimeout(() => {
-          const loc = agentManager.resolveLocation(deskByAgent[a.name] || deskLocs[i] || 'desk_1');
-          if (loc) agentManager.moveAgent(a.id, loc.x, loc.y);
-          agentManager.speakAgent(a.id, reactions[i % reactions.length], 3000);
-        }, i * 500);
-      });
+      for (let i = 0; i < allAgents.length; i++) {
+        const a = allAgents[i];
+        const loc = agentManager.resolveLocation(deskByAgent[a.name] || deskLocs[i] || 'desk_1');
+        if (loc) agentManager.moveAgent(a.id, loc.x, loc.y);
+        agentManager.speakAgent(a.id, reactions[i % reactions.length], 3000);
+      }
 
       // PDF + 부서별 메모리 저장
       try {
@@ -376,6 +387,16 @@ function setupSocketHandlers(io, agentManager) {
     socket.on('chat:message', async ({ agentId, message, department }) => {
       if (department) currentDepartment = department;
 
+      // 동시 체인 실행 방지
+      if (chainRunning) {
+        socket.emit('chat:response', {
+          agentId: null, agentName: '⏳ 시스템',
+          message: '이전 업무가 진행 중입니다. 완료 후 다시 시도해주세요.',
+          toolCalls: [],
+        });
+        return;
+      }
+
       const agent = agentId
         ? agentManager.getAgent(agentId)
         : agentManager.getAllAgents()[0];
@@ -386,6 +407,7 @@ function setupSocketHandlers(io, agentManager) {
       }
 
       try {
+        chainRunning = true;
         await processAgentChain(agent.id, message, 1);
       } catch (err) {
         console.error('Chat error:', err.message);
@@ -393,6 +415,9 @@ function setupSocketHandlers(io, agentManager) {
           agentId: agent.id, agentName: agent.name,
           message: `오류: ${err.message}`, toolCalls: [],
         });
+      } finally {
+        chainRunning = false;
+        agentManager.movementLocked = false;
       }
     });
 
