@@ -268,29 +268,20 @@ function buildTileset() {
   setPixel(data, W, 7*TW+11, 0*TH+8, 210, 170, 50);
   setPixel(data, W, 7*TW+12, 0*TH+8, 210, 170, 50);
 
-  // GID9 (col0, row1): round table — dark mahogany with circular surface
+  // GID9 (col0, row1): 원형 테이블 표면 — 이음매 없는 평면 마호가니
+  // 여러 타일을 배치해서 하나의 큰 원형 테이블을 구성할 때 사용
   {
     const tx = 0, ty = 1;
     const ox = tx * TW, oy = ty * TH;
-    const cx = 7.5, cy = 7.5, r = 7;
     for (let dy = 0; dy < TH; dy++)
       for (let dx = 0; dx < TW; dx++) {
-        const dist = Math.sqrt((dx - cx) ** 2 + (dy - cy) ** 2);
-        if (dist <= r) {
-          // Dark mahogany with radial gradient
-          const t = dist / r;
-          const R = Math.round(100 + 40 * (1 - t));
-          const G = Math.round(50 + 25 * (1 - t));
-          const B = Math.round(20 + 15 * (1 - t));
-          setPixel(data, W, ox + dx, oy + dy, R, G, B);
-          // Rim highlight
-          if (dist > r - 1.5 && dist <= r)
-            setPixel(data, W, ox + dx, oy + dy, 70, 35, 12);
-        }
+        // 나무결 느낌의 미세한 가로 줄무늬
+        const stripe = ((dy * 3 + dx) % 5 === 0) ? -8 : 0;
+        const R = 115 + stripe;
+        const G = 62 + stripe;
+        const B = 28 + stripe;
+        setPixel(data, W, ox + dx, oy + dy, R, G, B);
       }
-    // Center highlight (gloss)
-    setPixel(data, W, ox + 6, oy + 6, 160, 100, 50);
-    setPixel(data, W, ox + 7, oy + 6, 160, 100, 50);
   }
 
   ensureDir(TILES_DIR);
@@ -327,9 +318,9 @@ function buildMap() {
     for (let x = 22; x <= 28; x++)
       floorData[y * MW + x] = 6;
 
-  // Carpet in meeting room (x=13-20, y=1-7)
+  // Carpet in meeting room (x=12-20, y=1-7) — 벽 없는 개방형
   for (let y = 1; y <= 7; y++)
-    for (let x = 13; x <= 20; x++)
+    for (let x = 12; x <= 20; x++)
       floorData[y * MW + x] = 6;
 
   // ── Objects layer ─────────────────────────────
@@ -352,22 +343,28 @@ function buildMap() {
   for (let y = 1; y <= 6; y++) setObj(21, y, 3);
   setObj(21, 6, 8); // door
 
-  // Meeting room left wall (x=12, y=1-4) — open at bottom
-  for (let y = 1; y <= 4; y++) setObj(12, y, 3);
-  setObj(12, 4, 8); // door
+  // Meeting room — 벽 제거, 개방형 (카펫으로 영역 구분)
 
   // ── Desks ────────────────────────────────────
   // PM desk area (top-left)
-  setObj(3, 3, 4);   setObj(5, 3, 4);   // PM row1
-  setObj(3, 5, 4);   setObj(5, 5, 4);   // PM row2
+  setObj(3, 3, 4);   setObj(5, 3, 4);
+  setObj(3, 5, 4);   setObj(5, 5, 4);
 
   // Dev desk area (top-left, adjacent to PM)
-  setObj(8, 3, 4);   setObj(10, 3, 4);  // Dev row1
+  setObj(8, 3, 4);   setObj(10, 3, 4);
 
-  // Meeting room — 원형 테이블 (3×3 ring, GID9)
-  setObj(15, 3, 9);  setObj(16, 3, 9);  setObj(17, 3, 9);
-  setObj(15, 4, 9);                      setObj(17, 4, 9);
-  setObj(15, 5, 9);  setObj(16, 5, 9);  setObj(17, 5, 9);
+  // Meeting room — 큰 원형 테이블 (5×5 다이아몬드, GID9)
+  //        15  16  17
+  //  y=2:  [T] [T] [T]
+  //  y=3:  [T] [T] [T] [T] [T]   ← 14~18
+  //  y=4:  [T] [T] [T] [T] [T]
+  //  y=5:  [T] [T] [T] [T] [T]
+  //  y=6:  [T] [T] [T]
+  setObj(15, 2, 9);  setObj(16, 2, 9);  setObj(17, 2, 9);
+  setObj(14, 3, 9);  setObj(15, 3, 9);  setObj(16, 3, 9);  setObj(17, 3, 9);  setObj(18, 3, 9);
+  setObj(14, 4, 9);  setObj(15, 4, 9);  setObj(16, 4, 9);  setObj(17, 4, 9);  setObj(18, 4, 9);
+  setObj(14, 5, 9);  setObj(15, 5, 9);  setObj(16, 5, 9);  setObj(17, 5, 9);  setObj(18, 5, 9);
+  setObj(15, 6, 9);  setObj(16, 6, 9);  setObj(17, 6, 9);
 
   // CEO desk
   setObj(25, 3, 4);

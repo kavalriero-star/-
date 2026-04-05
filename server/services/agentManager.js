@@ -115,18 +115,19 @@ class AgentManager extends EventEmitter {
     return true;
   }
 
-  // 특정 에이전트들을 원형 테이블 주변에 착석
+  // 전원을 큰 원형 테이블 둘레에 착석 (6석, 시계방향, 넓은 간격)
+  // 테이블: 5×5 다이아몬드 (x=14-18, y=2-6)
+  // 좌석: 테이블 바깥 1타일 + 충분한 간격 (각 좌석 간 3~4타일)
   gatherAgents(agentIds, location) {
     const loc = this.resolveLocation(location);
     if (!loc) return;
-    // 원형 테이블(15-17, 3-5) 둘레 6석 — 시계방향 배치
     const seats = [
-      { x: 16, y: 2 },  // 상단 중앙 (CEO/PM 자리)
-      { x: 18, y: 3 },  // 우상
-      { x: 18, y: 5 },  // 우하
-      { x: 16, y: 6 },  // 하단 중앙
-      { x: 14, y: 5 },  // 좌하
-      { x: 14, y: 3 },  // 좌상
+      { x: 16, y: 1 },  // 상단 중앙 (CEO/PM)
+      { x: 19, y: 2 },  // 우상
+      { x: 19, y: 6 },  // 우하
+      { x: 16, y: 7 },  // 하단 중앙
+      { x: 13, y: 6 },  // 좌하
+      { x: 13, y: 2 },  // 좌상
     ];
     agentIds.forEach((id, i) => {
       const pos = seats[i % seats.length];

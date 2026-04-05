@@ -296,6 +296,12 @@ function setupSocketHandlers(io, agentManager) {
           ? interactCall.input.message
           : `${agent.name}(${agent.role}) 작업 완료. 이어서 진행해주세요: ${message}`;
 
+        // 현재 에이전트를 자기 책상으로 복귀 (겹침 방지)
+        const myDesk = getWorkLocation(agent.role);
+        if (myDesk) {
+          const deskLoc = agentManager.resolveLocation(myDesk);
+          if (deskLoc) agentManager.moveAgent(agent.id, deskLoc.x, deskLoc.y);
+        }
         agentManager.speakAgent(agent.id, `📄 ${nextAgent.name}에게 전달!`, 3000);
         await new Promise(r => setTimeout(r, 1500));
 
