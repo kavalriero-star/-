@@ -5,4 +5,5 @@ public/assets/tiles/
 public/assets/maps/
 scripts/*
 !scripts/build-standalone.js
+!scripts/build-from-v02.js
 *.log
