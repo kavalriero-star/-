@@ -3,4 +3,5 @@ node_modules/
 public/assets/sprites/
 public/assets/tiles/
 public/assets/maps/
+scripts/
 *.log
