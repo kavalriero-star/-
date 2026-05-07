@@ -4,23 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Pixel Office AI — Living Office</title>
-
-<script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@1.3.9/dist/web/static/pretendard-dynamic-subset.min.css">
-<script src="https://cdn.jsdelivr.net/npm/iconify-icon@2.3.0/dist/iconify-icon.min.js"></script>
-<script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 <div id="app">
   <div id="header">
     <h1>
-      <span class="logo-icon"><iconify-icon icon="solar:buildings-3-bold" style="color:#fff;font-size:16px"></iconify-icon></span>
+      <span class="logo-icon">🏢</span>
       Pixel Office — Living Floor
     </h1>
     <div class="header-right">
       <div class="clock">
-        <iconify-icon icon="solar:clock-circle-linear" style="font-size:13px;color:#a1a1aa"></iconify-icon>
+        <span style="font-size:13px">🕘</span>
         <span id="clock-time">09:00</span>
         <span class="phase" id="clock-phase">아침</span>
       </div>
@@ -43,11 +38,11 @@
     </div>
     <div id="sidebar">
       <div id="agent-info">
-        <h3><iconify-icon icon="solar:users-group-rounded-linear" style="font-size:13px"></iconify-icon> 임직원 (16명)</h3>
+        <h3>👥 임직원 (16명)</h3>
         <div class="agent-grid" id="agent-list"></div>
       </div>
       <div id="chat-container">
-        <h3><iconify-icon icon="solar:chat-round-dots-linear" style="font-size:13px"></iconify-icon> 업무 채팅</h3>
+        <h3>💬 업무 채팅</h3>
         <div id="dept-selector">
           <label>부서</label>
           <select id="dept-select">
@@ -71,9 +66,7 @@
   </div>
 </div>
 
-<button id="tweaks-toggle" title="Tweaks">
-  <iconify-icon icon="solar:settings-bold" style="font-size:18px"></iconify-icon>
-</button>
+<button id="tweaks-toggle" title="Tweaks">⚙️</button>
 <div id="tweaks-panel">
   <h4>Tweaks <button id="tweaks-close">×</button></h4>
   <div class="tweak-row">
@@ -115,6 +108,22 @@
   </div>
 </div>
 
+<div id="error-overlay" style="display:none;position:fixed;bottom:12px;left:12px;right:12px;background:#2a1215;color:#ff8a80;padding:10px 14px;border-radius:8px;border:1px solid #5c2b2e;z-index:99999;font:12px/1.5 monospace;white-space:pre-wrap;max-height:40vh;overflow:auto"></div>
+
+<script>
+// Global error handler — show errors visibly
+window.addEventListener('error', function(e) {
+  const el = document.getElementById('error-overlay');
+  if (el) {
+    el.style.display = 'block';
+    el.textContent += '[Error] ' + (e.message || e.type) +
+      (e.filename ? ' (' + e.filename.split('/').pop() + ':' + e.lineno + ')' : '') + '\n';
+  }
+}, true);
+</script>
+
+<script src="/vendor/phaser/phaser.min.js"></script>
+<script src="/socket.io/socket.io.js"></script>
 <script src="js/asset-generation.js"></script>
 <script src="js/floorplan.js"></script>
 <script src="js/agents-data.js"></script>

@@ -7,14 +7,20 @@
     "start": "node server/index.js",
     "dev": "node --watch server/index.js"
   },
-  "keywords": ["pixel-art", "ai-agent", "virtual-office", "phaser", "claude"],
+  "keywords": [
+    "pixel-art",
+    "ai-agent",
+    "virtual-office",
+    "phaser",
+    "claude"
+  ],
   "license": "MIT",
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
-
+    "phaser": "^3.80.1",
     "socket.io": "^4.8.1"
   }
 }

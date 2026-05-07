@@ -15,6 +15,7 @@ const io = new Server(server, {
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '..', 'public')));
+app.use('/vendor/phaser', express.static(path.join(__dirname, '..', 'node_modules', 'phaser', 'dist')));
 app.use('/api', apiRoutes);
 
 // Initialize 16 agents
