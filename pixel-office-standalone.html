@@ -1,0 +1,3008 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pixel Office AI — Standalone</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;word-break:keep-all}
+body{font-family:'Pretendard',system-ui,sans-serif;background:#09090b;color:#e4e4e7;overflow:hidden;min-height:100dvh}
+#app{display:flex;flex-direction:column;height:100dvh}
+
+/* Header */
+#header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 20px;
+  background:rgba(24,24,27,0.85);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border-bottom:1px solid rgba(255,255,255,0.06);
+}
+#header h1{font-size:15px;font-weight:700;color:#e4e4e7;display:flex;align-items:center;gap:8px;letter-spacing:-0.02em}
+#header .logo-icon{width:28px;height:28px;background:#10b981;border-radius:8px;display:flex;align-items:center;justify-content:center}
+.header-right{display:flex;align-items:center;gap:14px;font-size:11px;color:#a1a1aa}
+.clock{display:flex;align-items:center;gap:6px;padding:5px 10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);border-radius:8px;font-variant-numeric:tabular-nums;font-weight:600;color:#e4e4e7}
+.clock .phase{font-size:10px;color:#a1a1aa;font-weight:500;text-transform:uppercase;letter-spacing:0.05em}
+#status-bar{font-size:11px;color:#10b981;display:flex;align-items:center;gap:6px}
+#status-bar::before{content:'';width:6px;height:6px;background:#10b981;border-radius:50%;animation:pulse-dot 2s ease-in-out infinite}
+@keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:0.4}}
+
+/* Layout */
+#main-container{display:flex;flex:1;overflow:hidden}
+#game-container{flex:1;background:#09090b;display:flex;align-items:center;justify-content:center;min-width:0;position:relative}
+#game-container canvas{image-rendering:pixelated;image-rendering:crisp-edges}
+
+/* Tone overlay (day-night tinting) */
+#tone-overlay{position:absolute;inset:0;pointer-events:none;mix-blend-mode:multiply;transition:background 1.2s ease;z-index:5}
+#vignette{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.45) 100%);z-index:6}
+
+/* Sidebar */
+#sidebar{
+  width:380px;display:flex;flex-direction:column;
+  background:rgba(24,24,27,0.65);
+  backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+  border-left:1px solid rgba(255,255,255,0.06);
+}
+
+#agent-info{padding:14px 14px 8px;border-bottom:1px solid rgba(255,255,255,0.06);max-height:34dvh;overflow-y:auto}
+#agent-info h3{font-size:11px;font-weight:600;color:#a1a1aa;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.agent-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.agent-card{
+  display:flex;align-items:center;gap:8px;
+  padding:6px 8px;
+  background:rgba(255,255,255,0.03);
+  border-radius:8px;border:1px solid transparent;
+  cursor:pointer;transition:all 0.2s;font-size:11px;
+}
+.agent-card:hover{background:rgba(255,255,255,0.06)}
+.agent-card.selected{border-color:rgba(16,185,129,0.5);background:rgba(16,185,129,0.06)}
+.agent-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;box-shadow:0 0 6px currentColor}
+.agent-card-name{font-weight:600;color:#e4e4e7;font-size:11px}
+.agent-card-role{font-size:9px;color:#71717a}
+.agent-card-state{font-size:9px;margin-left:auto;color:#71717a}
+.agent-card-state.idle{color:#4ade80}
+.agent-card-state.working{color:#facc15}
+.agent-card-state.moving{color:#60a5fa}
+.agent-card-state.coffee{color:#f59e0b}
+.agent-card-state.meeting{color:#a78bfa}
+.agent-card-state.chatting{color:#f472b6}
+.agent-card-state.toilet{color:#9ca3af}
+
+/* Chat */
+#chat-container{flex:1;display:flex;flex-direction:column;padding:14px;min-height:0}
+#chat-container h3{font-size:11px;font-weight:600;color:#a1a1aa;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+#dept-selector,#agent-selector{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+#dept-selector label,#agent-selector label{font-size:11px;color:#71717a;white-space:nowrap;font-weight:500}
+#dept-selector select,#agent-selector select{
+  flex:1;background:rgba(255,255,255,0.04);color:#e4e4e7;
+  border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:5px 10px;
+  font-size:12px;font-family:inherit;font-weight:500;
+  appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2371717a' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 8px center;
+}
+#dept-selector select{color:#10b981;font-weight:600}
+#chat-messages{
+  flex:1;overflow-y:auto;padding:10px;
+  background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.04);
+  border-radius:10px;margin-bottom:8px;min-height:0;
+}
+.chat-msg{margin-bottom:6px;padding:8px 12px;border-radius:10px;font-size:12px;line-height:1.55;animation:fadeIn 0.3s}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.chat-msg.user{background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.15);margin-left:32px;border-radius:10px 10px 4px 10px}
+.chat-msg.agent{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.05);margin-right:32px;border-radius:10px 10px 10px 4px}
+.chat-msg .msg-name{font-weight:600;font-size:10px;margin-bottom:3px}
+.chat-msg.user .msg-name{color:#34d399}
+.chat-msg.agent .msg-name{color:#a1a1aa}
+.chat-msg .msg-text{color:#d4d4d8;white-space:pre-wrap}
+.chat-msg .msg-text h2{font-size:13px;font-weight:700;color:#e4e4e7;margin:6px 0 3px}
+.chat-msg .msg-text h3{font-size:12px;font-weight:600;color:#a1a1aa;margin:5px 0 2px}
+.chat-msg .msg-text ul{margin:3px 0 3px 14px}
+.chat-msg .msg-text li{margin-bottom:1px}
+.chat-msg .msg-text strong{color:#10b981;font-weight:600}
+.chat-msg .msg-text table{width:100%;font-size:10px;margin:4px 0;border-collapse:collapse}
+.chat-msg .msg-text th,.chat-msg .msg-text td{padding:2px 5px;border:1px solid rgba(255,255,255,0.08)}
+.chat-msg .msg-text th{background:rgba(255,255,255,0.04);color:#a1a1aa}
+.tool-call{font-size:9px;color:#10b981;opacity:0.7;margin-top:3px}
+
+#chat-input-area{display:flex;gap:6px}
+#chat-input{
+  flex:1;background:rgba(255,255,255,0.04);color:#e4e4e7;
+  border:1px solid rgba(255,255,255,0.08);padding:8px 12px;border-radius:10px;
+  font-family:inherit;font-size:12px;outline:none;
+}
+#chat-input:focus{border-color:rgba(16,185,129,0.5);background:rgba(255,255,255,0.06)}
+#chat-input::placeholder{color:#52525b}
+#chat-send{background:#10b981;color:#09090b;border:none;padding:8px 16px;border-radius:10px;cursor:pointer;font-weight:700;font-size:12px;font-family:inherit;transition:all 0.2s}
+#chat-send:hover{background:#34d399}
+.report-download{display:inline-flex;align-items:center;gap:6px;margin-top:6px;padding:6px 12px;border-radius:8px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.2);color:#34d399;font-size:11px;font-weight:600;cursor:pointer;text-decoration:none}
+.report-download:hover{background:rgba(16,185,129,0.2)}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.08);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,0.15)}
+
+/* Tweaks Panel */
+#tweaks-panel{
+  position:fixed;right:400px;bottom:20px;width:280px;
+  background:rgba(24,24,27,0.94);backdrop-filter:blur(18px);
+  border:1px solid rgba(255,255,255,0.08);border-radius:14px;
+  padding:14px;font-size:12px;z-index:100;
+  box-shadow:0 20px 60px rgba(0,0,0,0.5);
+  display:none;
+}
+#tweaks-panel.open{display:block}
+#tweaks-panel h4{font-size:11px;font-weight:700;color:#a1a1aa;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+#tweaks-panel h4 button{background:none;border:none;color:#71717a;cursor:pointer;font-size:14px}
+.tweak-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;gap:10px}
+.tweak-row label{color:#d4d4d8;font-size:11px;flex:1}
+.tweak-row .seg{display:flex;background:rgba(0,0,0,0.3);border-radius:6px;padding:2px;border:1px solid rgba(255,255,255,0.04)}
+.tweak-row .seg button{background:none;border:none;color:#71717a;font-size:10px;padding:3px 8px;border-radius:4px;cursor:pointer;font-family:inherit;font-weight:600}
+.tweak-row .seg button.active{background:rgba(16,185,129,0.2);color:#34d399}
+.tweak-row .toggle{width:34px;height:18px;background:rgba(255,255,255,0.08);border-radius:9px;position:relative;cursor:pointer;transition:background 0.2s}
+.tweak-row .toggle.on{background:#10b981}
+.tweak-row .toggle::after{content:'';position:absolute;top:2px;left:2px;width:14px;height:14px;background:#fff;border-radius:50%;transition:transform 0.2s}
+.tweak-row .toggle.on::after{transform:translateX(16px)}
+
+/* Tweaks toggle button */
+#tweaks-toggle{
+  position:fixed;right:400px;bottom:20px;
+  background:rgba(24,24,27,0.94);border:1px solid rgba(255,255,255,0.08);
+  border-radius:50%;width:42px;height:42px;display:flex;align-items:center;justify-content:center;
+  color:#a1a1aa;cursor:pointer;z-index:99;box-shadow:0 10px 30px rgba(0,0,0,0.4);
+}
+#tweaks-toggle:hover{color:#10b981;border-color:rgba(16,185,129,0.4)}
+#tweaks-panel.open ~ #tweaks-toggle{display:none}
+
+/* Selected agent overlay */
+#agent-detail{
+  position:absolute;top:14px;left:14px;
+  background:rgba(24,24,27,0.92);backdrop-filter:blur(14px);
+  border:1px solid rgba(255,255,255,0.08);border-radius:12px;
+  padding:12px 14px;font-size:12px;min-width:200px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.4);z-index:7;
+  display:none;
+}
+#agent-detail.show{display:block}
+#agent-detail .ad-name{font-weight:700;font-size:14px;color:#e4e4e7}
+#agent-detail .ad-role{font-size:11px;color:#10b981;font-weight:600;margin-top:1px}
+#agent-detail .ad-row{display:flex;justify-content:space-between;margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.06);font-size:11px}
+#agent-detail .ad-row span:first-child{color:#71717a}
+#agent-detail .ad-row span:last-child{color:#e4e4e7;font-weight:500}
+#agent-detail .ad-bar{height:4px;background:rgba(255,255,255,0.08);border-radius:2px;overflow:hidden;margin-top:4px}
+#agent-detail .ad-bar .fill{height:100%;background:linear-gradient(90deg,#10b981,#34d399);transition:width 0.5s}
+#agent-detail .ad-bar.energy .fill{background:linear-gradient(90deg,#f59e0b,#fbbf24)}
+
+/* Legend */
+#legend{position:absolute;bottom:14px;left:14px;background:rgba(24,24,27,0.85);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:8px 10px;font-size:10px;color:#a1a1aa;z-index:7;display:flex;gap:10px;flex-wrap:wrap;max-width:60%}
+#legend .li{display:flex;align-items:center;gap:4px}
+#legend .li .d{width:7px;height:7px;border-radius:50%}
+
+/* Responsive */
+@media(max-width:900px){
+  #main-container{flex-direction:column}
+  #sidebar{width:100%;max-height:50dvh;border-left:none;border-top:1px solid rgba(255,255,255,0.06)}
+  #tweaks-panel,#tweaks-toggle{right:14px;bottom:auto;top:60px}
+  #agent-info{max-height:120px}
+  .agent-grid{grid-template-columns:repeat(2,1fr)}
+}
+
+/* Noise */
+body::after{content:'';position:fixed;inset:0;z-index:60;pointer-events:none;opacity:0.025;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
+
+
+/* === Standalone-only additions === */
+#api-modal{position:fixed;inset:0;background:rgba(0,0,0,0.7);display:none;align-items:center;justify-content:center;z-index:200;backdrop-filter:blur(8px)}
+#api-modal.open{display:flex}
+#api-modal .box{background:#18181b;border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:24px;width:90%;max-width:480px;box-shadow:0 30px 80px rgba(0,0,0,0.6)}
+#api-modal h2{font-size:15px;color:#e4e4e7;margin-bottom:8px;font-weight:700}
+#api-modal p{font-size:12px;color:#a1a1aa;line-height:1.7;margin-bottom:14px}
+#api-modal p a{color:#10b981;text-decoration:none}
+#api-modal input{width:100%;background:rgba(255,255,255,0.04);color:#e4e4e7;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;font-family:'Courier New',monospace;font-size:12px;outline:none;margin-bottom:12px}
+#api-modal input:focus{border-color:#10b981}
+#api-modal .row{display:flex;gap:8px;justify-content:flex-end}
+#api-modal button{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#d4d4d8;padding:8px 16px;border-radius:8px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:600}
+#api-modal button.primary{background:#10b981;border-color:#10b981;color:#09090b}
+#api-modal button.danger{background:rgba(239,68,68,0.15);border-color:rgba(239,68,68,0.3);color:#f87171}
+#api-status-pill{position:fixed;top:12px;right:12px;background:rgba(24,24,27,0.92);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:6px 12px;font-size:11px;color:#a1a1aa;z-index:50;cursor:pointer;display:flex;align-items:center;gap:6px}
+#api-status-pill:hover{border-color:#10b981;color:#10b981}
+#api-status-pill .dot{width:6px;height:6px;border-radius:50%;background:#f59e0b}
+#api-status-pill.connected .dot{background:#10b981}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
+</head>
+<body>
+<div id="app">
+  <div id="header">
+    <h1>
+      <span class="logo-icon">🏢</span>
+      Pixel Office — Standalone
+    </h1>
+    <div class="header-right">
+      <div class="clock">
+        <span style="font-size:13px">🕘</span>
+        <span id="clock-time">09:00</span>
+        <span class="phase" id="clock-phase">아침</span>
+      </div>
+      <span id="status-bar">Mock 모드</span>
+    </div>
+  </div>
+  <div id="main-container">
+    <div id="game-container">
+      <div id="tone-overlay"></div>
+      <div id="vignette"></div>
+      <div id="agent-detail"></div>
+      <div id="legend">
+        <div class="li"><div class="d" style="background:#4ade80"></div>대기</div>
+        <div class="li"><div class="d" style="background:#facc15"></div>작업</div>
+        <div class="li"><div class="d" style="background:#60a5fa"></div>이동</div>
+        <div class="li"><div class="d" style="background:#f59e0b"></div>휴식</div>
+        <div class="li"><div class="d" style="background:#a78bfa"></div>회의</div>
+        <div class="li"><div class="d" style="background:#f472b6"></div>대화</div>
+      </div>
+    </div>
+    <div id="sidebar">
+      <div id="agent-info">
+        <h3>👥 임직원 (16명)</h3>
+        <div class="agent-grid" id="agent-list"></div>
+      </div>
+      <div id="chat-container">
+        <h3>💬 업무 채팅</h3>
+        <div id="dept-selector">
+          <label>부서</label>
+          <select id="dept-select">
+            <option value="기획">기획</option><option value="개발">개발</option>
+            <option value="영업">영업</option><option value="구매">구매</option>
+            <option value="제조">제조</option><option value="품질">품질</option>
+            <option value="인사">인사</option><option value="재무">재무</option>
+          </select>
+        </div>
+        <div id="agent-selector">
+          <label>담당</label>
+          <select id="target-agent"></select>
+        </div>
+        <div id="chat-messages"></div>
+        <div id="chat-input-area">
+          <input id="chat-input" placeholder="업무 내용을 입력하세요...">
+          <button id="chat-send">전송</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<button id="tweaks-toggle" title="Tweaks">⚙️</button>
+<div id="tweaks-panel">
+  <h4>Tweaks <button id="tweaks-close">×</button></h4>
+  <div class="tweak-row">
+    <label>시간 속도</label>
+    <div class="seg" data-tweak="speed">
+      <button data-v="1">1x</button>
+      <button data-v="2" class="active">2x</button>
+      <button data-v="4">4x</button>
+      <button data-v="8">8x</button>
+    </div>
+  </div>
+  <div class="tweak-row">
+    <label>조명 / 시간대</label>
+    <div class="seg" data-tweak="lighting">
+      <button data-v="auto" class="active">Auto</button>
+      <button data-v="day">낮</button>
+      <button data-v="dusk">저녁</button>
+      <button data-v="night">야근</button>
+    </div>
+  </div>
+  <div class="tweak-row">
+    <label>자율 행동</label>
+    <div class="toggle on" data-tweak="autonomy"></div>
+  </div>
+  <div class="tweak-row">
+    <label>말풍선 표시</label>
+    <div class="toggle on" data-tweak="bubbles"></div>
+  </div>
+  <div class="tweak-row">
+    <label>BGM</label>
+    <div class="toggle" data-tweak="bgm"></div>
+  </div>
+  <div class="tweak-row">
+    <label>레이아웃</label>
+    <div class="seg" data-tweak="layout">
+      <button data-v="open" class="active">오픈형</button>
+      <button data-v="cubicle">큐비클</button>
+    </div>
+  </div>
+</div>
+
+<!-- API key status pill (top-right) -->
+<div id="api-status-pill" title="Claude API 키 설정">
+  <span class="dot"></span>
+  <span id="api-pill-text">API 키 설정</span>
+</div>
+
+<!-- API key modal -->
+<div id="api-modal">
+  <div class="box">
+    <h2>🔑 Claude API 키 설정</h2>
+    <p>
+      AI 직원이 실제 업무 결과를 생성하려면 Anthropic API 키가 필요합니다.<br>
+      키를 입력하지 않으면 미리 정의된 <strong>Mock 응답</strong>이 사용됩니다.<br><br>
+      🔒 키는 브라우저의 <strong>localStorage</strong>에만 저장되며, 외부로 전송되지 않습니다.<br>
+      🔗 키 발급: <a href="https://console.anthropic.com/settings/keys" target="_blank">console.anthropic.com</a>
+    </p>
+    <input type="password" id="api-key-input" placeholder="sk-ant-api03-...">
+    <div class="row">
+      <button id="api-clear" class="danger">삭제</button>
+      <button id="api-cancel">취소</button>
+      <button id="api-save" class="primary">저장</button>
+    </div>
+  </div>
+</div>
+
+<div id="error-overlay" style="display:none;position:fixed;bottom:12px;left:12px;right:12px;background:#2a1215;color:#ff8a80;padding:10px 14px;border-radius:8px;border:1px solid #5c2b2e;z-index:99999;font:12px/1.5 monospace;white-space:pre-wrap;max-height:40vh;overflow:auto"></div>
+
+<script>
+// Global error handler
+window.addEventListener('error', function(e) {
+  const el = document.getElementById('error-overlay');
+  if (el) {
+    el.style.display = 'block';
+    el.textContent += '[Error] ' + (e.message || e.type) +
+      (e.filename ? ' (' + e.filename.split('/').pop() + ':' + e.lineno + ')' : '') + '\n';
+  }
+}, true);
+
+// API key UI wiring
+function updateApiPill() {
+  const pill = document.getElementById('api-status-pill');
+  const text = document.getElementById('api-pill-text');
+  const has = !!localStorage.getItem('anthropic_api_key');
+  pill.classList.toggle('connected', has);
+  text.textContent = has ? 'Claude AI 연결됨' : 'API 키 설정';
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  const modal = document.getElementById('api-modal');
+  const pill = document.getElementById('api-status-pill');
+  const input = document.getElementById('api-key-input');
+
+  pill.onclick = () => {
+    input.value = localStorage.getItem('anthropic_api_key') || '';
+    modal.classList.add('open');
+  };
+  document.getElementById('api-cancel').onclick = () => modal.classList.remove('open');
+  document.getElementById('api-save').onclick = () => {
+    const v = input.value.trim();
+    if (v) {
+      localStorage.setItem('anthropic_api_key', v);
+    } else {
+      localStorage.removeItem('anthropic_api_key');
+    }
+    modal.classList.remove('open');
+    updateApiPill();
+    const sb = document.getElementById('status-bar');
+    if (localStorage.getItem('anthropic_api_key')) {
+      sb.textContent = 'Claude AI';
+      sb.style.color = '#10b981';
+    } else {
+      sb.textContent = 'Mock 모드';
+      sb.style.color = '#f59e0b';
+    }
+  };
+  document.getElementById('api-clear').onclick = () => {
+    if (confirm('저장된 API 키를 삭제하시겠습니까?')) {
+      localStorage.removeItem('anthropic_api_key');
+      input.value = '';
+      modal.classList.remove('open');
+      updateApiPill();
+    }
+  };
+  updateApiPill();
+});
+</script>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// Asset generation: detailed pixel sprites + tileset (16x16)
+// ═══════════════════════════════════════════════════════
+
+// 16 character profiles — varied roles, outfits, hair, accessories
+// outfit: 'suit'|'shirt'|'tee'|'hoodie'|'blouse'|'dress'|'reception'
+// hairStyle: 'short'|'long'|'pony'|'bald'|'bun'|'curly'|'sidecut'
+// accessory: 'glasses'|'tie'|'badge'|'headset'|null
+const CHARS = [
+  // 0 PM — navy suit, glasses
+  { shirt:[40,55,110], pants:[28,32,60], hair:[44,28,12],
+    skin:[245,205,170], outfit:'suit', tie:[180,40,50], hairStyle:'short', accessory:'glasses', badge:true },
+  // 1 시니어 개발자 — green hoodie
+  { shirt:[40,140,80], pants:[40,48,80], hair:[120,72,40],
+    skin:[238,200,160], outfit:'hoodie', hairStyle:'short', accessory:'glasses' },
+  // 2 CEO — dark suit, silver hair, red tie
+  { shirt:[20,20,40], pants:[16,20,36], hair:[180,180,190],
+    skin:[238,205,175], outfit:'suit', tie:[200,40,50], hairStyle:'short', accessory:null, badge:true },
+  // 3 디자이너 — purple, blonde
+  { shirt:[140,80,200], pants:[60,50,80], hair:[240,210,100],
+    skin:[245,210,180], outfit:'blouse', hairStyle:'long', accessory:'glasses' },
+  // 4 QA — gray, black hair
+  { shirt:[100,100,115], pants:[40,45,60], hair:[24,20,28],
+    skin:[235,195,160], outfit:'shirt', hairStyle:'short', accessory:'glasses' },
+  // 5 데이터 — teal, dark hair, ponytail
+  { shirt:[28,140,150], pants:[40,48,72], hair:[40,28,32],
+    skin:[240,200,170], outfit:'blouse', hairStyle:'pony', accessory:'glasses' },
+  // 6 영업 매니저 — red shirt, brown hair
+  { shirt:[200,80,80], pants:[44,36,52], hair:[110,68,30],
+    skin:[238,200,170], outfit:'shirt', hairStyle:'short', accessory:'tie', badge:true },
+  // 7 제조 — yellow polo, dark hair
+  { shirt:[220,170,40], pants:[60,50,72], hair:[56,32,20],
+    skin:[235,190,150], outfit:'tee', hairStyle:'short', accessory:'badge' },
+  // 8 DevOps — charcoal tee, redhead
+  { shirt:[60,60,70], pants:[40,40,50], hair:[180,80,40],
+    skin:[245,210,180], outfit:'tee', hairStyle:'curly', accessory:'headset' },
+  // 9 구매 — sky blue blouse, sandy hair
+  { shirt:[150,200,240], pants:[30,50,90], hair:[230,200,150],
+    skin:[245,210,180], outfit:'blouse', hairStyle:'long', accessory:'badge' },
+  // 10 영업 팀장 — pink, dark hair, bun
+  { shirt:[225,130,170], pants:[64,40,60], hair:[40,24,20],
+    skin:[245,205,175], outfit:'dress', hairStyle:'bun', accessory:'tie', badge:true },
+  // 11 프론트 — cyan, blonde
+  { shirt:[80,180,225], pants:[40,55,80], hair:[210,170,90],
+    skin:[245,210,180], outfit:'tee', hairStyle:'short', accessory:'headset' },
+  // 12 인사 — tan blouse, auburn
+  { shirt:[210,170,130], pants:[80,56,40], hair:[160,80,32],
+    skin:[245,205,175], outfit:'blouse', hairStyle:'long', accessory:null, badge:true },
+  // 13 백엔드 — indigo hoodie
+  { shirt:[88,80,180], pants:[32,32,60], hair:[40,28,20],
+    skin:[238,195,160], outfit:'hoodie', hairStyle:'sidecut', accessory:'glasses' },
+  // 14 재무 — cream shirt, chestnut
+  { shirt:[245,225,200], pants:[88,72,56], hair:[120,72,40],
+    skin:[245,210,180], outfit:'shirt', hairStyle:'short', accessory:'tie', badge:true },
+  // 15 리셉션 — forest green dress, dark hair
+  { shirt:[70,140,120], pants:[48,40,32], hair:[28,20,12],
+    skin:[245,210,180], outfit:'reception', hairStyle:'long', accessory:'badge' },
+];
+const SHOE=[28,22,18];
+
+// Frames: col 0=left, 1=right, 2=up, 3=down
+function generateSpritesheet() {
+  const c = document.createElement('canvas');
+  const fw=16, fh=24, COLS=4, ROWS=CHARS.length;
+  c.width = fw*COLS; c.height = fh*ROWS;
+  const ctx = c.getContext('2d');
+  const id = ctx.createImageData(c.width, c.height);
+  const d = id.data;
+  function sp(x,y,r,g,b,a=255){
+    if(x<0||y<0||x>=c.width||y>=c.height) return;
+    const i=(y*c.width+x)*4; d[i]=r;d[i+1]=g;d[i+2]=b;d[i+3]=a;
+  }
+  function dr(x,y,w,h,col){ for(let dy=0;dy<h;dy++) for(let dx=0;dx<w;dx++) sp(x+dx,y+dy,col[0],col[1],col[2]); }
+  function shade(col, factor){
+    return [Math.max(0,Math.min(255,col[0]*factor)|0),
+            Math.max(0,Math.min(255,col[1]*factor)|0),
+            Math.max(0,Math.min(255,col[2]*factor)|0)];
+  }
+
+  for(let row=0; row<ROWS; row++) {
+    for(let col=0; col<COLS; col++) {
+      const ox=col*fw, oy=row*fh, ch=CHARS[row];
+      const SKIN = ch.skin;
+      const SKIN_SH = shade(SKIN, 0.85);
+      const SHIRT_SH = shade(ch.shirt, 0.78);
+      const SHIRT_HL = shade(ch.shirt, 1.15);
+      const PANTS_SH = shade(ch.pants, 0.7);
+
+      const facing = col; // 0=L,1=R,2=U,3=D
+      const isUp = facing===2;
+      const isWalkA = (col===0); // left frame as walk pose A
+      const isWalkB = (col===1);
+
+      // ── HAIR (top of head) ──
+      if(ch.hairStyle === 'long'){
+        dr(ox+4,oy+0,8,5,ch.hair);
+        // long sides
+        if(!isUp){ dr(ox+3,oy+3,1,7,ch.hair); dr(ox+12,oy+3,1,7,ch.hair); }
+        else { dr(ox+3,oy+3,10,5,ch.hair); }
+      } else if(ch.hairStyle === 'pony'){
+        dr(ox+5,oy+0,6,4,ch.hair);
+        if(!isUp) dr(ox+10,oy+3,2,5,ch.hair); // pony tail visible from side/back
+      } else if(ch.hairStyle === 'bun'){
+        dr(ox+5,oy+0,6,4,ch.hair);
+        dr(ox+10,oy+1,3,3,ch.hair);
+      } else if(ch.hairStyle === 'curly'){
+        dr(ox+4,oy+0,8,4,ch.hair);
+        // curls
+        sp(ox+3,oy+1,ch.hair[0],ch.hair[1],ch.hair[2]);
+        sp(ox+12,oy+1,ch.hair[0],ch.hair[1],ch.hair[2]);
+        sp(ox+4,oy+4,ch.hair[0],ch.hair[1],ch.hair[2]);
+        sp(ox+11,oy+4,ch.hair[0],ch.hair[1],ch.hair[2]);
+      } else if(ch.hairStyle === 'sidecut'){
+        dr(ox+5,oy+0,6,4,ch.hair);
+        // shaved side
+        dr(ox+11,oy+3,2,3,shade(ch.hair, 0.4));
+      } else if(ch.hairStyle === 'bald'){
+        // skin only
+      } else { // short
+        dr(ox+5,oy+0,6,4,ch.hair);
+        dr(ox+4,oy+1,8,2,ch.hair);
+      }
+      // hair highlight
+      sp(ox+6,oy+1,Math.min(255,ch.hair[0]+30),Math.min(255,ch.hair[1]+30),Math.min(255,ch.hair[2]+30));
+
+      // ── FACE ──
+      if(isUp){
+        // back of head only — fill hair
+        dr(ox+4,oy+1,8,8,ch.hair);
+      } else {
+        dr(ox+5,oy+2,6,7,SKIN);
+        // cheek shadow
+        sp(ox+5,oy+7,SKIN_SH[0],SKIN_SH[1],SKIN_SH[2]);
+        sp(ox+10,oy+7,SKIN_SH[0],SKIN_SH[1],SKIN_SH[2]);
+        // EYES
+        if(facing===3){ // front
+          sp(ox+6,oy+5,0,0,0); sp(ox+9,oy+5,0,0,0);
+          // glasses
+          if(ch.accessory==='glasses'){
+            sp(ox+5,oy+5,40,40,50); sp(ox+7,oy+5,40,40,50);
+            sp(ox+8,oy+5,40,40,50); sp(ox+10,oy+5,40,40,50);
+            sp(ox+5,oy+6,40,40,50); sp(ox+7,oy+6,40,40,50);
+            sp(ox+8,oy+6,40,40,50); sp(ox+10,oy+6,40,40,50);
+            sp(ox+6,oy+6,40,40,50); sp(ox+9,oy+6,40,40,50);
+          }
+          // mouth (subtle)
+          sp(ox+7,oy+8,SKIN_SH[0],SKIN_SH[1],SKIN_SH[2]);
+          sp(ox+8,oy+8,SKIN_SH[0],SKIN_SH[1],SKIN_SH[2]);
+        } else if(facing===0){ // left
+          sp(ox+6,oy+5,0,0,0);
+          if(ch.accessory==='glasses'){
+            sp(ox+5,oy+5,40,40,50); sp(ox+7,oy+5,40,40,50);
+            sp(ox+5,oy+6,40,40,50); sp(ox+7,oy+6,40,40,50);
+          }
+        } else if(facing===1){ // right
+          sp(ox+9,oy+5,0,0,0);
+          if(ch.accessory==='glasses'){
+            sp(ox+8,oy+5,40,40,50); sp(ox+10,oy+5,40,40,50);
+            sp(ox+8,oy+6,40,40,50); sp(ox+10,oy+6,40,40,50);
+          }
+        }
+        // ear hint
+        if(facing===0){ sp(ox+4,oy+5,SKIN_SH[0],SKIN_SH[1],SKIN_SH[2]); sp(ox+4,oy+6,SKIN_SH[0],SKIN_SH[1],SKIN_SH[2]); }
+        if(facing===1){ sp(ox+11,oy+5,SKIN_SH[0],SKIN_SH[1],SKIN_SH[2]); sp(ox+11,oy+6,SKIN_SH[0],SKIN_SH[1],SKIN_SH[2]); }
+      }
+
+      // ── NECK ──
+      dr(ox+7,oy+9,2,2,SKIN);
+
+      // ── SHIRT BODY ──
+      dr(ox+4,oy+11,8,7,ch.shirt);
+      // shading on side
+      dr(ox+4,oy+11,1,7,SHIRT_SH);
+      dr(ox+11,oy+11,1,7,SHIRT_SH);
+      // collar / outfit details
+      if(ch.outfit==='suit'){
+        // lapels (V shape)
+        dr(ox+5,oy+11,2,1,shade(ch.shirt,0.5));
+        dr(ox+9,oy+11,2,1,shade(ch.shirt,0.5));
+        sp(ox+6,oy+12,shade(ch.shirt,0.5)[0],shade(ch.shirt,0.5)[1],shade(ch.shirt,0.5)[2]);
+        sp(ox+9,oy+12,shade(ch.shirt,0.5)[0],shade(ch.shirt,0.5)[1],shade(ch.shirt,0.5)[2]);
+        // shirt under
+        dr(ox+7,oy+11,2,3,[245,245,250]);
+        // tie
+        if(ch.tie){
+          sp(ox+7,oy+12,ch.tie[0],ch.tie[1],ch.tie[2]);
+          sp(ox+8,oy+12,ch.tie[0],ch.tie[1],ch.tie[2]);
+          dr(ox+7,oy+13,2,3,ch.tie);
+        }
+      } else if(ch.outfit==='hoodie'){
+        // hood drawstring + hood collar
+        dr(ox+5,oy+11,6,1,shade(ch.shirt,0.7));
+        sp(ox+7,oy+12,250,250,250); sp(ox+8,oy+12,250,250,250);
+        // pocket
+        dr(ox+6,oy+15,4,1,shade(ch.shirt,0.85));
+      } else if(ch.outfit==='shirt'){
+        // collar
+        dr(ox+6,oy+11,4,1,SHIRT_HL);
+        sp(ox+7,oy+12,SHIRT_HL[0],SHIRT_HL[1],SHIRT_HL[2]);
+        sp(ox+8,oy+12,SHIRT_HL[0],SHIRT_HL[1],SHIRT_HL[2]);
+        // tie if accessory
+        if(ch.accessory==='tie' && ch.tie){
+          sp(ox+7,oy+12,ch.tie[0],ch.tie[1],ch.tie[2]);
+          sp(ox+8,oy+12,ch.tie[0],ch.tie[1],ch.tie[2]);
+          dr(ox+7,oy+13,2,3,ch.tie);
+        } else if(ch.accessory==='tie'){
+          dr(ox+7,oy+13,2,3,[100,30,40]);
+        }
+        // buttons
+        sp(ox+8,oy+14,SHIRT_SH[0],SHIRT_SH[1],SHIRT_SH[2]);
+        sp(ox+8,oy+16,SHIRT_SH[0],SHIRT_SH[1],SHIRT_SH[2]);
+      } else if(ch.outfit==='blouse'){
+        // soft collar
+        dr(ox+6,oy+11,4,1,SHIRT_HL);
+        // chest detail
+        sp(ox+7,oy+13,SHIRT_HL[0],SHIRT_HL[1],SHIRT_HL[2]);
+        sp(ox+8,oy+13,SHIRT_HL[0],SHIRT_HL[1],SHIRT_HL[2]);
+      } else if(ch.outfit==='dress'){
+        // dress flares wider at bottom
+        dr(ox+3,oy+17,10,1,ch.shirt);
+      } else if(ch.outfit==='reception'){
+        // scarf/uniform accent
+        dr(ox+6,oy+11,4,1,[240,220,180]);
+        sp(ox+7,oy+12,240,220,180); sp(ox+8,oy+12,240,220,180);
+      } else { // tee
+        // round neckline
+        dr(ox+6,oy+11,4,1,SHIRT_SH);
+      }
+
+      // ID badge
+      if(ch.badge){
+        sp(ox+10,oy+14,250,250,250);
+        sp(ox+10,oy+15,180,180,200);
+        sp(ox+11,oy+13,SHIRT_SH[0],SHIRT_SH[1],SHIRT_SH[2]);
+      }
+      // Headset
+      if(ch.accessory==='headset' && !isUp){
+        sp(ox+4,oy+4,40,40,50); sp(ox+11,oy+4,40,40,50);
+        if(facing===3){
+          sp(ox+5,oy+3,40,40,50); sp(ox+10,oy+3,40,40,50);
+          sp(ox+11,oy+5,40,40,50);
+        }
+      }
+
+      // ── ARMS ──
+      // arm position varies for walk
+      let armDownL = oy+12, armDownR = oy+12;
+      if(isWalkA){ armDownL = oy+13; armDownR = oy+11; }
+      else if(isWalkB){ armDownL = oy+11; armDownR = oy+13; }
+
+      dr(ox+3,armDownL,1,5,ch.shirt);
+      dr(ox+12,armDownR,1,5,ch.shirt);
+      // hands
+      sp(ox+3,armDownL+5,SKIN[0],SKIN[1],SKIN[2]);
+      sp(ox+12,armDownR+5,SKIN[0],SKIN[1],SKIN[2]);
+
+      // ── PANTS / LEGS ──
+      // walk: alternate leg lift
+      if(isWalkA){
+        dr(ox+5,oy+18,3,3,ch.pants); dr(ox+8,oy+18,3,4,ch.pants);
+        dr(ox+5,oy+22,3,2,SHOE); dr(ox+8,oy+22,3,2,SHOE);
+      } else if(isWalkB){
+        dr(ox+5,oy+18,3,4,ch.pants); dr(ox+8,oy+18,3,3,ch.pants);
+        dr(ox+5,oy+22,3,2,SHOE); dr(ox+8,oy+22,3,2,SHOE);
+      } else {
+        dr(ox+5,oy+18,6,4,ch.pants);
+        dr(ox+5,oy+22,3,2,SHOE); dr(ox+8,oy+22,3,2,SHOE);
+      }
+      // pants seam (center)
+      sp(ox+7,oy+19,PANTS_SH[0],PANTS_SH[1],PANTS_SH[2]);
+      sp(ox+8,oy+19,PANTS_SH[0],PANTS_SH[1],PANTS_SH[2]);
+      sp(ox+7,oy+20,PANTS_SH[0],PANTS_SH[1],PANTS_SH[2]);
+      // shoe highlight
+      sp(ox+5,oy+22,shade(SHOE,1.4)[0],shade(SHOE,1.4)[1],shade(SHOE,1.4)[2]);
+      sp(ox+8,oy+22,shade(SHOE,1.4)[0],shade(SHOE,1.4)[1],shade(SHOE,1.4)[2]);
+    }
+  }
+  ctx.putImageData(id,0,0);
+  return c.toDataURL();
+}
+
+// ═══════════════════════════════════════════════════════
+// Tile IDs (gid) — expanded with detail tiles 33–48
+// ═══════════════════════════════════════════════════════
+function generateTileset() {
+  const TW=16, TH=16, COLS=8, ROWS=8;
+  const c = document.createElement('canvas');
+  c.width = TW*COLS; c.height = TH*ROWS;
+  const ctx = c.getContext('2d');
+  const id = ctx.createImageData(c.width, c.height);
+  const d = id.data;
+  const W=c.width;
+  function sp(x,y,r,g,b,a=255){
+    if(x<0||y<0||x>=c.width||y>=c.height) return;
+    const i=(y*W+x)*4; d[i]=r;d[i+1]=g;d[i+2]=b;d[i+3]=a;
+  }
+  function ft(tx,ty,c1,c2){
+    for(let dy=0;dy<TH;dy++) for(let dx=0;dx<TW;dx++){
+      const cl=(c2&&((dx+dy)%2===0))?c2:c1;
+      sp(tx*TW+dx,ty*TH+dy,cl[0],cl[1],cl[2]);
+    }
+  }
+  function rect(tx,ty,x0,y0,w,h,col){
+    for(let dy=0;dy<h;dy++) for(let dx=0;dx<w;dx++) sp(tx*TW+x0+dx, ty*TH+y0+dy, col[0],col[1],col[2]);
+  }
+  function pix(tx,ty,x,y,col){ sp(tx*TW+x, ty*TH+y, col[0],col[1],col[2]); }
+
+  // GID2 carpet — soft beige with weave
+  ft(1,0,[212,196,170],[202,186,160]);
+  for(let i=0;i<8;i++){const fx=2+((i*5)%12),fy=2+((i*7)%12);pix(1,0,fx,fy,[180,164,140]);}
+  // weave lines
+  for(let dy=0;dy<TH;dy+=4) for(let dx=0;dx<TW;dx++) pix(1,0,dx,dy,[195,180,156]);
+
+  // GID3 wall
+  ft(2,0,[238,234,226]);
+  for(let dx=0;dx<TW;dx++){pix(2,0,dx,0,[200,196,188]); pix(2,0,dx,1,[248,244,236]); pix(2,0,dx,TH-1,[180,176,168]);}
+  for(let dx=0;dx<TW;dx++){pix(2,0,dx,TH-2,[160,156,148]);}
+  // subtle texture
+  for(let i=0;i<4;i++){pix(2,0,2+i*4,5,[225,221,213]); pix(2,0,3+i*4,9,[225,221,213]);}
+
+  // GID4 desk wood
+  ft(3,0,[185,140,90]);
+  for(let dx=0;dx<TW;dx++){pix(3,0,dx,0,[120,80,40]); pix(3,0,dx,1,[210,170,120]); pix(3,0,dx,TH-1,[120,80,40]);}
+  for(let dx=2;dx<TW-2;dx+=4){for(let dy=3;dy<TH-2;dy++) pix(3,0,dx,dy,[160,115,70]);}
+
+  // GID5 office chair
+  ft(4,0,[55,60,75]);
+  for(let dx=2;dx<TW-2;dx++){pix(4,0,dx,2,[35,40,55]); pix(4,0,dx,3,[80,85,100]); pix(4,0,dx,8,[35,40,55]);}
+  for(let dy=4;dy<10;dy++){pix(4,0,1,dy,[30,35,45]); pix(4,0,TW-2,dy,[30,35,45]);}
+  // seat
+  rect(4,0,4,9,8,2,[40,45,60]);
+  // 5-leg base
+  pix(4,0,4,TH-2,[20,20,30]); pix(4,0,7,TH-2,[20,20,30]);
+  pix(4,0,11,TH-2,[20,20,30]); pix(4,0,8,TH-3,[20,20,30]);
+  // hydraulic
+  pix(4,0,7,12,[80,80,90]); pix(4,0,8,12,[80,80,90]);
+
+  // GID6 meeting carpet (rich purple)
+  ft(5,0,[55,60,110],[48,55,100]);
+  for(let dy=2;dy<TH;dy+=4) for(let dx=2;dx<TW;dx+=4) pix(5,0,dx,dy,[90,100,150]);
+
+  // GID7 window
+  for(let dy=0;dy<TH;dy++) for(let dx=0;dx<TW;dx++){
+    // sky gradient
+    const v=Math.max(0,Math.min(255,170+dy*4));
+    sp(6*TW+dx, 0+dy, 130+dy*2, v, 240);
+  }
+  // clouds
+  for(let dx=2;dx<6;dx++) pix(6,0,dx,4,[245,250,255]);
+  for(let dx=3;dx<5;dx++) pix(6,0,dx,5,[245,250,255]);
+  for(let dx=10;dx<13;dx++) pix(6,0,dx,7,[245,250,255]);
+  // building outlines below (city)
+  for(let dy=11;dy<14;dy++) for(let dx=0;dx<TW;dx++) pix(6,0,dx,dy,[120,140,150]);
+  rect(6,0,2,9,3,2,[100,110,120]);
+  rect(6,0,9,8,2,3,[100,110,120]);
+  // frame
+  for(let dx=0;dx<TW;dx++){pix(6,0,dx,0,[60,55,50]); pix(6,0,dx,TH-1,[60,55,50]);}
+  for(let dy=0;dy<TH;dy++){pix(6,0,0,dy,[60,55,50]); pix(6,0,TW-1,dy,[60,55,50]);}
+  for(let dy=1;dy<TH-1;dy++) pix(6,0,Math.floor(TW/2),dy,[60,55,50]);
+  for(let dx=1;dx<TW-1;dx++) pix(6,0,dx,Math.floor(TH/2),[60,55,50]);
+
+  // GID8 door
+  ft(7,0,[140,90,50]);
+  for(let dx=0;dx<TW;dx++){pix(7,0,dx,0,[80,50,25]); pix(7,0,dx,TH-1,[80,50,25]);}
+  for(let dy=0;dy<TH;dy++){pix(7,0,0,dy,[80,50,25]); pix(7,0,TW-1,dy,[80,50,25]);}
+  rect(7,0,3,3,10,5,[160,110,60]);
+  rect(7,0,3,9,10,4,[160,110,60]);
+  // panel highlights
+  for(let dx=4;dx<13;dx++){pix(7,0,dx,3,[180,130,80]); pix(7,0,dx,9,[180,130,80]);}
+  pix(7,0,12,8,[230,200,80]); pix(7,0,12,9,[230,200,80]);
+  pix(7,0,11,8,[180,150,40]);
+
+  // GID9 round meeting table
+  for(let dy=0;dy<TH;dy++) for(let dx=0;dx<TW;dx++){
+    const cx=TW/2, cy=TH/2, dist=Math.hypot(dx-cx+0.5, dy-cy+0.5);
+    if(dist<7.5) sp(0*TW+dx, 1*TH+dy, 100, 60, 30);
+    else sp(0*TW+dx, 1*TH+dy, 0,0,0,0);
+  }
+  for(let dy=0;dy<TH;dy++) for(let dx=0;dx<TW;dx++){
+    const cx=TW/2, cy=TH/2, dist=Math.hypot(dx-cx+0.5, dy-cy+0.5);
+    if(dist>5.5 && dist<7) sp(0*TW+dx, 1*TH+dy, 80,45,20);
+    if(dist<3) sp(0*TW+dx, 1*TH+dy, 130,80,45);
+  }
+  // tiny coffee cups on table
+  pix(0,1,5,5,[245,245,245]); pix(0,1,5,6,[100,60,30]);
+  pix(0,1,11,9,[245,245,245]); pix(0,1,11,10,[100,60,30]);
+
+  // GID10 whiteboard
+  ft(1,1,[252,252,250]);
+  for(let dx=0;dx<TW;dx++){pix(1,1,dx,0,[80,80,80]); pix(1,1,dx,TH-1,[80,80,80]);}
+  for(let dy=0;dy<TH;dy++){pix(1,1,0,dy,[80,80,80]); pix(1,1,TW-1,dy,[80,80,80]);}
+  // marker traces — diagram-like
+  for(let dx=3;dx<7;dx++) pix(1,1,dx,4,[70,140,200]);
+  for(let dy=4;dy<7;dy++) pix(1,1,7,dy,[70,140,200]);
+  for(let dx=3;dx<5;dx++) pix(1,1,dx,8,[200,80,80]);
+  for(let dx=8;dx<13;dx++) pix(1,1,dx,5,[60,160,90]);
+  for(let dy=5;dy<9;dy++) pix(1,1,12,dy,[60,160,90]);
+  // marker tray
+  rect(1,1,1,TH-3,14,1,[160,160,160]);
+  pix(1,1,3,TH-3,[200,40,40]); pix(1,1,7,TH-3,[40,80,160]); pix(1,1,11,TH-3,[40,160,80]);
+
+  // GID11 coffee machine
+  ft(2,1,[40,40,55]);
+  rect(2,1,2,1,12,5,[60,60,75]);
+  // display
+  rect(2,1,3,2,5,2,[60,180,140]);
+  pix(2,1,4,2,[200,255,200]);
+  // power
+  pix(2,1,12,2,[255,80,40]); pix(2,1,13,2,[255,80,40]);
+  // spout
+  rect(2,1,5,7,6,3,[20,20,28]);
+  pix(2,1,7,8,[140,90,40]); pix(2,1,8,8,[160,100,50]);
+  // cup
+  rect(2,1,6,9,4,2,[245,245,245]);
+  pix(2,1,7,10,[100,60,30]); pix(2,1,8,10,[100,60,30]);
+  // drip tray
+  rect(2,1,4,11,8,4,[80,80,90]);
+  rect(2,1,5,12,6,2,[30,30,38]);
+  // grilles
+  for(let dx=2;dx<14;dx+=2) pix(2,1,dx,4,[30,30,40]);
+
+  // GID12 sofa
+  ft(3,1,[160,80,60]);
+  for(let dx=0;dx<TW;dx++){pix(3,1,dx,0,[100,50,40]); pix(3,1,dx,1,[180,100,80]); pix(3,1,dx,2,[150,75,55]);}
+  rect(3,1,1,4,6,8,[200,120,90]);
+  rect(3,1,9,4,6,8,[200,120,90]);
+  // cushion seam
+  pix(3,1,7,5,[100,50,40]); pix(3,1,8,5,[100,50,40]);
+  pix(3,1,7,8,[100,50,40]); pix(3,1,8,8,[100,50,40]);
+  // pillow accents
+  rect(3,1,2,5,2,2,[230,180,150]);
+  rect(3,1,11,5,2,2,[180,90,70]);
+  // legs
+  pix(3,1,1,TH-1,[40,30,20]); pix(3,1,TW-2,TH-1,[40,30,20]);
+
+  // GID13 plant — leafier
+  // pot
+  rect(4,1,4,11,8,4,[120,70,40]);
+  rect(4,1,5,10,6,1,[160,100,60]);
+  pix(4,1,4,11,[80,50,30]); pix(4,1,11,11,[80,50,30]);
+  // soil
+  rect(4,1,5,10,6,1,[60,40,30]);
+  // foliage clusters
+  const leaves = [[8,3],[6,4],[10,4],[5,6],[11,6],[7,7],[9,7],[6,8],[10,8],[8,9],[4,7],[12,7]];
+  leaves.forEach(([px,py])=>{
+    pix(4,1,px,py,[40,120,60]);
+    pix(4,1,px-1,py,[60,140,70]);
+    pix(4,1,px,py-1,[80,160,80]);
+    pix(4,1,px+1,py,[40,110,55]);
+    pix(4,1,px,py+1,[30,90,45]);
+  });
+  // accent bright leaf tips
+  pix(4,1,8,2,[120,200,100]);
+  pix(4,1,5,5,[120,200,100]);
+  pix(4,1,11,5,[120,200,100]);
+  // stems
+  pix(4,1,8,9,[60,80,40]); pix(4,1,8,10,[60,80,40]);
+
+  // GID14 server rack — detailed LEDs
+  ft(5,1,[18,18,26]);
+  for(let dx=0;dx<TW;dx++){pix(5,1,dx,0,[8,8,12]); pix(5,1,dx,TH-1,[8,8,12]);}
+  for(let dy=0;dy<TH;dy++){pix(5,1,0,dy,[8,8,12]); pix(5,1,TW-1,dy,[8,8,12]);}
+  for(let r=0;r<5;r++){
+    rect(5,1,2,1+r*3,12,2,[40,40,50]);
+    // status LEDs
+    pix(5,1,3,2+r*3,[80,255,80]);
+    pix(5,1,5,2+r*3,[255,200,40]);
+    pix(5,1,12,2+r*3,r%2?[80,255,80]:[60,180,60]);
+    // disk slits
+    for(let dx=7;dx<11;dx++) pix(5,1,dx,1+r*3,[20,20,28]);
+  }
+
+  // GID15 bookshelf — with varied books
+  ft(6,1,[110,70,40]);
+  for(let dx=0;dx<TW;dx++){pix(6,1,dx,0,[60,40,20]); pix(6,1,dx,TH-1,[60,40,20]);}
+  for(let dy=0;dy<TH;dy++){pix(6,1,0,dy,[60,40,20]); pix(6,1,TW-1,dy,[60,40,20]);}
+  const shelves = [4, 9, 14];
+  shelves.forEach(sy => {
+    for(let dx=0;dx<TW;dx++) pix(6,1,dx,sy,[40,25,15]);
+  });
+  // books per shelf — different colors, slight slant
+  const bookColors = [[180,40,40],[40,80,160],[60,160,90],[200,160,40],[160,80,160],[60,60,80],[200,100,40],[80,140,200],[180,140,80]];
+  shelves.forEach((sy, si) => {
+    let bx = 1;
+    while(bx<14){
+      const w = 1 + (si+bx)%2;
+      const h = 3 + ((bx+si)%2);
+      const c = bookColors[(bx+si)%bookColors.length];
+      rect(6,1,bx,sy-h,w,h,c);
+      // book spine highlight
+      pix(6,1,bx,sy-h,[Math.min(255,c[0]+40),Math.min(255,c[1]+40),Math.min(255,c[2]+40)]);
+      bx += w;
+    }
+  });
+  // small decoration on top shelf
+  pix(6,1,3,1,[200,180,80]); pix(6,1,4,1,[200,180,80]); // trophy
+
+  // GID16 warm rug (orange/red)
+  ft(7,1,[180,90,60],[170,85,55]);
+  for(let dx=2;dx<TW-2;dx+=3) for(let dy=2;dy<TH-2;dy+=3) pix(7,1,dx,dy,[200,140,90]);
+  // border
+  for(let dx=0;dx<TW;dx++){pix(7,1,dx,0,[140,60,40]); pix(7,1,dx,TH-1,[140,60,40]);}
+  for(let dy=0;dy<TH;dy++){pix(7,1,0,dy,[140,60,40]); pix(7,1,TW-1,dy,[140,60,40]);}
+  // pattern
+  rect(7,1,6,6,4,4,[160,80,50]);
+  rect(7,1,7,7,2,2,[200,140,90]);
+
+  // GID17 toilet
+  ft(0,2,[230,230,235]);
+  rect(0,2,3,4,10,8,[245,245,250]);
+  rect(0,2,4,5,8,6,[200,210,225]);
+  rect(0,2,5,6,6,4,[180,200,220]);
+  rect(0,2,4,1,8,3,[245,245,250]);
+  pix(0,2,11,2,[160,160,170]);
+  // tank line
+  for(let dx=4;dx<12;dx++) pix(0,2,dx,4,[200,200,210]);
+
+  // GID18 reception desk — with computer
+  ft(1,2,[180,140,90]);
+  for(let dx=0;dx<TW;dx++){pix(1,2,dx,0,[100,70,40]); pix(1,2,dx,1,[210,170,120]);}
+  for(let dx=2;dx<TW-2;dx++) pix(1,2,dx,5,[140,100,60]);
+  // monitor
+  rect(1,2,5,7,6,4,[20,20,25]);
+  rect(1,2,6,8,4,2,[60,160,200]);
+  pix(1,2,7,8,[120,200,240]); pix(1,2,8,8,[120,200,240]);
+  // keyboard
+  rect(1,2,4,12,8,1,[60,60,70]);
+
+  // GID19 printer
+  ft(2,2,[210,210,215]);
+  rect(2,2,2,2,12,4,[180,180,185]);
+  rect(2,2,3,7,10,4,[230,230,235]);
+  pix(2,2,12,3,[80,200,80]); pix(2,2,13,3,[200,80,80]);
+  // paper tray with stack
+  rect(2,2,4,5,8,2,[255,255,255]);
+  pix(2,2,5,5,[245,245,245]); pix(2,2,9,5,[245,245,245]);
+  // controls
+  rect(2,2,4,3,4,1,[60,60,70]);
+
+  // GID20 CEO chair (red exec)
+  ft(3,2,[120,30,40]);
+  for(let dx=2;dx<TW-2;dx++){pix(3,2,dx,1,[80,15,25]); pix(3,2,dx,2,[160,50,60]); pix(3,2,dx,8,[80,15,25]);}
+  for(let dy=4;dy<11;dy++){pix(3,2,1,dy,[60,15,20]); pix(3,2,TW-2,dy,[60,15,20]);}
+  // gold accents
+  pix(3,2,2,5,[200,160,60]); pix(3,2,13,5,[200,160,60]);
+  pix(3,2,4,TH-2,[20,15,15]); pix(3,2,11,TH-2,[20,15,15]);
+
+  // GID21 wood floor
+  ft(4,2,[180,140,95]);
+  for(let dy=0;dy<TH;dy+=4) for(let dx=0;dx<TW;dx++) pix(4,2,dx,dy,[140,100,60]);
+  for(let dy=0;dy<TH;dy++) pix(4,2,8,dy,[140,100,60]);
+  // grain
+  for(let dy=2;dy<TH;dy+=4) for(let dx=1;dx<8;dx+=2) pix(4,2,dx,dy,[200,160,110]);
+
+  // GID22 tile floor
+  ft(5,2,[225,228,232],[215,218,222]);
+  for(let dx=0;dx<TW;dx+=8) for(let dy=0;dy<TH;dy++) pix(5,2,dx,dy,[180,185,190]);
+  for(let dy=0;dy<TH;dy+=8) for(let dx=0;dx<TW;dx++) pix(5,2,dx,dy,[180,185,190]);
+
+  // GID23 outdoor deck
+  ft(6,2,[160,110,70]);
+  for(let dy=0;dy<TH;dy+=4) for(let dx=0;dx<TW;dx++) pix(6,2,dx,dy,[110,70,40]);
+  pix(6,2,3,7,[80,140,60]); pix(6,2,11,12,[80,140,60]);
+  pix(6,2,4,7,[100,160,70]);
+
+  // GID24 railing
+  for(let dy=0;dy<TH;dy++) for(let dx=0;dx<TW;dx++){
+    sp(7*TW+dx,2*TH+dy, 150+dy, 200, 230);
+  }
+  for(let dy=2;dy<14;dy++){pix(7,2,3,dy,[60,55,50]); pix(7,2,8,dy,[60,55,50]); pix(7,2,13,dy,[60,55,50]);}
+  for(let dx=0;dx<TW;dx++) pix(7,2,dx,2,[80,75,70]);
+  for(let dx=0;dx<TW;dx++) pix(7,2,dx,3,[100,90,80]);
+  for(let dx=0;dx<TW;dx++) pix(7,2,dx,14,[100,90,80]);
+
+  // GID25 marble
+  ft(0,3,[238,234,228],[228,224,218]);
+  for(let i=0;i<5;i++){ const sx=(i*7)%TW, sy=(i*5)%TH; for(let k=0;k<4;k++){pix(0,3,(sx+k)%TW,(sy+k)%TH,[200,196,190]);}}
+
+  // GID26 cubicle wall
+  ft(1,3,[100,110,130]);
+  for(let dx=0;dx<TW;dx++){pix(1,3,dx,0,[60,70,90]); pix(1,3,dx,1,[140,150,170]); pix(1,3,dx,TH-1,[60,70,90]);}
+  for(let dx=2;dx<TW;dx+=3) for(let dy=3;dy<TH-2;dy+=3) pix(1,3,dx,dy,[80,90,110]);
+
+  // GID27 monitor on desk
+  ft(2,3,[185,140,90]);
+  for(let dx=0;dx<TW;dx++){pix(2,3,dx,0,[120,80,40]); pix(2,3,dx,TH-1,[120,80,40]);}
+  // monitor frame
+  rect(2,3,3,2,10,7,[28,28,38]);
+  rect(2,3,4,3,8,5,[80,170,210]);
+  // screen content lines (code)
+  pix(2,3,5,4,[200,255,180]); pix(2,3,6,4,[200,255,180]); pix(2,3,7,4,[200,255,180]);
+  pix(2,3,5,5,[140,200,255]); pix(2,3,6,5,[140,200,255]);
+  pix(2,3,5,6,[255,200,140]); pix(2,3,6,6,[255,200,140]); pix(2,3,7,6,[255,200,140]);
+  pix(2,3,5,7,[200,255,180]); pix(2,3,6,7,[200,255,180]);
+  // power LED
+  pix(2,3,11,8,[80,255,80]);
+  // stand
+  rect(2,3,7,9,2,2,[60,60,70]);
+  rect(2,3,5,11,6,1,[40,40,50]);
+  // keyboard on desk
+  rect(2,3,3,13,10,1,[40,40,50]);
+  pix(2,3,12,13,[180,180,200]); // mouse
+  // mug
+  pix(2,3,2,12,[200,200,210]); pix(2,3,2,13,[150,150,160]);
+
+  // GID28 CEO desk with monitor + decor
+  ft(3,3,[80,40,30]);
+  for(let dx=0;dx<TW;dx++){pix(3,3,dx,0,[40,20,15]); pix(3,3,dx,1,[120,70,55]); pix(3,3,dx,TH-1,[40,20,15]);}
+  for(let dx=2;dx<TW-2;dx+=4){for(let dy=3;dy<TH-2;dy++) pix(3,3,dx,dy,[60,30,22]);}
+  // monitor
+  rect(3,3,4,3,8,5,[20,20,28]);
+  rect(3,3,5,4,6,3,[120,180,200]);
+  // chart on screen
+  pix(3,3,5,5,[80,255,120]); pix(3,3,6,5,[60,200,100]); pix(3,3,7,5,[80,220,140]); pix(3,3,9,5,[200,80,80]);
+  // nameplate
+  rect(3,3,3,12,5,2,[200,160,80]);
+  pix(3,3,4,12,[80,40,20]); pix(3,3,6,12,[80,40,20]);
+  // pen holder
+  pix(3,3,12,11,[60,60,70]); pix(3,3,12,12,[60,60,70]);
+  pix(3,3,12,10,[200,40,40]); pix(3,3,11,10,[40,80,160]);
+
+  // GID29 conference chair
+  ft(4,3,[80,90,120]);
+  for(let dx=2;dx<TW-2;dx++){pix(4,3,dx,2,[50,60,90]); pix(4,3,dx,3,[110,120,150]); pix(4,3,dx,8,[50,60,90]);}
+  for(let dy=4;dy<10;dy++){pix(4,3,1,dy,[50,60,90]); pix(4,3,TW-2,dy,[50,60,90]);}
+  rect(4,3,4,9,8,2,[60,70,100]);
+  pix(4,3,4,TH-2,[20,20,30]); pix(4,3,11,TH-2,[20,20,30]);
+  pix(4,3,7,12,[60,60,75]); pix(4,3,8,12,[60,60,75]);
+
+  // GID30 water cooler
+  ft(5,3,[230,232,235]);
+  rect(5,3,4,2,8,5,[180,220,240]);
+  rect(5,3,5,3,6,3,[200,235,250]);
+  // bubbles
+  pix(5,3,6,4,[255,255,255]); pix(5,3,8,5,[255,255,255]); pix(5,3,10,4,[255,255,255]);
+  rect(5,3,3,7,10,7,[210,210,215]);
+  // tap
+  pix(5,3,7,9,[80,150,200]); pix(5,3,8,9,[80,150,200]);
+  pix(5,3,7,10,[60,60,70]); pix(5,3,8,10,[60,60,70]);
+  // cups
+  pix(5,3,4,12,[245,245,245]); pix(5,3,11,12,[245,245,245]);
+
+  // GID31 kitchen counter — with sink + tap
+  ft(6,3,[200,205,210]);
+  for(let dx=0;dx<TW;dx++){pix(6,3,dx,0,[100,100,110]); pix(6,3,dx,1,[230,230,235]);}
+  rect(6,3,2,4,12,8,[160,165,175]);
+  rect(6,3,4,6,8,4,[80,90,110]);
+  // tap
+  pix(6,3,7,5,[200,210,220]); pix(6,3,8,5,[200,210,220]);
+  pix(6,3,7,4,[180,190,200]); pix(6,3,8,4,[180,190,200]);
+  // dish
+  pix(6,3,5,7,[245,245,245]); pix(6,3,6,7,[245,245,245]);
+
+  // GID32 glass wall
+  for(let dy=0;dy<TH;dy++) for(let dx=0;dx<TW;dx++) sp(7*TW+dx,3*TH+dy,160+dy*2,210+dy,240);
+  for(let dy=0;dy<TH;dy+=3) for(let dx=0;dx<TW;dx++) pix(7,3,dx,dy,[210,230,250]);
+  for(let dx=0;dx<TW;dx++){pix(7,3,dx,0,[80,80,90]); pix(7,3,dx,TH-1,[80,80,90]);}
+
+  // GID33 (col0,row4) wall poster — colorful art
+  ft(0,4,[238,234,226]);
+  // frame
+  rect(0,4,3,2,10,12,[80,55,30]);
+  rect(0,4,4,3,8,10,[245,240,225]);
+  // "art" — gradient bands
+  rect(0,4,4,3,8,3,[80,140,200]);
+  rect(0,4,4,6,8,2,[230,180,80]);
+  rect(0,4,4,8,8,2,[200,80,90]);
+  rect(0,4,4,10,8,3,[60,140,90]);
+  // signature dot
+  pix(0,4,11,12,[40,40,40]);
+
+  // GID34 (col1,row4) wall clock
+  ft(1,4,[238,234,226]);
+  // clock face
+  for(let dy=2;dy<14;dy++) for(let dx=2;dx<14;dx++){
+    const cx=8,cy=8,dist=Math.hypot(dx-cx,dy-cy);
+    if(dist<6) pix(1,4,dx,dy,[245,245,245]);
+    if(dist<6.5 && dist>=5.5) pix(1,4,dx,dy,[40,40,50]);
+  }
+  // marks
+  pix(1,4,8,3,[40,40,50]); pix(1,4,8,13,[40,40,50]);
+  pix(1,4,3,8,[40,40,50]); pix(1,4,13,8,[40,40,50]);
+  // hands
+  pix(1,4,8,7,[40,40,50]); pix(1,4,8,6,[40,40,50]); pix(1,4,8,5,[40,40,50]);
+  pix(1,4,9,8,[200,40,40]); pix(1,4,10,8,[200,40,40]);
+  pix(1,4,8,8,[40,40,50]);
+
+  // GID35 (col2,row4) cubicle desk corner — laptop on top
+  ft(2,4,[185,140,90]);
+  for(let dx=0;dx<TW;dx++){pix(2,4,dx,0,[120,80,40]); pix(2,4,dx,TH-1,[120,80,40]);}
+  // laptop
+  rect(2,4,4,4,8,5,[40,40,50]);
+  rect(2,4,5,5,6,3,[100,200,220]);
+  pix(2,4,7,6,[60,160,80]); pix(2,4,8,6,[60,160,80]);
+  rect(2,4,3,9,10,1,[60,60,70]);
+  // notebook + pen
+  rect(2,4,3,12,4,2,[200,180,150]);
+  pix(2,4,4,13,[80,40,40]);
+  pix(2,4,9,12,[200,40,40]); pix(2,4,10,12,[200,40,40]);
+  // mug
+  rect(2,4,12,11,2,3,[245,245,245]);
+  pix(2,4,12,11,[200,80,80]);
+
+  // GID36 (col3,row4) lamp/floor light
+  ft(3,4,[212,196,170],[202,186,160]); // floor
+  // lamp pole
+  for(let dy=2;dy<TH-2;dy++) pix(3,4,8,dy,[60,55,50]);
+  // shade
+  rect(3,4,5,2,7,3,[240,200,120]);
+  pix(3,4,4,3,[230,190,110]); pix(3,4,12,3,[230,190,110]);
+  // glow
+  pix(3,4,7,5,[255,240,180]); pix(3,4,8,5,[255,240,180]); pix(3,4,9,5,[255,240,180]);
+  // base
+  rect(3,4,5,TH-3,7,2,[60,55,50]);
+
+  // GID37 (col4,row4) snack vending machine
+  ft(4,4,[180,40,40]);
+  rect(4,4,1,1,14,14,[200,50,50]);
+  // glass front
+  rect(4,4,2,2,12,10,[100,150,170]);
+  // shelves
+  for(let r=0;r<3;r++) rect(4,4,2,4+r*3,12,1,[60,80,90]);
+  // snacks
+  pix(4,4,4,3,[230,180,80]); pix(4,4,7,3,[80,180,80]); pix(4,4,10,3,[200,80,160]); pix(4,4,12,3,[80,180,200]);
+  pix(4,4,4,6,[200,140,40]); pix(4,4,7,6,[200,80,80]); pix(4,4,10,6,[80,180,80]); pix(4,4,12,6,[230,180,80]);
+  pix(4,4,4,9,[80,180,200]); pix(4,4,7,9,[200,80,160]); pix(4,4,10,9,[230,180,80]); pix(4,4,12,9,[200,140,40]);
+  // dispenser slot
+  rect(4,4,2,12,12,2,[40,40,40]);
+  // keypad
+  pix(4,4,13,13,[60,60,70]);
+
+  // GID38 (col5,row4) potted small plant variant
+  ft(5,4,[212,196,170],[202,186,160]); // floor base
+  rect(5,4,5,12,6,3,[200,150,80]);
+  pix(5,4,4,12,[160,110,60]); pix(5,4,11,12,[160,110,60]);
+  // succulent rosette
+  pix(5,4,8,7,[80,180,100]); pix(5,4,7,8,[80,180,100]); pix(5,4,9,8,[80,180,100]);
+  pix(5,4,6,9,[60,160,80]); pix(5,4,8,9,[120,200,140]); pix(5,4,10,9,[60,160,80]);
+  pix(5,4,7,10,[80,180,100]); pix(5,4,9,10,[80,180,100]);
+  pix(5,4,8,11,[60,140,80]);
+
+  // GID39 (col6,row4) framed motivational poster
+  ft(6,4,[238,234,226]);
+  rect(6,4,2,2,12,12,[40,30,20]);
+  rect(6,4,3,3,10,10,[245,240,225]);
+  // mountains
+  pix(6,4,4,9,[80,100,120]); pix(6,4,5,8,[80,100,120]); pix(6,4,6,7,[80,100,120]);
+  pix(6,4,7,6,[60,80,100]); pix(6,4,8,5,[60,80,100]); pix(6,4,9,6,[80,100,120]);
+  pix(6,4,10,7,[80,100,120]); pix(6,4,11,8,[100,120,140]); pix(6,4,12,9,[100,120,140]);
+  // sun
+  rect(6,4,9,4,2,2,[240,200,80]);
+  // text bar
+  rect(6,4,3,11,10,2,[80,140,180]);
+
+  // GID40 (col7,row4) projector screen
+  ft(7,4,[238,234,226]);
+  // screen
+  rect(7,4,1,1,14,11,[245,245,240]);
+  rect(7,4,2,2,12,9,[100,140,180]);
+  // chart bars
+  rect(7,4,3,8,1,2,[80,180,100]);
+  rect(7,4,5,6,1,4,[80,180,100]);
+  rect(7,4,7,4,1,6,[80,180,100]);
+  rect(7,4,9,5,1,5,[230,180,80]);
+  rect(7,4,11,7,1,3,[200,80,80]);
+  // base bar
+  rect(7,4,1,12,14,1,[80,60,40]);
+  // cord
+  pix(7,4,8,13,[60,60,70]); pix(7,4,8,14,[60,60,70]); pix(7,4,8,15,[60,60,70]);
+
+  // GID41 (col0,row5) office plant tall
+  ft(0,5,[212,196,170],[202,186,160]);
+  // pot
+  rect(0,5,4,12,8,3,[120,70,40]);
+  // tall fronds
+  pix(0,5,5,11,[40,120,60]); pix(0,5,6,11,[60,140,70]); pix(0,5,8,11,[40,120,60]); pix(0,5,10,11,[60,140,70]);
+  pix(0,5,5,9,[60,140,70]); pix(0,5,7,9,[40,120,60]); pix(0,5,9,9,[80,160,80]); pix(0,5,11,9,[60,140,70]);
+  pix(0,5,4,7,[40,120,60]); pix(0,5,6,7,[80,160,80]); pix(0,5,8,7,[60,140,70]); pix(0,5,10,7,[40,120,60]); pix(0,5,12,7,[60,140,70]);
+  pix(0,5,5,5,[80,160,80]); pix(0,5,7,5,[40,120,60]); pix(0,5,9,5,[80,160,80]); pix(0,5,11,5,[40,120,60]);
+  pix(0,5,6,3,[80,180,100]); pix(0,5,8,3,[60,140,70]); pix(0,5,10,3,[80,180,100]);
+
+  // GID42 (col1,row5) carpet variant — beige darker
+  ft(1,5,[180,164,140],[170,154,130]);
+  for(let i=0;i<8;i++){const fx=2+((i*5)%12),fy=2+((i*7)%12);pix(1,5,fx,fy,[150,134,110]);}
+
+  // GID43 (col2,row5) executive armchair (lounge)
+  ft(2,5,[100,70,90]);
+  for(let dx=2;dx<TW-2;dx++){pix(2,5,dx,0,[60,40,55]); pix(2,5,dx,1,[120,90,110]);}
+  for(let dy=2;dy<11;dy++){pix(2,5,1,dy,[60,40,55]); pix(2,5,TW-2,dy,[60,40,55]);}
+  rect(2,5,3,4,10,7,[140,100,120]);
+  pix(2,5,3,TH-1,[40,30,40]); pix(2,5,TW-4,TH-1,[40,30,40]);
+
+  // GID44 (col3,row5) coffee table
+  ft(3,5,[212,196,170],[202,186,160]);
+  rect(3,5,2,5,12,4,[140,90,50]);
+  for(let dx=2;dx<TW-2;dx++) pix(3,5,dx,5,[100,60,30]);
+  // legs
+  pix(3,5,3,9,[100,60,30]); pix(3,5,3,10,[100,60,30]); pix(3,5,3,11,[100,60,30]);
+  pix(3,5,12,9,[100,60,30]); pix(3,5,12,10,[100,60,30]); pix(3,5,12,11,[100,60,30]);
+  // mug + magazine on table
+  pix(3,5,5,4,[245,245,245]); pix(3,5,5,3,[100,60,30]);
+  rect(3,5,8,4,4,1,[180,200,220]);
+
+  // GID45 (col4,row5) elevator door / accent wall (decorative)
+  ft(4,5,[140,150,170]);
+  for(let dx=0;dx<TW;dx++){pix(4,5,dx,0,[80,90,110]); pix(4,5,dx,TH-1,[80,90,110]);}
+  for(let dy=0;dy<TH;dy++){pix(4,5,0,dy,[80,90,110]); pix(4,5,TW-1,dy,[80,90,110]);}
+  // central seam
+  for(let dy=2;dy<TH-2;dy++) pix(4,5,7,dy,[60,70,90]);
+  for(let dy=2;dy<TH-2;dy++) pix(4,5,8,dy,[60,70,90]);
+  // panel highlight
+  for(let dy=3;dy<TH-3;dy+=3) for(let dx=2;dx<7;dx++) pix(4,5,dx,dy,[160,170,190]);
+
+  // GID46 (col5,row5) outdoor table for balcony
+  ft(5,5,[160,110,70]);
+  for(let dy=0;dy<TH;dy+=4) for(let dx=0;dx<TW;dx++) pix(5,5,dx,dy,[110,70,40]);
+  // small table top
+  for(let dy=0;dy<TH;dy++) for(let dx=0;dx<TW;dx++){
+    const cx=TW/2,cy=TH/2,dist=Math.hypot(dx-cx,dy-cy);
+    if(dist<5) pix(5,5,dx,dy,[60,40,30]);
+    if(dist<4) pix(5,5,dx,dy,[80,55,40]);
+  }
+  // cup on top
+  pix(5,5,7,8,[245,245,245]); pix(5,5,8,8,[245,245,245]);
+
+  // GID47 (col6,row5) trash bin
+  ft(6,5,[212,196,170],[202,186,160]);
+  rect(6,5,5,4,6,9,[60,60,70]);
+  rect(6,5,4,4,8,1,[80,80,90]);
+  // lid
+  rect(6,5,4,3,8,1,[40,40,50]);
+  // recycling logo
+  pix(6,5,7,7,[80,200,100]); pix(6,5,8,7,[80,200,100]);
+  pix(6,5,7,8,[80,200,100]); pix(6,5,8,8,[80,200,100]);
+
+  // GID48 (col7,row5) standing whiteboard easel
+  ft(7,5,[238,234,226]);
+  // legs (tripod)
+  pix(7,5,3,TH-2,[60,55,50]); pix(7,5,4,TH-3,[60,55,50]); pix(7,5,5,TH-4,[60,55,50]);
+  pix(7,5,12,TH-2,[60,55,50]); pix(7,5,11,TH-3,[60,55,50]); pix(7,5,10,TH-4,[60,55,50]);
+  pix(7,5,8,TH-2,[60,55,50]);
+  // board
+  rect(7,5,2,1,12,9,[80,80,80]);
+  rect(7,5,3,2,10,7,[252,252,250]);
+  // text strokes
+  for(let dx=4;dx<10;dx++) pix(7,5,dx,4,[40,80,160]);
+  for(let dx=4;dx<8;dx++) pix(7,5,dx,6,[200,80,80]);
+
+  ctx.putImageData(id,0,0);
+  return c.toDataURL();
+}
+
+window.OFFICE_ASSETS = { CHARS, generateSpritesheet, generateTileset };
+
+
+// ═══════════════════════════════════════════════════════
+// Office floor plan — 40×26 tiles, multi-room
+// Tile GIDs: 2 carpet, 3 wall, 4 desk, 5 chair, 6 meeting carpet,
+//   7 window, 8 door, 9 round table, 10 whiteboard, 11 coffee,
+//   12 sofa, 13 plant, 14 server, 15 bookshelf, 16 warm rug,
+//   17 toilet, 18 reception, 19 printer, 20 CEO chair,
+//   21 wood floor, 22 tile floor, 23 deck, 24 rail,
+//   25 marble, 26 cubicle wall, 27 monitor-desk, 28 CEO desk,
+//   29 conf chair, 30 water cooler, 31 kitchen, 32 glass wall
+// ═══════════════════════════════════════════════════════
+
+const MAP_W = 40, MAP_H = 26;
+
+// Named room regions (rectangles) — used for AI navigation + zone labels
+const ROOMS = {
+  ceo:        {x1:32, y1:1,  x2:38, y2:7,  label:'CEO 집무실'},
+  conference: {x1:14, y1:2,  x2:24, y2:8,  label:'회의실'},
+  whiteboard: {x1:25, y1:2,  x2:31, y2:6,  label:'프레젠테이션'},
+  reception:  {x1:1,  y1:1,  x2:7,  y2:5,  label:'로비'},
+  lounge:     {x1:1,  y1:18, x2:11, y2:24, label:'휴게실 / 카페'},
+  balcony:    {x1:32, y1:9,  x2:38, y2:14, label:'발코니'},
+  serverRoom: {x1:33, y1:18, x2:38, y2:24, label:'서버룸'},
+  toilet:     {x1:14, y1:21, x2:21, y2:24, label:'화장실'},
+  workZone:   {x1:14, y1:11, x2:31, y2:18, label:'개방형 사무공간'},
+};
+
+// Per-employee desks — 16 employees, 8 dept × 2 each + roles
+// Each is {x,y} of CHAIR (sit position), monitor desk is one tile up.
+const DESKS = [
+  // Row A (workZone top) — 4 desks
+  {chair:{x:15,y:13}, monitor:{x:15,y:12}, faceDir:2},
+  {chair:{x:18,y:13}, monitor:{x:18,y:12}, faceDir:2},
+  {chair:{x:21,y:13}, monitor:{x:21,y:12}, faceDir:2},
+  {chair:{x:24,y:13}, monitor:{x:24,y:12}, faceDir:2},
+  // Row B
+  {chair:{x:15,y:16}, monitor:{x:15,y:17}, faceDir:0},
+  {chair:{x:18,y:16}, monitor:{x:18,y:17}, faceDir:0},
+  {chair:{x:21,y:16}, monitor:{x:21,y:17}, faceDir:0},
+  {chair:{x:24,y:16}, monitor:{x:24,y:17}, faceDir:0},
+  // Side bay (left of work zone)
+  {chair:{x:9, y:8},  monitor:{x:9, y:7},  faceDir:2},
+  {chair:{x:11,y:8},  monitor:{x:11,y:7},  faceDir:2},
+  {chair:{x:9, y:11}, monitor:{x:9, y:10}, faceDir:2},
+  {chair:{x:11,y:11}, monitor:{x:11,y:10}, faceDir:2},
+  {chair:{x:9, y:14}, monitor:{x:9, y:13}, faceDir:2},
+  {chair:{x:11,y:14}, monitor:{x:11,y:13}, faceDir:2},
+  // CEO + reception
+  {chair:{x:36,y:4},  monitor:{x:36,y:3},  faceDir:2, ceo:true},
+  {chair:{x:4, y:3},  monitor:{x:4, y:2},  faceDir:2, reception:true},
+];
+
+// Conference table seats (around round table at 18-20, 4-6)
+const CONFERENCE_SEATS = [
+  {x:17, y:3}, {x:19, y:3}, {x:21, y:3},
+  {x:17, y:7}, {x:19, y:7}, {x:21, y:7},
+  {x:15, y:5}, {x:23, y:5},
+];
+
+// Lounge sit spots (sofa + coffee)
+const LOUNGE_SPOTS = [
+  {x:3, y:21, action:'sofa'}, {x:5, y:21, action:'sofa'},
+  {x:7, y:21, action:'sofa'}, {x:9, y:21, action:'sofa'},
+  {x:3, y:23, action:'coffee'}, {x:8, y:23, action:'coffee'},
+];
+
+// Balcony spots
+const BALCONY_SPOTS = [
+  {x:34, y:11}, {x:36, y:11}, {x:34, y:13}, {x:36, y:13},
+];
+
+// Whiteboard standing spots
+const WHITEBOARD_SPOTS = [
+  {x:27, y:5}, {x:28, y:5}, {x:29, y:5},
+];
+
+// Toilet spots
+const TOILET_SPOTS = [
+  {x:16, y:23}, {x:18, y:23}, {x:20, y:23},
+];
+
+function buildOfficeMap() {
+  const MW = MAP_W, MH = MAP_H;
+  const floor = new Array(MW*MH).fill(2);   // default carpet
+  const obj   = new Array(MW*MH).fill(0);
+
+  const fset = (x,y,g) => { if(x>=0 && x<MW && y>=0 && y<MH) floor[y*MW+x] = g; };
+  const oset = (x,y,g) => { if(x>=0 && x<MW && y>=0 && y<MH) obj[y*MW+x] = g; };
+
+  // ── Floor zoning ──────────────────────────────────────
+  // CEO marble
+  for(let y=ROOMS.ceo.y1; y<=ROOMS.ceo.y2; y++)
+    for(let x=ROOMS.ceo.x1; x<=ROOMS.ceo.x2; x++) fset(x,y,25);
+  // Conference (purple meeting carpet)
+  for(let y=ROOMS.conference.y1; y<=ROOMS.conference.y2; y++)
+    for(let x=ROOMS.conference.x1; x<=ROOMS.conference.x2; x++) fset(x,y,6);
+  // Whiteboard zone — meeting carpet
+  for(let y=ROOMS.whiteboard.y1; y<=ROOMS.whiteboard.y2; y++)
+    for(let x=ROOMS.whiteboard.x1; x<=ROOMS.whiteboard.x2; x++) fset(x,y,6);
+  // Reception — wood floor
+  for(let y=ROOMS.reception.y1; y<=ROOMS.reception.y2; y++)
+    for(let x=ROOMS.reception.x1; x<=ROOMS.reception.x2; x++) fset(x,y,21);
+  // Lounge — warm rug
+  for(let y=ROOMS.lounge.y1; y<=ROOMS.lounge.y2; y++)
+    for(let x=ROOMS.lounge.x1; x<=ROOMS.lounge.x2; x++) fset(x,y,16);
+  // Balcony — deck
+  for(let y=ROOMS.balcony.y1; y<=ROOMS.balcony.y2; y++)
+    for(let x=ROOMS.balcony.x1; x<=ROOMS.balcony.x2; x++) fset(x,y,23);
+  // Server room — tile-ish dark
+  for(let y=ROOMS.serverRoom.y1; y<=ROOMS.serverRoom.y2; y++)
+    for(let x=ROOMS.serverRoom.x1; x<=ROOMS.serverRoom.x2; x++) fset(x,y,22);
+  // Toilet — tile floor
+  for(let y=ROOMS.toilet.y1; y<=ROOMS.toilet.y2; y++)
+    for(let x=ROOMS.toilet.x1; x<=ROOMS.toilet.x2; x++) fset(x,y,22);
+
+  // ── Outer walls ───────────────────────────────────────
+  for(let x=0; x<MW; x++){ oset(x,0,3); oset(x,MH-1,3); }
+  for(let y=0; y<MH; y++){ oset(0,y,3); oset(MW-1,y,3); }
+
+  // Windows in outer wall
+  [4,7,11,18,22,27].forEach(wx => oset(wx, 0, 7));
+  [3,6,10,14,17,20,23].forEach(wy => oset(0, wy, 7));
+  [10,15,20,23,25].forEach(wx => oset(wx, MH-1, 7));
+  // Glass wall to balcony (right side)
+  for(let wy=10; wy<=13; wy++) oset(MW-1, wy, 32);
+
+  // ── CEO room walls ────────────────────────────────────
+  for(let y=ROOMS.ceo.y1-1; y<=ROOMS.ceo.y2+1; y++) oset(31, y, 3);
+  for(let x=31; x<MW; x++) oset(x, ROOMS.ceo.y2+1, 3);
+  oset(31, 4, 8); // door
+
+  // ── Conference room walls ─────────────────────────────
+  // Top + bottom of conference (already outer walls top); left/right partitions
+  for(let y=1; y<=ROOMS.conference.y2+1; y++) oset(13, y, 3);
+  for(let y=1; y<=ROOMS.conference.y2+1; y++) oset(25, y, 3);
+  for(let x=14; x<=24; x++) oset(x, ROOMS.conference.y2+1, 3);
+  // Conference door (south side)
+  oset(19, ROOMS.conference.y2+1, 8);
+
+  // ── Whiteboard zone wall ──────────────────────────────
+  // Right wall of whiteboard zone
+  for(let y=1; y<=ROOMS.whiteboard.y2+1; y++) oset(31, y, 3);
+  // South wall
+  for(let x=26; x<=30; x++) oset(x, ROOMS.whiteboard.y2+1, 3);
+  oset(28, ROOMS.whiteboard.y2+1, 8); // door
+
+  // ── Reception walls ───────────────────────────────────
+  for(let y=1; y<=ROOMS.reception.y2+1; y++) oset(8, y, 3);
+  for(let x=1; x<=7; x++) oset(x, ROOMS.reception.y2+1, 3);
+  oset(5, ROOMS.reception.y2+1, 8); // door
+
+  // ── Lounge walls ──────────────────────────────────────
+  for(let y=ROOMS.lounge.y1-1; y<=MH-1; y++) oset(12, y, 3);
+  for(let x=1; x<=11; x++) oset(x, ROOMS.lounge.y1-1, 3);
+  oset(8, ROOMS.lounge.y1-1, 8); // door from work zone
+
+  // ── Server room walls ─────────────────────────────────
+  for(let y=ROOMS.serverRoom.y1-1; y<=MH-1; y++) oset(32, y, 3);
+  for(let x=33; x<MW; x++) oset(x, ROOMS.serverRoom.y1-1, 3);
+  oset(35, ROOMS.serverRoom.y1-1, 8);
+
+  // ── Toilet walls ──────────────────────────────────────
+  for(let y=ROOMS.toilet.y1-1; y<=MH-1; y++){ oset(13, y, 3); oset(22, y, 3); }
+  for(let x=14; x<=21; x++) oset(x, ROOMS.toilet.y1-1, 3);
+  oset(17, ROOMS.toilet.y1-1, 8);
+
+  // ── Balcony rail (right edge of balcony, separates from interior) ──
+  for(let y=ROOMS.balcony.y1; y<=ROOMS.balcony.y2; y++){
+    // Glass already on column MW-1 at y10-13; outer rail along right side
+  }
+  // Rail along south edge of balcony
+  for(let x=ROOMS.balcony.x1; x<=ROOMS.balcony.x2; x++) oset(x, ROOMS.balcony.y2+1, 24);
+
+  // ── Furniture ─────────────────────────────────────────
+  // CEO room
+  oset(36, 3, 28); // CEO desk (with monitor)
+  oset(36, 4, 20); // CEO chair
+  oset(33, 2, 15); // bookshelf
+  oset(34, 2, 15); // bookshelf
+  oset(35, 2, 15); // bookshelf
+  oset(33, 6, 12); // sofa
+  oset(34, 6, 13); // plant
+  oset(37, 6, 41); // tall plant
+  oset(37, 2, 39); // motivational poster
+  oset(33, 4, 36); // floor lamp
+  oset(33, 5, 44); // coffee table
+  oset(38, 3, 33); // wall art
+  oset(35, 6, 47); // trash bin
+
+  // Reception desk
+  oset(3, 2, 18);
+  oset(4, 2, 18);
+  oset(5, 2, 18);
+  oset(4, 3, 5);  // chair
+  oset(2, 4, 41); // tall plant
+  oset(6, 4, 41); // tall plant
+  oset(7, 2, 34); // wall clock
+  oset(2, 2, 33); // wall art
+  oset(6, 1, 13); // small plant
+  oset(7, 4, 47); // trash bin
+
+  // Conference room — round table center (3x3)
+  for(let y=4; y<=6; y++) for(let x=18; x<=20; x++) oset(x,y,9);
+  // Conference chairs around table
+  oset(17,3,29); oset(19,3,29); oset(21,3,29);
+  oset(17,7,29); oset(19,7,29); oset(21,7,29);
+  oset(15,5,29); oset(23,5,29);
+  oset(14,1,38); oset(24,1,38); // succulents in corners
+  // window flair + projector + clock
+  oset(15,2,7); oset(23,2,7);
+  oset(19,1,40); // projector screen
+  oset(14,7,38); oset(24,7,38);
+
+  // Whiteboard zone
+  oset(26,2,10); oset(27,2,10); oset(28,2,10); oset(29,2,10); oset(30,2,10);
+  oset(26,5,12); // small couch for audience
+  oset(27,5,12);
+  oset(30,5,38); // succulent
+  oset(25,5,48); // standing easel
+  oset(30,3,34); // wall clock
+
+  // Open work zone — desks (rows of cubicle desks with monitors)
+  // Row A: 4 desks back-to-back at y=12 (monitor) y=13 (chair facing up)
+  [15,18,21,24].forEach(x => { oset(x,12,27); oset(x,13,5); });
+  // Row B: 4 desks at y=17 monitor + y=16 chair
+  [15,18,21,24].forEach(x => { oset(x,17,27); oset(x,16,5); });
+  // Cubicle partitions (vertical) when layout=cubicle handled by re-render; default open
+  // Side bay desks (left of work zone) — 6 desks
+  [{x:9,y:7},{x:11,y:7},{x:9,y:10},{x:11,y:10},{x:9,y:13},{x:11,y:13}].forEach(p => {
+    oset(p.x,p.y,27); oset(p.x,p.y+1,5);
+  });
+  // Plants between bays
+  oset(10,9,13); oset(10,12,38); oset(10,15,13);
+  // Printer
+  oset(13,15,19);
+  // Water cooler + vending
+  oset(13,12,30);
+  oset(13,9,37); // snack vending
+  // Wall art on workzone walls
+  oset(14,9,33); oset(20,9,39); oset(26,9,34); // wall clock
+  oset(31,12,33); // art
+  // Trash bins
+  oset(13,18,47);
+
+  // Lounge interior
+  // Coffee machine + sofa cluster
+  oset(2,19,11); oset(3,19,11); // coffee machines
+  oset(5,19,31); oset(6,19,31); oset(7,19,31); // kitchen counter
+  oset(9,19,30); // water cooler
+  // Sofas
+  oset(2,21,12); oset(3,21,12); oset(4,21,12);
+  oset(7,21,12); oset(8,21,12); oset(9,21,12);
+  // Round small table
+  oset(5,22,9);
+  // Plants
+  oset(2,23,41); oset(11,23,41); oset(11,19,38);
+  // Bookshelf + decor
+  oset(11,20,15);
+  oset(4,19,37); // snack vending
+  oset(8,19,37); // snack vending
+  oset(2,18,33); // wall art
+  oset(7,18,33); // wall art
+  oset(11,18,34); // wall clock
+
+  // Server room
+  oset(34,19,14); oset(35,19,14); oset(36,19,14); oset(37,19,14);
+  oset(34,21,14); oset(35,21,14); oset(36,21,14); oset(37,21,14);
+  oset(34,23,14); oset(35,23,14);
+
+  // Toilet
+  oset(15,22,17); oset(17,22,17); oset(19,22,17); oset(21,22,17);
+
+  // Balcony plants + chairs
+  oset(33,10,41); oset(37,10,41);
+  oset(34,12,43); oset(36,12,43); // armchairs
+  oset(35,11,46); // outdoor table
+  oset(33,13,38); oset(37,13,38);
+
+  return {
+    type:'map', version:'1.10', orientation:'orthogonal', renderorder:'right-down',
+    width:MW, height:MH, tilewidth:16, tileheight:16, infinite:false,
+    nextlayerid:3, nextobjectid:1,
+    tilesets:[{
+      firstgid:1, name:'office-tiles', tilewidth:16, tileheight:16,
+      spacing:0, margin:0, columns:8, tilecount:48,
+      image:'tiles', imagewidth:128, imageheight:128
+    }],
+    layers:[
+      {id:1, name:'floor',   type:'tilelayer', x:0, y:0, width:MW, height:MH, opacity:1, visible:true, data:floor},
+      {id:2, name:'objects', type:'tilelayer', x:0, y:0, width:MW, height:MH, opacity:1, visible:true, data:obj}
+    ]
+  };
+}
+
+// Walkability — true means agents can step there
+function buildWalkable(mapData) {
+  const W=mapData.width, H=mapData.height;
+  const obj = mapData.layers.find(l=>l.name==='objects').data;
+  const walk = new Array(W*H);
+  // Block these GIDs — walls/furniture (extended with detail tiles)
+  const BLOCK = new Set([
+    3, 4, 9, 10, 11, 12, 14, 15, 17, 18, 24, 26, 27, 28, 30, 31, 32,
+    33, 34, 35, 36, 37, 39, 40, 41, 43, 44, 45, 46, 47, 48
+  ]);
+  for(let i=0;i<W*H;i++){
+    const g = obj[i];
+    walk[i] = !BLOCK.has(g);
+  }
+  return walk;
+}
+
+window.OFFICE_MAP = {
+  MAP_W, MAP_H, ROOMS, DESKS,
+  CONFERENCE_SEATS, LOUNGE_SPOTS, BALCONY_SPOTS,
+  WHITEBOARD_SPOTS, TOILET_SPOTS,
+  buildOfficeMap, buildWalkable
+};
+
+
+// ═══════════════════════════════════════════════════════
+// 16 employees, dept routing, autonomous behavior schedules
+// ═══════════════════════════════════════════════════════
+
+const AGENTS_DATA = [
+  // Leadership
+  { id:'a01', name:'태호', role:'CEO',          dept:'경영', spriteIndex:2,  homeDesk:14 },
+  { id:'a02', name:'민준', role:'프로젝트 매니저', dept:'기획', spriteIndex:0,  homeDesk:0  },
+  // Engineering
+  { id:'a03', name:'지훈', role:'시니어 개발자',  dept:'개발', spriteIndex:1,  homeDesk:1  },
+  { id:'a04', name:'성민', role:'백엔드 개발자',  dept:'개발', spriteIndex:13, homeDesk:2  },
+  { id:'a05', name:'재현', role:'프론트 개발자',  dept:'개발', spriteIndex:11, homeDesk:3  },
+  // Design / Data
+  { id:'a06', name:'소연', role:'프로덕트 디자이너', dept:'기획', spriteIndex:3,  homeDesk:4  },
+  { id:'a07', name:'유나', role:'데이터 분석가',  dept:'개발', spriteIndex:5,  homeDesk:5  },
+  // QA / Ops
+  { id:'a08', name:'현우', role:'QA 테스터',     dept:'품질', spriteIndex:4,  homeDesk:6  },
+  { id:'a09', name:'다은', role:'DevOps',        dept:'개발', spriteIndex:8,  homeDesk:7  },
+  // Sales / Buying
+  { id:'a10', name:'서윤', role:'영업 팀장',     dept:'영업', spriteIndex:10, homeDesk:8  },
+  { id:'a11', name:'준호', role:'영업 매니저',   dept:'영업', spriteIndex:6,  homeDesk:9  },
+  { id:'a12', name:'예린', role:'구매 담당',     dept:'구매', spriteIndex:9,  homeDesk:10 },
+  // Manufacturing / HR / Finance
+  { id:'a13', name:'태민', role:'제조 매니저',   dept:'제조', spriteIndex:7,  homeDesk:11 },
+  { id:'a14', name:'하늘', role:'인사 담당',     dept:'인사', spriteIndex:12, homeDesk:12 },
+  { id:'a15', name:'시우', role:'재무 담당',     dept:'재무', spriteIndex:14, homeDesk:13 },
+  // Reception
+  { id:'a16', name:'아린', role:'리셉션',        dept:'경영', spriteIndex:15, homeDesk:15 },
+];
+
+// Initialize positions at home desks
+AGENTS_DATA.forEach(a => {
+  const desk = window.OFFICE_MAP.DESKS[a.homeDesk];
+  a.x = desk.chair.x;
+  a.y = desk.chair.y;
+  a.faceDir = desk.faceDir != null ? desk.faceDir : 3;
+  a.state = 'idle';
+  a.energy = 100; // 0-100; depletes while working, restores in lounge
+  a.task = null;
+  a.behavior = 'desk'; // 'desk'|'meeting'|'lounge'|'balcony'|'whiteboard'|'toilet'|'wandering'|'chatting'
+  a.behaviorUntil = 0;
+});
+
+// Department → primary handler chain (who works on which dept's task)
+const CHAIN_BY_DEPT = {
+  '기획': ['CEO','프로젝트 매니저','프로덕트 디자이너','시니어 개발자','QA 테스터','데이터 분석가'],
+  '개발': ['CEO','프로젝트 매니저','시니어 개발자','백엔드 개발자','프론트 개발자','QA 테스터'],
+  '영업': ['CEO','영업 팀장','영업 매니저','데이터 분석가','프로젝트 매니저','QA 테스터'],
+  '구매': ['CEO','구매 담당','재무 담당','프로젝트 매니저','QA 테스터','데이터 분석가'],
+  '제조': ['CEO','제조 매니저','구매 담당','QA 테스터','데이터 분석가','프로젝트 매니저'],
+  '품질': ['CEO','QA 테스터','시니어 개발자','프로덕트 디자이너','데이터 분석가','프로젝트 매니저'],
+  '인사': ['CEO','인사 담당','프로젝트 매니저','재무 담당','QA 테스터','데이터 분석가'],
+  '재무': ['CEO','재무 담당','데이터 분석가','프로젝트 매니저','QA 테스터','시니어 개발자'],
+};
+
+// ═══════════════════════════════════════════════════════
+// Autonomy AI — each tick, agents may transition behaviors
+// ═══════════════════════════════════════════════════════
+const TM = window.OFFICE_MAP;
+
+function pickRandom(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function chance(p){ return Math.random() < p; }
+
+// Simple BFS pathfinding on walkable grid
+function findPath(walk, W, H, sx, sy, tx, ty) {
+  if(sx===tx && sy===ty) return [];
+  const idx = (x,y)=>y*W+x;
+  const visited = new Uint8Array(W*H);
+  const prev = new Int32Array(W*H).fill(-1);
+  const q = [idx(sx,sy)];
+  visited[idx(sx,sy)] = 1;
+  let head=0;
+  const goal = idx(tx,ty);
+  while(head<q.length){
+    const cur = q[head++];
+    if(cur===goal){
+      const path=[];
+      let n=goal;
+      while(n!==idx(sx,sy)){
+        path.push({x:n%W, y:Math.floor(n/W)});
+        n = prev[n];
+        if(n<0) break;
+      }
+      return path.reverse();
+    }
+    const cx=cur%W, cy=Math.floor(cur/W);
+    const ns=[[cx-1,cy],[cx+1,cy],[cx,cy-1],[cx,cy+1]];
+    for(const [nx,ny] of ns){
+      if(nx<0||ny<0||nx>=W||ny>=H) continue;
+      const ni = idx(nx,ny);
+      if(visited[ni]) continue;
+      // Allow the goal even if it's a chair (we sit on chairs)
+      const isGoal = (nx===tx && ny===ty);
+      if(!walk[ni] && !isGoal) continue;
+      visited[ni]=1;
+      prev[ni]=cur;
+      q.push(ni);
+    }
+  }
+  return null;
+}
+
+// Find nearest free spot in array {x,y}[] (not occupied by another agent)
+function findFreeSpot(spots, occupied){
+  const shuffled = [...spots].sort(()=>Math.random()-0.5);
+  for(const s of shuffled){
+    const key = `${s.x},${s.y}`;
+    if(!occupied.has(key)) return s;
+  }
+  return null;
+}
+
+// Build occupancy map from AGENTS_DATA
+function buildOccupancy(exceptId){
+  const occ = new Set();
+  for(const a of AGENTS_DATA){
+    if(a.id===exceptId) continue;
+    if(a.target) occ.add(`${a.target.x},${a.target.y}`);
+    occ.add(`${a.x},${a.y}`);
+  }
+  return occ;
+}
+
+// ═══════════════════════════════════════════════════════
+// Behavior selection
+// ═══════════════════════════════════════════════════════
+function chooseBehavior(agent, ctx) {
+  // ctx: { hour, autonomyEnabled, busyAgents: Set<id> }
+  if(ctx.busyAgents && ctx.busyAgents.has(agent.id)) return null; // task chain has it
+  if(!ctx.autonomyEnabled) return null;
+
+  const h = ctx.hour;
+
+  // Lunch hour 12-13 → most go to lounge
+  if(h>=12 && h<13) {
+    if(agent.behavior!=='lounge' && chance(0.6)) return 'lounge';
+  }
+  // After 6pm → wander, balcony, toilet, lounge
+  if(h>=18 || h<9) {
+    if(chance(0.3)) return pickRandom(['lounge','balcony','toilet','desk']);
+  }
+
+  // Energy below 30 → forced break
+  if(agent.energy < 30 && chance(0.4)) return pickRandom(['lounge','balcony']);
+
+  // CEO / PM occasional walk-around
+  if((agent.role==='CEO' || agent.role==='프로젝트 매니저') && chance(0.05)) {
+    return pickRandom(['whiteboard','wandering','desk']);
+  }
+
+  // Default: small chance to do something
+  if(chance(0.04)) {
+    return pickRandom(['lounge','toilet','balcony','wandering','whiteboard','desk','desk','desk']);
+  }
+  return null;
+}
+
+// Get target spot for behavior
+function targetForBehavior(agent, behavior, occupied) {
+  switch(behavior) {
+    case 'desk': {
+      const desk = TM.DESKS[agent.homeDesk];
+      return desk.chair;
+    }
+    case 'lounge': {
+      return findFreeSpot(TM.LOUNGE_SPOTS, occupied);
+    }
+    case 'balcony': {
+      return findFreeSpot(TM.BALCONY_SPOTS, occupied);
+    }
+    case 'whiteboard': {
+      return findFreeSpot(TM.WHITEBOARD_SPOTS, occupied);
+    }
+    case 'toilet': {
+      return findFreeSpot(TM.TOILET_SPOTS, occupied);
+    }
+    case 'meeting': {
+      return findFreeSpot(TM.CONFERENCE_SEATS, occupied);
+    }
+    case 'wandering': {
+      // Pick a random walkable cell in work zone
+      const r = TM.ROOMS.workZone;
+      for(let tries=0; tries<10; tries++){
+        const x = r.x1 + Math.floor(Math.random()*(r.x2-r.x1));
+        const y = r.y1 + Math.floor(Math.random()*(r.y2-r.y1));
+        const key=`${x},${y}`;
+        if(!occupied.has(key)) return {x,y};
+      }
+      return null;
+    }
+    default: return null;
+  }
+}
+
+// State color mapping for behavior
+function stateForBehavior(behavior) {
+  if(behavior==='desk') return 'working';
+  if(behavior==='lounge') return 'coffee';
+  if(behavior==='balcony') return 'coffee';
+  if(behavior==='whiteboard') return 'meeting';
+  if(behavior==='toilet') return 'toilet';
+  if(behavior==='meeting') return 'meeting';
+  if(behavior==='wandering') return 'moving';
+  return 'idle';
+}
+
+window.OFFICE_AGENTS = {
+  AGENTS_DATA, CHAIN_BY_DEPT,
+  findPath, findFreeSpot, buildOccupancy,
+  chooseBehavior, targetForBehavior, stateForBehavior,
+  pickRandom, chance,
+};
+
+
+// ═══════════════════════════════════════════════════════
+// Phaser game: scenes, agent sprites, autonomy tick
+// ═══════════════════════════════════════════════════════
+
+const TILE_SIZE = 16, SCALE = 2;
+const TS = TILE_SIZE * SCALE;
+
+// ── Agent sprite (container) ───────────────────────────
+class AgentSprite {
+  constructor(scene, agentData) {
+    this.scene = scene;
+    this.id = agentData.id;
+    this.agentData = agentData;
+    this.busy = false;
+    this.actionTimer = null;
+    this.bobTween = null;
+
+    const wx = agentData.x * TS + TS/2;
+    const wy = agentData.y * TS + TS;
+
+    this.container = scene.add.container(wx, wy);
+    this.container.setDepth(20);
+
+    // shadow
+    this.shadow = scene.add.ellipse(0, -1, 18, 6, 0x000000, 0.35);
+    this.container.add(this.shadow);
+
+    // sprite
+    this.sprite = scene.add.sprite(0, 0, 'agent', agentData.spriteIndex*4 + 3);
+    this.sprite.setOrigin(0.5, 1);
+    this.sprite.setScale(SCALE);
+    this.container.add(this.sprite);
+
+    // selection ring
+    this.selectionRect = scene.add.rectangle(0, -24, 36, 50);
+    this.selectionRect.setStrokeStyle(2, 0x10b981);
+    this.selectionRect.setFillStyle(0x10b981, 0.08);
+    this.selectionRect.setVisible(false);
+    this.container.add(this.selectionRect);
+
+    // name label
+    this.nameLabel = scene.add.text(0, 4, agentData.name, {
+      fontSize:'9px', fontFamily:'Pretendard, sans-serif',
+      color:'#ffffff', backgroundColor:'#000000aa',
+      padding:{x:3, y:1}
+    });
+    this.nameLabel.setOrigin(0.5, 0);
+    this.nameLabel.setResolution(2);
+    this.container.add(this.nameLabel);
+
+    // state indicator dot
+    this.stateIndicator = scene.add.circle(13, -42, 3.5, 0x4ade80);
+    this.stateIndicator.setStrokeStyle(1, 0x000000, 0.4);
+    this.container.add(this.stateIndicator);
+
+    // typing icon overlay
+    this.actionIcon = scene.add.text(0, -50, '', {
+      fontSize:'11px', fontFamily:'Pretendard, sans-serif',
+      color:'#ffffff'
+    });
+    this.actionIcon.setOrigin(0.5, 0.5);
+    this.actionIcon.setResolution(2);
+    this.actionIcon.setVisible(false);
+    this.container.add(this.actionIcon);
+
+    // bubble
+    this.bubbleBg = scene.add.graphics();
+    this.bubbleText = scene.add.text(0, -52, '', {
+      fontSize:'10px', fontFamily:'Pretendard, sans-serif',
+      color:'#1f2937', wordWrap:{width:120}, align:'center'
+    });
+    this.bubbleText.setOrigin(0.5, 1);
+    this.bubbleText.setResolution(2);
+    this.bubbleBg.setVisible(false);
+    this.bubbleText.setVisible(false);
+    this.container.add(this.bubbleBg);
+    this.container.add(this.bubbleText);
+    this.speechTimer = null;
+
+    // interaction
+    this.sprite.setInteractive({useHandCursor:true});
+    this.sprite.on('pointerdown', () => {
+      if(window.clientAgentManager) window.clientAgentManager.selectAgent(this.id);
+    });
+  }
+
+  setFacing(dir){ this.sprite.setFrame(this.agentData.spriteIndex*4 + dir); }
+
+  // Walk along a path — returns Promise that resolves when done
+  walkPath(path){
+    return new Promise((resolve) => {
+      if(!path || path.length===0){ resolve(); return; }
+      this.stopMovement();
+      const SPD_PX = TS * 5; // px/sec
+      let i = 0;
+      const step = () => {
+        if(i >= path.length){ resolve(); return; }
+        const cell = path[i];
+        const tx = cell.x*TS + TS/2;
+        const ty = cell.y*TS + TS;
+        const dx = tx - this.container.x, dy = ty - this.container.y;
+        // determine facing
+        let dir = 3;
+        if(Math.abs(dx) > Math.abs(dy)) dir = dx<0 ? 0 : 1;
+        else dir = dy<0 ? 2 : 3;
+        this.setFacing(dir);
+        const dist = Math.hypot(dx, dy);
+        const dur = dist / SPD_PX * 1000;
+        this.moveTween = this.scene.tweens.add({
+          targets: this.container, x:tx, y:ty,
+          duration: dur, ease:'Linear',
+          onComplete: () => { i++; step(); }
+        });
+        // walk bob
+        this.bobTween && this.bobTween.stop();
+        this.bobTween = this.scene.tweens.add({
+          targets: this.sprite, y: -1, duration: 130, yoyo:true, repeat:-1, ease:'Sine.easeInOut'
+        });
+        // update agent grid coords as we move
+        this.agentData.x = cell.x;
+        this.agentData.y = cell.y;
+      };
+      step();
+    });
+  }
+
+  stopMovement(){
+    if(this.moveTween){ this.moveTween.stop(); this.moveTween=null; }
+    if(this.bobTween){ this.bobTween.stop(); this.bobTween=null; this.sprite.y=0; }
+  }
+
+  // Action animations — plays until stopped
+  startAction(kind){
+    this.stopAction();
+    if(kind==='typing'){
+      this.actionIcon.setText('💻'); this.actionIcon.setVisible(true);
+      this.actionIcon.y = -52;
+      this.bobTween = this.scene.tweens.add({
+        targets: this.actionIcon, y:-58, duration:600, yoyo:true, repeat:-1, ease:'Sine.easeInOut'
+      });
+      this.shoulderTween = this.scene.tweens.add({
+        targets: this.sprite, scaleY: SCALE*0.97, duration:200, yoyo:true, repeat:-1, ease:'Sine.easeInOut'
+      });
+    } else if(kind==='coffee'){
+      this.actionIcon.setText('☕'); this.actionIcon.setVisible(true);
+      this.actionIcon.y = -50;
+      this.bobTween = this.scene.tweens.add({
+        targets: this.actionIcon, y:-56, alpha:{from:1,to:0.6}, duration:900, yoyo:true, repeat:-1, ease:'Sine.easeInOut'
+      });
+    } else if(kind==='speak'){
+      this.actionIcon.setText('💬'); this.actionIcon.setVisible(true);
+      this.actionIcon.y = -52;
+      this.bobTween = this.scene.tweens.add({
+        targets: this.actionIcon, scale:{from:0.9,to:1.1}, duration:500, yoyo:true, repeat:-1, ease:'Sine.easeInOut'
+      });
+    } else if(kind==='whiteboard'){
+      this.actionIcon.setText('📝'); this.actionIcon.setVisible(true);
+      this.actionIcon.y = -52;
+      this.bobTween = this.scene.tweens.add({
+        targets: this.actionIcon, x:{from:-3,to:3}, duration:400, yoyo:true, repeat:-1, ease:'Sine.easeInOut'
+      });
+    } else if(kind==='meeting'){
+      this.actionIcon.setText('🗣'); this.actionIcon.setVisible(true);
+      this.bobTween = this.scene.tweens.add({
+        targets: this.actionIcon, alpha:{from:1,to:0.5}, duration:700, yoyo:true, repeat:-1
+      });
+    } else if(kind==='thinking'){
+      this.actionIcon.setText('💭'); this.actionIcon.setVisible(true);
+      this.bobTween = this.scene.tweens.add({
+        targets: this.actionIcon, y:{from:-52,to:-58}, duration:1000, yoyo:true, repeat:-1, ease:'Sine.easeInOut'
+      });
+    } else if(kind==='tired'){
+      this.actionIcon.setText('💤'); this.actionIcon.setVisible(true);
+      this.bobTween = this.scene.tweens.add({
+        targets: this.actionIcon, alpha:{from:1,to:0.4}, duration:1200, yoyo:true, repeat:-1
+      });
+    }
+  }
+
+  // Sit at desk: lower body slightly so character looks seated
+  sitDown(){
+    this.sprite.y = 6;
+    this.shadow.setVisible(false);
+  }
+  standUp(){
+    this.sprite.y = 0;
+    this.shadow.setVisible(true);
+  }
+
+  // Emotion popups — brief icon above head (!, ?, ♥, …)
+  showEmotion(kind, dur=1400){
+    const map = { '!':'❗','?':'❓','love':'💖','idea':'💡','angry':'💢','sweat':'💦','happy':'😊','surprise':'❕','sleep':'…zzz' };
+    const sym = map[kind] || kind;
+    const t = this.scene.add.text(this.container.x, this.container.y-58, sym, {
+      fontSize:'14px', fontFamily:'Pretendard, sans-serif'
+    });
+    t.setOrigin(0.5,1);
+    t.setDepth(40);
+    t.setResolution(2);
+    this.scene.tweens.add({
+      targets: t, y: t.y-14, alpha:{from:0,to:1}, scale:{from:0.6,to:1.1},
+      duration:280, ease:'Back.easeOut',
+      onComplete:()=>{
+        this.scene.tweens.add({
+          targets:t, alpha:0, y:t.y-6, delay:dur, duration:300,
+          onComplete:()=>t.destroy()
+        });
+      }
+    });
+  }
+
+  // Greet gesture — quick bow + ! emotion
+  greet(){
+    this.showEmotion('happy', 1200);
+    this.scene.tweens.add({
+      targets: this.sprite, y:{from:0,to:-3}, duration:160, yoyo:true, repeat:1, ease:'Sine.easeInOut'
+    });
+  }
+  stopAction(){
+    if(this.bobTween){ this.bobTween.stop(); this.bobTween=null; }
+    if(this.shoulderTween){ this.shoulderTween.stop(); this.shoulderTween=null; this.sprite.scaleY=SCALE; }
+    this.actionIcon.setVisible(false);
+    this.actionIcon.x = 0;
+    this.actionIcon.y = -52;
+    this.actionIcon.alpha = 1;
+    this.actionIcon.setScale(1);
+    // Stand back up if was sitting
+    this.standUp();
+  }
+
+  showSpeechBubble(msg, dur=3500){
+    if(!window.tweaks || window.tweaks.bubbles === false) return;
+    if(this.speechTimer) clearTimeout(this.speechTimer);
+    const dm = msg.length>30 ? msg.substring(0,28)+'…' : msg;
+    this.bubbleText.setText(dm);
+    this.bubbleText.setVisible(true);
+    this.bubbleBg.clear();
+    const b = this.bubbleText.getBounds();
+    const p=4, bw=Math.max(b.width+p*2, 36), bh=b.height+p*2;
+    const bx=-bw/2, by=-52-bh;
+    this.bubbleBg.fillStyle(0xffffff, 0.96);
+    this.bubbleBg.fillRoundedRect(bx, by, bw, bh, 5);
+    this.bubbleBg.lineStyle(1, 0x000000, 0.15);
+    this.bubbleBg.strokeRoundedRect(bx, by, bw, bh, 5);
+    this.bubbleBg.fillTriangle(-3, by+bh, 3, by+bh, 0, by+bh+5);
+    this.bubbleBg.setVisible(true);
+    this.bubbleText.setY(by+bh-p);
+    this.speechTimer = setTimeout(()=>this.hideSpeechBubble(), dur);
+  }
+  hideSpeechBubble(){
+    this.bubbleBg.setVisible(false);
+    this.bubbleText.setVisible(false);
+    if(this.speechTimer){ clearTimeout(this.speechTimer); this.speechTimer=null; }
+  }
+
+  setState(st){
+    const c = {
+      idle:0x4ade80, working:0xfacc15, moving:0x60a5fa,
+      coffee:0xf59e0b, meeting:0xa78bfa, chatting:0xf472b6, toilet:0x9ca3af
+    };
+    this.stateIndicator.setFillStyle(c[st] || 0x4ade80);
+  }
+  setSelected(s){ this.selectionRect.setVisible(s); }
+  destroy(){
+    this.stopMovement(); this.stopAction();
+    if(this.speechTimer) clearTimeout(this.speechTimer);
+    this.container.destroy();
+  }
+}
+window.AgentSprite = AgentSprite;
+
+// ═══════════════════════════════════════════════════════
+// Office Scene (loads assets directly, no separate Boot)
+// ═══════════════════════════════════════════════════════
+class OfficeScene extends Phaser.Scene {
+  constructor(){
+    super({key:'OfficeScene'});
+    this.agentSprites = new Map();
+  }
+
+  preload(){
+    const w=this.cameras.main.width, h=this.cameras.main.height;
+    const px=this.add.graphics(); px.fillStyle(0x18181b,1); px.fillRect(w/2-160, h/2-15, 320, 30);
+    const lt=this.add.text(w/2, h/2-30, 'Pixel Office 로딩 중...', {fontSize:'13px', fontFamily:'Pretendard,sans-serif', color:'#10b981'}).setOrigin(0.5);
+    const pb=this.add.graphics();
+    this.load.on('progress', v=>{
+      pb.clear(); pb.fillStyle(0x10b981, 1); pb.fillRect(w/2-155, h/2-10, 310*v, 20);
+    });
+    this.load.on('complete', ()=>{ pb.destroy(); px.destroy(); lt.destroy(); });
+    this.load.image('tiles', window.OFFICE_ASSETS.generateTileset());
+    this.load.spritesheet('agent', window.OFFICE_ASSETS.generateSpritesheet(), {frameWidth:16, frameHeight:24});
+  }
+
+  create(){
+    const mapData = window.OFFICE_MAP.buildOfficeMap();
+    this.mapData = mapData;
+    this.walkable = window.OFFICE_MAP.buildWalkable(mapData);
+
+    this.cache.tilemap.add('office-map', {format: Phaser.Tilemaps.Formats.TILED_JSON, data: mapData});
+    const map = this.make.tilemap({key:'office-map'});
+    const tileset = map.addTilesetImage('office-tiles', 'tiles');
+    const fl = map.createLayer('floor', tileset, 0, 0);    fl.setScale(SCALE);
+    const ol = map.createLayer('objects', tileset, 0, 0);  ol.setScale(SCALE);
+
+    const W = mapData.width * TS, H = mapData.height * TS;
+    this.cameras.main.setBounds(0, 0, W, H);
+    this.cameras.main.setBackgroundColor('#0a0a1a');
+
+    // Camera fits to view (scale handled by Phaser FIT scale mode at canvas level too)
+    this.cameras.main.centerOn(W/2, H/2);
+
+    // Subtle grid
+    const g = this.add.graphics();
+    g.lineStyle(0.4, 0xffffff, 0.04);
+    g.setDepth(5);
+    for(let x=0; x<=mapData.width; x++) g.lineBetween(x*TS, 0, x*TS, H);
+    for(let y=0; y<=mapData.height; y++) g.lineBetween(0, y*TS, W, y*TS);
+
+    // ── Environment: sun beams from windows ──
+    const beams = this.add.graphics();
+    beams.setDepth(7);
+    beams.setBlendMode(Phaser.BlendModes.ADD);
+    this.sunBeams = beams;
+    const drawBeams = () => {
+      beams.clear();
+      const phase = window.OfficeClock.getPhase();
+      if(phase === 'night') return;
+      const alpha = phase === 'dusk' ? 0.10 : 0.18;
+      const tint = phase === 'dusk' ? 0xffaa66 : 0xfff2cc;
+      // Top windows beam down
+      [4,7,11,18,22,27].forEach(wx => {
+        const x0 = wx*TS, y0 = 0;
+        beams.fillStyle(tint, alpha);
+        beams.beginPath();
+        beams.moveTo(x0, y0); beams.lineTo(x0+TS, y0);
+        beams.lineTo(x0+TS+60, y0+220); beams.lineTo(x0-60, y0+220);
+        beams.closePath(); beams.fillPath();
+      });
+      // Left side windows beam right
+      [3,6,10,14,17,20,23].forEach(wy => {
+        const x0 = 0, y0 = wy*TS;
+        beams.fillStyle(tint, alpha*0.7);
+        beams.beginPath();
+        beams.moveTo(x0, y0); beams.lineTo(x0, y0+TS);
+        beams.lineTo(x0+180, y0+TS+50); beams.lineTo(x0+180, y0-50);
+        beams.closePath(); beams.fillPath();
+      });
+    };
+    drawBeams();
+    this.time.addEvent({ delay:3000, callback:drawBeams, loop:true });
+
+    // ── Floating dust particles ──
+    const dust = this.add.graphics();
+    dust.setDepth(8);
+    this.dustParticles = [];
+    for(let i=0;i<40;i++){
+      this.dustParticles.push({
+        x: Math.random()*W, y: Math.random()*H,
+        vx: (Math.random()-0.5)*0.3, vy: -0.1-Math.random()*0.2,
+        s: 0.5+Math.random()*1.2, a: 0.3+Math.random()*0.4,
+      });
+    }
+    this.events.on('update', () => {
+      dust.clear();
+      for(const p of this.dustParticles){
+        p.x += p.vx; p.y += p.vy;
+        if(p.y < 0){ p.y = H; p.x = Math.random()*W; }
+        if(p.x < 0) p.x = W; if(p.x > W) p.x = 0;
+        dust.fillStyle(0xfff8e0, p.a*0.4);
+        dust.fillCircle(p.x, p.y, p.s);
+      }
+    });
+
+    // ── Monitor glow flicker (on desks) ──
+    const monitorGlow = this.add.graphics();
+    monitorGlow.setDepth(9);
+    monitorGlow.setBlendMode(Phaser.BlendModes.ADD);
+    this.time.addEvent({delay:200, loop:true, callback: () => {
+      monitorGlow.clear();
+      // Find all desk monitors (GID 27, 28, 35) on map
+      const obj = mapData.layers.find(l=>l.name==='objects').data;
+      for(let y=0; y<mapData.height; y++) for(let x=0; x<mapData.width; x++){
+        const g = obj[y*mapData.width+x];
+        if(g===27||g===28||g===35){
+          const a = 0.18 + Math.random()*0.06;
+          monitorGlow.fillStyle(0x88ccff, a);
+          monitorGlow.fillCircle(x*TS+TS/2, y*TS+TS/2, 14);
+        }
+      }
+    }});
+
+    // Room labels (faint)
+    this.roomLabels = [];
+    for(const key of Object.keys(window.OFFICE_MAP.ROOMS)){
+      const r = window.OFFICE_MAP.ROOMS[key];
+      const cx = (r.x1 + r.x2)/2 * TS + TS/2;
+      const cy = r.y1 * TS + 6;
+      const t = this.add.text(cx, cy, r.label, {
+        fontSize:'9px', fontFamily:'Pretendard, sans-serif',
+        color:'#ffffff', backgroundColor:'#00000066',
+        padding:{x:4,y:2}
+      });
+      t.setOrigin(0.5, 0);
+      t.setResolution(2);
+      t.setDepth(8);
+      t.setAlpha(0.55);
+      this.roomLabels.push(t);
+    }
+
+    // Drag camera
+    this.input.on('pointerdown', (p)=>{
+      if(p.target && p.target !== this.cameras.main) return;
+      this.dragStart = {x:p.x, y:p.y, camX:this.cameras.main.scrollX, camY:this.cameras.main.scrollY};
+    });
+    this.input.on('pointermove', (p)=>{
+      if(!p.isDown || !this.dragStart) return;
+      this.cameras.main.scrollX = this.dragStart.camX - (p.x - this.dragStart.x);
+      this.cameras.main.scrollY = this.dragStart.camY - (p.y - this.dragStart.y);
+    });
+    this.input.on('pointerup', ()=>{ this.dragStart=null; });
+    // Wheel zoom
+    this.input.on('wheel', (p, _o, _dx, dy) => {
+      const z = this.cameras.main.zoom;
+      const nz = Phaser.Math.Clamp(z + (dy>0?-0.1:0.1), 0.4, 2);
+      this.cameras.main.setZoom(nz);
+    });
+
+    // Spawn agents
+    for(const a of window.OFFICE_AGENTS.AGENTS_DATA){
+      const s = new AgentSprite(this, a);
+      this.agentSprites.set(a.id, s);
+    }
+
+    // Agent select handler
+    if(window.clientAgentManager){
+      window.clientAgentManager.onAgentSelect = sid => {
+        for(const [id,s] of this.agentSprites) s.setSelected(id===sid);
+        // center on selected
+        const ag = window.OFFICE_AGENTS.AGENTS_DATA.find(a=>a.id===sid);
+        if(ag) this.cameras.main.pan(ag.x*TS+TS/2, ag.y*TS+TS, 600, 'Sine.easeInOut');
+        if(window.updateAgentDetail) window.updateAgentDetail(sid);
+      };
+    }
+
+    // Sync state to client manager
+    window.clientAgentManager.syncFromAgents(window.OFFICE_AGENTS.AGENTS_DATA);
+
+    // Autonomy tick
+    this.time.addEvent({
+      delay: 2500, callback: () => this.tickAutonomy(), loop: true
+    });
+
+    // Start clock
+    window.OfficeClock.start(this);
+  }
+
+  // ── Autonomy ─────────────────────────────────────────
+  tickAutonomy(){
+    const tw = window.tweaks || {};
+    const ctx = {
+      hour: window.OfficeClock.hour,
+      autonomyEnabled: tw.autonomy !== false,
+      busyAgents: window.busyAgentSet || new Set(),
+    };
+
+    for(const a of window.OFFICE_AGENTS.AGENTS_DATA){
+      const sprite = this.agentSprites.get(a.id);
+      if(!sprite || sprite.busy) continue;
+
+      // Energy decay
+      if(a.behavior === 'desk') a.energy = Math.max(0, a.energy - 1.5);
+      else if(a.behavior === 'lounge' || a.behavior === 'balcony') a.energy = Math.min(100, a.energy + 4);
+
+      // Tired indicator
+      if(a.energy < 25 && a.behavior==='desk' && Math.random()<0.3) {
+        sprite.startAction('tired');
+        setTimeout(()=>sprite.stopAction(), 1500);
+      }
+
+      const newBh = window.OFFICE_AGENTS.chooseBehavior(a, ctx);
+      if(!newBh || newBh === a.behavior) continue;
+
+      this.assignBehavior(a, newBh);
+    }
+    if(window.renderAgentCards) window.renderAgentCards();
+  }
+
+  async assignBehavior(agent, behavior){
+    const sprite = this.agentSprites.get(agent.id);
+    if(!sprite) return;
+    const occupied = window.OFFICE_AGENTS.buildOccupancy(agent.id);
+    const target = window.OFFICE_AGENTS.targetForBehavior(agent, behavior, occupied);
+    if(!target) return;
+
+    sprite.busy = true;
+    agent.target = target;
+    agent.behavior = behavior;
+    agent.state = 'moving';
+    sprite.setState('moving');
+
+    // Path
+    const path = window.OFFICE_AGENTS.findPath(this.walkable, this.mapData.width, this.mapData.height, agent.x, agent.y, target.x, target.y);
+    if(path){
+      sprite.stopAction();
+      await sprite.walkPath(path);
+    }
+    sprite.stopMovement();
+    agent.x = target.x; agent.y = target.y;
+    agent.target = null;
+
+    // Set state + action
+    const st = window.OFFICE_AGENTS.stateForBehavior(behavior);
+    agent.state = st;
+    sprite.setState(st);
+
+    // Face desk monitor / etc
+    if(behavior === 'desk'){
+      const desk = window.OFFICE_MAP.DESKS[agent.homeDesk];
+      sprite.setFacing(desk.faceDir != null ? desk.faceDir : 2);
+      sprite.sitDown();
+      sprite.startAction('typing');
+      // occasional eureka / frustration during work
+      if(window.OFFICE_AGENTS.chance(0.12))
+        setTimeout(()=>sprite.showEmotion(window.OFFICE_AGENTS.pickRandom(['idea','!','sweat','?'])), 800+Math.random()*2000);
+    } else if(behavior === 'lounge'){
+      sprite.setFacing(3);
+      sprite.startAction('coffee');
+      // chance to chat with someone in lounge
+      if(window.OFFICE_AGENTS.chance(0.5)){
+        const phrases = ['오늘 점심 뭐 먹었어요?','커피 한 잔의 여유 ☕','회의 길었네요…','이번 주 마감 가능할까?','벌써 금요일!','와 날씨 좋다','이 기능 어떻게 풀까요?','주말 잘 보내세요 🙌','업무 진척 어때요?','오늘 컨디션 좋네요'];
+        sprite.showSpeechBubble(window.OFFICE_AGENTS.pickRandom(phrases), 3000);
+      }
+    } else if(behavior === 'balcony'){
+      sprite.setFacing(2);
+      sprite.startAction('coffee');
+      if(window.OFFICE_AGENTS.chance(0.4))
+        sprite.showSpeechBubble(window.OFFICE_AGENTS.pickRandom(['바람 쐬는 중 🍃','상쾌하다 ✨','잠깐 환기 좀','경치 좋네요']), 2500);
+    } else if(behavior === 'whiteboard'){
+      sprite.setFacing(2);
+      sprite.startAction('whiteboard');
+      if(window.OFFICE_AGENTS.chance(0.3))
+        sprite.showSpeechBubble(window.OFFICE_AGENTS.pickRandom(['이 흐름이 어떨까요?','음… 다시 그려볼게요','여기가 핵심이에요','아 이제 보이네!']), 2800);
+    } else if(behavior === 'toilet'){
+      sprite.setFacing(3);
+    } else if(behavior === 'meeting'){
+      sprite.setFacing(3);
+      sprite.sitDown();
+      sprite.startAction('meeting');
+    } else if(behavior === 'wandering'){
+      sprite.setFacing(3);
+      // brief speak + greet gesture
+      if(window.OFFICE_AGENTS.chance(0.4))
+        sprite.showSpeechBubble(window.OFFICE_AGENTS.pickRandom(['👋 안녕하세요','수고하세요!','방금 그 보고서 봤어요','다들 화이팅!','잠깐 산책 중','오늘도 평화롭다']), 2200);
+      if(window.OFFICE_AGENTS.chance(0.3)) sprite.greet();
+    }
+
+    sprite.busy = false;
+    if(window.renderAgentCards) window.renderAgentCards();
+    if(window.clientAgentManager.selectedAgentId === agent.id && window.updateAgentDetail)
+      window.updateAgentDetail(agent.id);
+  }
+
+  // Forced move (for chain-of-command scripted scenes)
+  async forceMove(agentId, target, opts={}){
+    const a = window.OFFICE_AGENTS.AGENTS_DATA.find(x=>x.id===agentId);
+    const sprite = this.agentSprites.get(agentId);
+    if(!a || !sprite) return;
+    if(opts.haltAction !== false) sprite.stopAction();
+    a.state = 'moving'; sprite.setState('moving');
+    const path = window.OFFICE_AGENTS.findPath(this.walkable, this.mapData.width, this.mapData.height, a.x, a.y, target.x, target.y);
+    if(path) await sprite.walkPath(path);
+    sprite.stopMovement();
+    a.x = target.x; a.y = target.y;
+    if(opts.facing != null) sprite.setFacing(opts.facing);
+    if(opts.afterState){ a.state = opts.afterState; sprite.setState(opts.afterState); }
+    if(opts.afterAction) sprite.startAction(opts.afterAction);
+  }
+
+  showSpeech(agentId, msg, dur){
+    const sprite = this.agentSprites.get(agentId);
+    if(sprite) sprite.showSpeechBubble(msg, dur);
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// Office Clock — runs the 9-to-late simulated workday
+// ═══════════════════════════════════════════════════════
+const OfficeClock = {
+  hour: 9, minute: 0,
+  speedMult: 2,        // tweak: time speed (1x = 1 minute / sec)
+  manualLighting: 'auto',
+  start(scene){
+    this.scene = scene;
+    setInterval(() => this.tick(), 1000);
+    this.applyLighting();
+  },
+  tick(){
+    const tw = window.tweaks || {};
+    const sm = (tw.speed != null) ? tw.speed : this.speedMult;
+    this.minute += sm;
+    while(this.minute >= 60){ this.minute -= 60; this.hour = (this.hour+1) % 24; }
+    this.applyLighting();
+    this.updateDisplay();
+  },
+  updateDisplay(){
+    const el = document.getElementById('clock-time');
+    if(el) el.textContent = `${String(this.hour).padStart(2,'0')}:${String(Math.floor(this.minute)).padStart(2,'0')}`;
+    const phaseEl = document.getElementById('clock-phase');
+    if(phaseEl) phaseEl.textContent = this.getPhaseLabel();
+  },
+  getPhaseLabel(){
+    const h = this.hour;
+    if(h<7) return '새벽';
+    if(h<12) return '아침';
+    if(h<14) return '점심';
+    if(h<18) return '오후';
+    if(h<21) return '저녁';
+    return '야근';
+  },
+  getPhase(){
+    const tw = window.tweaks || {};
+    const lt = tw.lighting || 'auto';
+    if(lt !== 'auto') return lt;
+    const h = this.hour;
+    if(h>=7 && h<17) return 'day';
+    if(h>=17 && h<19) return 'dusk';
+    return 'night';
+  },
+  applyLighting(){
+    const overlay = document.getElementById('tone-overlay');
+    if(!overlay) return;
+    const phase = this.getPhase();
+    const map = {
+      day:   'rgba(255,255,255,0)',
+      dusk:  'rgba(220,140,80,0.32)',
+      night: 'rgba(40,55,120,0.55)',
+    };
+    overlay.style.background = map[phase] || 'transparent';
+  }
+};
+window.OfficeClock = OfficeClock;
+window.OfficeScene = OfficeScene;
+
+</script>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// App orchestration: ClientAgentManager, Chat workflow,
+// Tweaks panel, UI rendering — WITH SERVER CONNECTION
+// ═══════════════════════════════════════════════════════
+
+// Global tweaks state
+window.tweaks = {
+  "speed": 2,
+  "lighting": "auto",
+  "autonomy": true,
+  "bubbles": true,
+  "bgm": false,
+  "layout": "open"
+};
+
+// Track agents currently in a chain task
+window.busyAgentSet = new Set();
+
+
+// ── Client agent manager ─────────────────────────────
+class ClientAgentManager {
+  constructor(){
+    this.agents = new Map();
+    this.selectedAgentId = null;
+    this.onAgentSelect = null;
+  }
+  syncFromAgents(arr){
+    this.agents.clear();
+    for(const a of arr) this.agents.set(a.id, a);
+  }
+  selectAgent(id){
+    this.selectedAgentId = id;
+    if(this.onAgentSelect) this.onAgentSelect(id);
+    if(window.renderAgentCards) window.renderAgentCards();
+  }
+  getAllAgents(){ return Array.from(this.agents.values()); }
+  getAgent(id){ return this.agents.get(id); }
+}
+window.clientAgentManager = new ClientAgentManager();
+
+// ═══════════════════════════════════════════════════════
+// Chat / chain orchestration
+// ═══════════════════════════════════════════════════════
+const delay = ms => new Promise(r => setTimeout(r, ms));
+const R = arr => arr[Math.floor(Math.random()*arr.length)];
+const RN = (mn,mx) => Math.floor(Math.random()*(mx-mn+1))+mn;
+
+// Fallback mock responses when server/AI is unavailable
+const MOCK_WORK = {
+  'CEO': (m) => `## CEO 업무 지시: ${m}\n\n### 1. 전략 방향\n- 시장 동향과 경쟁사 현황을 종합 분석합니다.\n- 실행 가능한 ${R(['2주','3주','4주'])} 단위 로드맵 수립이 필요합니다.\n\n### 2. 기대 결과\n- 데이터 기반 분석 보고서\n- 일정/예산/인력 실행 계획서\n- 리스크 식별 및 대응 방안\n\n### 3. 일정\n기획 ${RN(2,4)}일 / 개발 ${RN(4,7)}일 / 검증 ${RN(1,3)}일`,
+
+  '프로젝트 매니저': (m) => `## 기획서: ${m}\n\n### 범위 정의\n- MVP 핵심 기능 ${RN(3,6)}개\n- 부가 기능 ${RN(2,4)}개\n\n### 일정 계획\n| 단계 | 기간 | 담당 |\n| 기획 | ${RN(2,4)}일 | PM |\n| 디자인 | ${RN(2,4)}일 | 디자이너 |\n| 개발 | ${RN(4,7)}일 | 개발팀 |\n| QA | ${RN(1,3)}일 | QA팀 |\n\n### 리스크\n- 일정 버퍼 ${RN(15,25)}% 확보\n- 핵심 기술 PoC 선행`,
+
+  '시니어 개발자': (m) => `## 개발 결과: ${m}\n\n### 구현 내용\n- API 엔드포인트 ${RN(8,15)}개\n- DB 스키마 + 마이그레이션\n- 단위 테스트 ${RN(30,60)}개\n\n### 기술 스택\n- ${R(['Node.js + Express','Python + FastAPI','Go + Gin'])}\n- ${R(['PostgreSQL','MySQL'])}\n\n### 성능\n- 응답 시간 ${RN(80,150)}ms\n- 코드 커버리지 ${RN(78,92)}%`,
+
+  '백엔드 개발자': (m) => `## 백엔드 작업: ${m}\n\n- 인증/인가 미들웨어 추가\n- 캐시 레이어 (Redis) 구성\n- 큐 기반 비동기 처리 (${R(['SQS','RabbitMQ','Kafka'])})\n- 부하 테스트 통과 (RPS ${RN(800,2500)})`,
+
+  '프론트 개발자': (m) => `## 프론트 작업: ${m}\n\n- 컴포넌트 ${RN(12,28)}개 작성\n- 상태관리 (${R(['Zustand','Redux','Recoil'])}) 도입\n- Lighthouse 성능 ${RN(88,98)}점\n- 접근성 AA 준수`,
+
+  '프로덕트 디자이너': (m) => `## 디자인 검토: ${m}\n\n### UX 분석\n- 사용자 흐름 일관성: 양호\n- CTA 대비율: ${(3.8+Math.random()*1.2).toFixed(1)}:1\n\n### 접근성 (WCAG 2.1 AA)\n- 색상 대비 4.5:1 충족\n- 키보드 탐색 가능\n- 터치 타겟 44×44 충족\n\n### 개선 권고\n- ${R(['스켈레톤 UI','마이크로 인터랙션','다크모드 토큰'])} 추가 권장`,
+
+  'QA 테스터': (m) => `## QA 테스트: ${m}\n\n| 항목 | 수 | 통과 | 통과율 |\n| 기능 | ${RN(24,32)} | ${RN(22,30)} | ${RN(92,99)}% |\n| 성능 | ${RN(6,12)} | 전체 | 100% |\n| 보안 | ${RN(8,14)} | 1 fail | ${RN(85,95)}% |\n\n### 발견된 이슈\n- [중요] ${R(['세션 타임아웃','동시 요청 정합성','입력값 길이'])} 처리 필요`,
+
+  '데이터 분석가': (m) => `## 데이터 분석: ${m}\n\n### 시장\n- 시장 규모 ${R(['1.8','2.3','3.1'])}조원, 연 ${RN(8,15)}% 성장\n- 진입 가능 시장 ${RN(1500,5000).toLocaleString()}억\n\n### 예측\n- 6개월 MAU ${RN(8000,25000).toLocaleString()}명\n- 전환율 ${(2+Math.random()*3).toFixed(1)}%\n- ROI 1년 ${RN(120,250)}%`,
+
+  'DevOps': (m) => `## 인프라/배포: ${m}\n\n- CI/CD 파이프라인 (${R(['GitHub Actions','GitLab CI'])}) 구성\n- ${R(['k8s','ECS','Cloud Run'])} 배포 자동화\n- 모니터링 + 알림 (${R(['Datadog','Grafana','New Relic'])})`,
+
+  '영업 팀장': (m) => `## 영업 전략: ${m}\n\n- 핵심 타겟 고객 ${RN(15,40)}개사 선정\n- 파이프라인 ${RN(3,8)}억원 규모 확보\n- 클로징 예상 ${RN(40,65)}%`,
+  '영업 매니저': (m) => `## 영업 액션: ${m}\n\n- 미팅 ${RN(10,25)}건 예약\n- 데모 자료 ${RN(2,4)}종 준비\n- 후속 콜 스크립트 ${RN(3,6)}개`,
+  '구매 담당': (m) => `## 구매 검토: ${m}\n\n- 견적 ${RN(3,6)}개사 비교\n- 단가 ${RN(8,18)}% 절감 예상\n- 납기 안정성 확보`,
+  '제조 매니저': (m) => `## 제조 계획: ${m}\n\n- 라인 가동률 ${RN(82,96)}%\n- 불량률 ${(0.3+Math.random()*0.5).toFixed(2)}%\n- 자재 리드타임 ${RN(7,14)}일`,
+  '인사 담당': (m) => `## 인사 검토: ${m}\n\n- 필요 인력 ${RN(2,5)}명\n- 채용 ETA ${RN(4,8)}주\n- 교육 프로그램 ${RN(2,4)}개`,
+  '재무 담당': (m) => `## 재무 분석: ${m}\n\n- 예산 ${(0.5+Math.random()*1.5).toFixed(1)}억\n- BEP ${RN(6,14)}개월\n- 현금흐름 안정`,
+  '리셉션': (m) => `## 의전/일정: ${m}\n\n- 회의실 예약 완료\n- 손님 응대 준비 완료`,
+};
+
+let chainRunning = false;
+
+
+// ═══════════════════════════════════════════════════════
+// Direct Anthropic API call (no server)
+// ═══════════════════════════════════════════════════════
+async function callAnthropic(agent, role, message, department) {
+  const apiKey = localStorage.getItem('anthropic_api_key');
+  if (!apiKey) return null;
+
+  const systemPrompt = `당신은 ${agent.name}입니다. 역할: ${role}, 소속: ${department}부서.
+가상 픽셀 아트 사무실에서 근무하는 AI 직원입니다.
+
+## 행동 지침
+- ${role}의 전문성을 살려 구체적이고 실무적인 결과물을 작성하세요
+- 마크다운 형식으로 깔끔하게 정리하세요 (##, ###, -, **, 표 등)
+- 한국어로 작성하세요
+- 실제 업무 보고서처럼 구체적인 수치와 일정을 포함하세요
+- 응답은 간결하되 실질적인 내용으로 채우세요 (200-400자 정도)`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1024,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: message }]
+      })
+    });
+    if (!res.ok) {
+      const t = await res.text();
+      console.error('Anthropic API error', res.status, t);
+      return null;
+    }
+    const data = await res.json();
+    const text = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('');
+    return text || null;
+  } catch (e) {
+    console.error('Anthropic fetch failed:', e);
+    return null;
+  }
+}
+
+// Request AI work — direct Anthropic call with mock fallback
+function requestAIWork(agentId, role, message, department) {
+  return new Promise(async (resolve) => {
+    const agent = window.OFFICE_AGENTS.AGENTS_DATA.find(a => a.id === agentId);
+    if (agent && localStorage.getItem('anthropic_api_key')) {
+      const text = await callAnthropic(agent, role, message, department);
+      if (text) {
+        resolve({ response: text, toolCalls: [{ name: 'claude_api', input: { role } }] });
+        return;
+      }
+    }
+    // Fallback to mock
+    const fn = MOCK_WORK[role] || (m => `${role}가 "${m}"에 대한 작업을 완료했습니다.`);
+    resolve({ response: fn(message), toolCalls: [] });
+  });
+}
+
+
+async function processChain(message, department){
+  if(chainRunning){
+    addChatMessage('⏳ 시스템', '이전 업무가 진행 중입니다. 잠시만 기다려주세요.', 'agent');
+    return;
+  }
+  chainRunning = true;
+
+  const scene = window.gameInstance?.scene.getScene('OfficeScene');
+  if(!scene){ chainRunning = false; return; }
+
+  const AGENTS = window.OFFICE_AGENTS.AGENTS_DATA;
+  const CHAIN_ROLES = window.OFFICE_AGENTS.CHAIN_BY_DEPT[department] || window.OFFICE_AGENTS.CHAIN_BY_DEPT['기획'];
+
+  // Find agents matching each role
+  const chainAgents = CHAIN_ROLES.map(role => AGENTS.find(a => a.role === role)).filter(Boolean);
+  for(const a of chainAgents) window.busyAgentSet.add(a.id);
+
+  const workLogs = [];
+
+  try {
+    // 1) 회의 소집 — CEO speaks
+    const ceo = chainAgents[0];
+    scene.showSpeech(ceo.id, '📣 전체 회의 소집!', 3000);
+    addChatMessage(ceo.name, `📢 [${department}] 전원 회의실로 모여주세요!`, 'agent');
+    await delay(800);
+
+    // 2) Move all chain agents to conference seats
+    const seats = window.OFFICE_MAP.CONFERENCE_SEATS;
+    const moves = [];
+    chainAgents.forEach((a, i) => {
+      const seat = seats[i % seats.length];
+      moves.push(scene.forceMove(a.id, seat, {afterState:'meeting', afterAction:'meeting'}));
+    });
+    await Promise.all(moves);
+    await delay(1500);
+
+    // 3) Each role speaks + does work in sequence
+    for(let i=0; i<chainAgents.length; i++){
+      const a = chainAgents[i];
+      const role = a.role;
+      // Move agent back to their desk to "work"
+      const desk = window.OFFICE_MAP.DESKS[a.homeDesk];
+      await scene.forceMove(a.id, desk.chair, {facing: desk.faceDir != null ? desk.faceDir : 2, afterState:'working', afterAction:'typing'});
+
+      scene.showSpeech(a.id, '✍️ 작업 시작!', 2000);
+      addChatMessage('💬 시스템', `${a.name}(${role})가 작업을 시작합니다...`, 'agent');
+      await delay(1800);
+
+      // Request AI work from server (falls back to mock if no connection/API key)
+      const aiResult = await requestAIWork(a.id, role, message, department);
+      const result = aiResult.response;
+      workLogs.push({agentName:a.name, role, content:result});
+      addChatMessage(a.name, result, 'agent', aiResult.toolCalls.length > 0 ? aiResult.toolCalls : [{name:'work_on_task', input:{role, task:message.substring(0,40)}}]);
+      await delay(800);
+
+      // Hand off
+      if(i < chainAgents.length - 1){
+        const next = chainAgents[i+1];
+        scene.showSpeech(a.id, `📄 ${next.name}에게 전달!`, 2000);
+        await delay(1200);
+      }
+    }
+
+    // 4) QA gate
+    const qa = chainAgents.find(a => a.role === 'QA 테스터');
+    if(qa){
+      const qaDesk = window.OFFICE_MAP.DESKS[qa.homeDesk];
+      await scene.forceMove(qa.id, qaDesk.chair, {facing:2, afterState:'working', afterAction:'thinking'});
+      scene.showSpeech(qa.id, '🔍 품질 검사 중...', 2500);
+      await delay(1800);
+
+      const pass1 = Math.random() < 0.5;
+      const total1 = pass1 ? RN(92,100) : RN(72,84);
+      const verdict1 = pass1 ? '✅ 통과' : '❌ 미달 → 롤백';
+      addChatMessage(qa.name, `📊 [QA 검사 1차]\n총점: ${total1}/100\n${verdict1}`, 'agent');
+      scene.showSpeech(qa.id, pass1 ? `✅ ${total1}점!` : `❌ ${total1}점 - 롤백`, 2500);
+      await delay(1500);
+
+      if(!pass1){
+        const designer = chainAgents.find(a => a.role === '프로덕트 디자이너') || chainAgents[2];
+        if(designer){
+          const dDesk = window.OFFICE_MAP.DESKS[designer.homeDesk];
+          await scene.forceMove(designer.id, dDesk.chair, {facing:2, afterState:'working', afterAction:'typing'});
+          scene.showSpeech(designer.id, '🔄 피드백 반영 중', 2500);
+          addChatMessage('🔄 시스템', `→ ${designer.name}에게 재작업 요청`, 'agent');
+          await delay(1800);
+          addChatMessage(designer.name, '[QA 피드백 반영] 보완 완료', 'agent');
+          await delay(700);
+          await scene.forceMove(qa.id, qaDesk.chair, {facing:2, afterAction:'thinking'});
+          scene.showSpeech(qa.id, '🔍 재검사', 2000);
+          await delay(1500);
+          addChatMessage(qa.name, `📊 [QA 검사 2차]\n총점: 98/100\n✅ 통과`, 'agent');
+          scene.showSpeech(qa.id, '✅ 통과!', 2500);
+          await delay(1200);
+        }
+      }
+    }
+
+    // 5) CEO final approval
+    const ceoDesk = window.OFFICE_MAP.DESKS[ceo.homeDesk];
+    await scene.forceMove(ceo.id, ceoDesk.chair, {facing:2, afterState:'working', afterAction:'thinking'});
+    scene.showSpeech(ceo.id, '👁️ 최종 검토', 2500);
+    await delay(1500);
+    addChatMessage(ceo.name, `🏛️ CEO 최종 검토 완료\n\n✅ **승인합니다!**\n부서: ${department}\n업무: ${message}\n\n전 팀원 수고하셨습니다 👏`, 'agent');
+    scene.showSpeech(ceo.id, '✅ 최종 승인!', 3000);
+    await delay(1000);
+
+    // 6) Everyone returns to desk
+    const returns = [];
+    const reactions = ['수고했어요! 👏','좋은 결과! ✅','확인했어요 👍','완료! 🎉','훌륭해요! ⭐','감사합니다! 🙌'];
+    chainAgents.forEach((a, i) => {
+      const desk = window.OFFICE_MAP.DESKS[a.homeDesk];
+      returns.push(scene.forceMove(a.id, desk.chair, {
+        facing: desk.faceDir != null ? desk.faceDir : 2,
+        afterState:'idle'
+      }).then(() => {
+        scene.showSpeech(a.id, reactions[i % reactions.length], 2500);
+      }));
+    });
+    await Promise.all(returns);
+
+    addChatMessage('시스템', `[${department}] "${message}" 업무가 완료되었습니다.\n\n참여: ${workLogs.map(l=>l.agentName).join(' → ')}`, 'agent');
+
+    // Generate downloadable report
+    const reportHtml = generateStandaloneReport(message, department, workLogs);
+    const blob = new Blob([reportHtml], {type:'text/html;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const el = document.getElementById('chat-messages');
+    const rpt = document.createElement('div');
+    rpt.className = 'chat-msg agent';
+    rpt.innerHTML = `<div class="msg-name">📑 보고서</div><div class="msg-text">업무 보고서가 생성되었습니다.</div><a class="report-download" href="${url}" download="report_${Date.now()}.html"><iconify-icon icon="solar:document-text-bold"></iconify-icon> HTML 보고서 다운로드</a>`;
+    el.appendChild(rpt);
+    el.scrollTop = el.scrollHeight;
+  } finally {
+    chainRunning = false;
+    for(const a of chainAgents) window.busyAgentSet.delete(a.id);
+  }
+}
+
+function generateStandaloneReport(title, dept, logs){
+  const date = new Date().toLocaleString('ko-KR');
+  const sections = logs.map(l => {
+    const content = (l.content || '')
+      .replace(/^## (.+)$/gm,'<h2>$1</h2>')
+      .replace(/^### (.+)$/gm,'<h3>$1</h3>')
+      .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+      .replace(/^- (.+)$/gm,'<li>$1</li>')
+      .replace(/\n/g,'<br>');
+    return `<section style="margin-bottom:20px;background:#fff;border-radius:10px;padding:18px;box-shadow:0 1px 3px rgba(0,0,0,0.06)"><div style="font-weight:bold;color:#1a1a3e;border-bottom:1px solid #e9ecef;padding-bottom:8px;margin-bottom:8px">[${l.role}] ${l.agentName}</div><div style="font-size:13px;color:#333;line-height:1.7">${content}</div></section>`;
+  }).join('');
+  return `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>업무 보고서 — ${title}</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Pretendard',sans-serif;background:#f8f9fa;color:#222;padding:32px 20px;line-height:1.7}div.c{max-width:760px;margin:0 auto}h1{font-size:22px;color:#1a1a3e;text-align:center}p.s{text-align:center;color:#868e96;font-size:12px;margin:6px 0 24px}h2{font-size:15px;color:#1a1a3e;margin:10px 0 5px}h3{font-size:13px;color:#495057;margin:6px 0 3px}li{margin-left:18px}strong{color:#1a1a3e}@media print{body{background:#fff}}</style></head><body><div class="c"><h1>업무 보고서</h1><p class="s">${title} | ${dept}부서 | ${date}</p>${sections}<p style="text-align:center;margin-top:24px;color:#adb5bd;font-size:11px">Generated by Pixel Office AI</p></div></body></html>`;
+}
+
+// ═══════════════════════════════════════════════════════
+// UI: agent cards, chat, agent detail
+// ═══════════════════════════════════════════════════════
+function escapeHtml(t){ const d=document.createElement('div'); d.textContent=t; return d.innerHTML; }
+
+function renderMarkdown(text){
+  return escapeHtml(text)
+    .replace(/^## (.+)$/gm,'<h2>$1</h2>')
+    .replace(/^### (.+)$/gm,'<h3>$1</h3>')
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/^- (.+)$/gm,'<li>$1</li>')
+    .replace(/(<li>.*<\/li>\n?)+/g, m=>'<ul>'+m+'</ul>')
+    .replace(/^\| (.+) \|$/gm, (m, c) => {
+      const cells = c.split(' | ').map(x=>`<td>${x.trim()}</td>`).join('');
+      return `<tr>${cells}</tr>`;
+    })
+    .replace(/(<tr>.*<\/tr>\n?)+/g, m => {
+      const rows = m.trim().split('\n');
+      if(rows.length>1){
+        const head = rows[0].replace(/<td>/g,'<th>').replace(/<\/td>/g,'</th>');
+        return `<table>${head}${rows.slice(1).join('')}</table>`;
+      }
+      return `<table>${m}</table>`;
+    })
+    .replace(/\n/g,'<br>');
+}
+
+function addChatMessage(name, text, type='agent', toolCalls=[]){
+  const el = document.getElementById('chat-messages');
+  const m = document.createElement('div');
+  m.className = 'chat-msg ' + type;
+  let tc = '';
+  if(toolCalls.length){
+    tc = '<div style="margin-top:3px">'+toolCalls.map(t => `<div class="tool-call">→ ${t.name}(${JSON.stringify(t.input).substring(0,40)})</div>`).join('')+'</div>';
+  }
+  const rendered = type==='agent' ? renderMarkdown(text) : escapeHtml(text);
+  m.innerHTML = `<div class="msg-name">${escapeHtml(name)}</div><div class="msg-text">${rendered}</div>${tc}`;
+  el.appendChild(m);
+  el.scrollTop = el.scrollHeight;
+}
+
+const DOT_COLOR = {
+  CEO:'#e94560', '프로젝트 매니저':'#10b981', '시니어 개발자':'#60a5fa',
+  '백엔드 개발자':'#a78bfa', '프론트 개발자':'#34d399', '프로덕트 디자이너':'#f472b6',
+  '데이터 분석가':'#facc15', 'QA 테스터':'#f59e0b', 'DevOps':'#9ca3af',
+  '영업 팀장':'#ef4444', '영업 매니저':'#fb923c', '구매 담당':'#84cc16',
+  '제조 매니저':'#06b6d4', '인사 담당':'#d946ef', '재무 담당':'#fbbf24',
+  '리셉션':'#94a3b8',
+};
+const STATE_LABEL = {
+  idle:'대기', working:'업무', moving:'이동', coffee:'휴식',
+  meeting:'회의', chatting:'대화', toilet:'외출'
+};
+
+function renderAgentCards(){
+  const list = document.getElementById('agent-list');
+  if(!list) return;
+  list.innerHTML = '';
+  const cam = window.clientAgentManager;
+  for(const a of cam.getAllAgents()){
+    const card = document.createElement('div');
+    card.className = 'agent-card' + (cam.selectedAgentId===a.id?' selected':'');
+    card.onclick = () => { cam.selectAgent(a.id); };
+    const stLabel = STATE_LABEL[a.state] || a.state;
+    const dotC = DOT_COLOR[a.role] || '#888';
+    card.innerHTML = `
+      <div class="agent-dot" style="background:${dotC};color:${dotC}"></div>
+      <div style="flex:1;min-width:0">
+        <div class="agent-card-name">${a.name}</div>
+        <div class="agent-card-role">${a.role}</div>
+      </div>
+      <div class="agent-card-state ${a.state}">${stLabel}</div>
+    `;
+    list.appendChild(card);
+  }
+}
+window.renderAgentCards = renderAgentCards;
+
+function updateAgentDetail(id){
+  const ad = document.getElementById('agent-detail');
+  if(!id){ ad.classList.remove('show'); return; }
+  const a = window.clientAgentManager.getAgent(id);
+  if(!a){ ad.classList.remove('show'); return; }
+  const stLabel = STATE_LABEL[a.state] || a.state;
+  const energy = Math.round(a.energy);
+  const bhLabel = {desk:'책상에서 업무', lounge:'휴게실에서 휴식', balcony:'발코니에서 환기', whiteboard:'화이트보드 사용', toilet:'화장실', meeting:'회의 중', wandering:'사무실 둘러보기'}[a.behavior] || a.behavior || '대기 중';
+  ad.classList.add('show');
+  ad.innerHTML = `
+    <div class="ad-name">${a.name}</div>
+    <div class="ad-role">${a.role} · ${a.dept}부서</div>
+    <div class="ad-row"><span>현재 상태</span><span>${stLabel}</span></div>
+    <div class="ad-row"><span>활동</span><span>${bhLabel}</span></div>
+    <div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.06)">
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:#71717a">
+        <span>에너지</span><span style="color:#e4e4e7">${energy}%</span>
+      </div>
+      <div class="ad-bar energy"><div class="fill" style="width:${energy}%"></div></div>
+    </div>
+  `;
+}
+window.updateAgentDetail = updateAgentDetail;
+
+// ═══════════════════════════════════════════════════════
+// Tweaks panel
+// ═══════════════════════════════════════════════════════
+function persistTweaks(patch){
+  Object.assign(window.tweaks, patch);
+}
+
+function initTweaksPanel(){
+  const panel = document.getElementById('tweaks-panel');
+  const toggle = document.getElementById('tweaks-toggle');
+  const closeBtn = document.getElementById('tweaks-close');
+  toggle.onclick = () => panel.classList.add('open');
+  closeBtn.onclick = () => panel.classList.remove('open');
+
+  panel.querySelectorAll('.seg').forEach(seg => {
+    const key = seg.dataset.tweak;
+    seg.querySelectorAll('button').forEach(b => {
+      const v = b.dataset.v;
+      const cur = String(window.tweaks[key]);
+      b.classList.toggle('active', v === cur);
+      b.onclick = () => {
+        seg.querySelectorAll('button').forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        const num = !isNaN(parseFloat(v)) && isFinite(v);
+        persistTweaks({[key]: num ? parseFloat(v) : v});
+        if(key === 'lighting') window.OfficeClock.applyLighting();
+        if(key === 'layout') applyLayoutChange(v);
+      };
+    });
+  });
+  panel.querySelectorAll('.toggle').forEach(tg => {
+    const key = tg.dataset.tweak;
+    tg.classList.toggle('on', !!window.tweaks[key]);
+    tg.onclick = () => {
+      const newVal = !window.tweaks[key];
+      tg.classList.toggle('on', newVal);
+      persistTweaks({[key]: newVal});
+      if(key === 'bgm') toggleBgm(newVal);
+    };
+  });
+}
+
+function applyLayoutChange(layout){
+  const scene = window.gameInstance?.scene.getScene('OfficeScene');
+  if(!scene || !scene.mapData) return;
+  if(scene._cubicles){ scene._cubicles.destroy(); scene._cubicles = null; }
+  if(layout === 'cubicle'){
+    const g = scene.add.graphics();
+    g.setDepth(15);
+    g.fillStyle(0x647088, 1);
+    const pairs = [
+      [16, 12, 16, 17], [19, 12, 19, 17], [22, 12, 22, 17],
+      [9, 8, 12, 8], [9, 11, 12, 11], [9, 14, 12, 14]
+    ];
+    pairs.forEach(([x1,y1,x2,y2]) => {
+      g.fillRect(x1*TS, y1*TS+TS-3, (x2-x1+1)*TS, 6);
+    });
+    scene._cubicles = g;
+  }
+}
+
+// Simple synthetic BGM using WebAudio
+let bgmCtx = null, bgmNodes = [];
+function toggleBgm(on){
+  if(on){
+    bgmCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const notes = [261.63, 329.63, 392.00, 523.25];
+    let i = 0;
+    const playNext = () => {
+      if(!bgmCtx) return;
+      const o = bgmCtx.createOscillator();
+      const g = bgmCtx.createGain();
+      o.frequency.value = notes[i%notes.length];
+      o.type = 'sine';
+      g.gain.setValueAtTime(0, bgmCtx.currentTime);
+      g.gain.linearRampToValueAtTime(0.04, bgmCtx.currentTime+0.05);
+      g.gain.linearRampToValueAtTime(0, bgmCtx.currentTime+0.6);
+      o.connect(g); g.connect(bgmCtx.destination);
+      o.start(); o.stop(bgmCtx.currentTime+0.6);
+      bgmNodes.push(o);
+      i++;
+      window.bgmTimer = setTimeout(playNext, 700);
+    };
+    playNext();
+  } else {
+    if(bgmCtx){ try{ bgmCtx.close(); }catch(e){} bgmCtx=null; }
+    if(window.bgmTimer) clearTimeout(window.bgmTimer);
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// Socket.io connection + Init
+// ═══════════════════════════════════════════════════════
+
+function initUI(){
+  // Populate agent dropdown
+  const sel = document.getElementById('target-agent');
+  for(const a of window.OFFICE_AGENTS.AGENTS_DATA){
+    const opt = document.createElement('option');
+    opt.value = a.id;
+    opt.textContent = `${a.name} (${a.role})`;
+    sel.appendChild(opt);
+  }
+
+  setTimeout(renderAgentCards, 100);
+
+  // Chat send
+  const sendBtn = document.getElementById('chat-send');
+  const input = document.getElementById('chat-input');
+  const send = () => {
+    const msg = input.value.trim();
+    if(!msg) return;
+    const dept = document.getElementById('dept-select').value;
+    addChatMessage('나', `[${dept}] ${msg}`, 'user');
+    input.value = '';
+    processChain(msg, dept);
+  };
+  sendBtn.onclick = send;
+  input.onkeydown = e => { if(e.key === 'Enter') send(); };
+
+  document.addEventListener('keydown', e => {
+    if(e.key === 'Escape'){
+      const ad = document.getElementById('agent-detail');
+      ad.classList.remove('show');
+      window.clientAgentManager.selectAgent(null);
+    }
+  });
+
+  initTweaksPanel();
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  // Connect to server
+  
+  // Status bar based on API key presence
+  const sb = document.getElementById('status-bar');
+  if (localStorage.getItem('anthropic_api_key')) {
+    sb.textContent = 'Claude AI';
+    sb.style.color = '#10b981';
+  } else {
+    sb.textContent = 'Mock 모드';
+    sb.style.color = '#f59e0b';
+  }
+
+  initUI();
+
+  const config = {
+    type: Phaser.AUTO,
+    width: 1280, height: 832,
+    parent: 'game-container',
+    pixelArt: true,
+    backgroundColor: '#0a0a1a',
+    scene: [OfficeScene],
+    scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
+    physics: { default: 'arcade', arcade: { gravity: {y:0}, debug: false } },
+  };
+  window.gameInstance = new Phaser.Game(config);
+
+  // Refresh agent cards every 1.5s
+  setInterval(() => {
+    if(window.clientAgentManager){
+      window.clientAgentManager.syncFromAgents(window.OFFICE_AGENTS.AGENTS_DATA);
+      renderAgentCards();
+      if(window.clientAgentManager.selectedAgentId)
+        updateAgentDetail(window.clientAgentManager.selectedAgentId);
+    }
+  }, 1500);
+});
+
+</script>
+
+</body>
+</html>

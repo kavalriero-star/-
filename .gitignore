@@ -3,5 +3,6 @@ node_modules/
 public/assets/sprites/
 public/assets/tiles/
 public/assets/maps/
-scripts/
+scripts/*
+!scripts/build-standalone.js
 *.log

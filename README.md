@@ -24,6 +24,15 @@
 
 ## 빠른 시작
 
+### 옵션 A: 단독 HTML 실행 (서버 불필요) ⭐
+
+`pixel-office-standalone.html` 파일을 더블클릭만 하면 됩니다.
+- API 키 없이도 Mock 모드로 즉시 동작
+- 우상단 알약을 클릭해 Claude API 키 입력 시 진짜 AI로 동작
+- API 키는 브라우저 localStorage에만 저장됨
+
+### 옵션 B: Node.js 서버 모드
+
 ```bash
 npm install
 cp .env.example .env    # ANTHROPIC_API_KEY 설정 (없어도 Mock 모드로 동작)
@@ -31,6 +40,12 @@ npm start
 ```
 
 브라우저에서 `http://localhost:3000` 접속
+
+### 단독 HTML 재빌드
+
+```bash
+node scripts/build-standalone.js
+```
 
 ## 직원 명단 (16명)
 
