@@ -17,17 +17,17 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, '..', 'public')));
 app.use('/api', apiRoutes);
 
-// Initialize default agents
-agentManager.createAgent('Atlas', 'Project Manager', 0, { x: 4, y: 4 });
-agentManager.createAgent('Nova', 'Developer', 1, { x: 8, y: 4 });
-agentManager.createAgent('Pixel', 'Designer', 2, { x: 23, y: 4 });
+// Initialize 16 agents
+agentManager.initAgents();
 
 // Setup socket
 setupSocketHandlers(io, agentManager);
 
 server.listen(config.port, () => {
-  console.log(`🏢 Pixel Office AI running at http://localhost:${config.port}`);
+  console.log(`Pixel Office AI running at http://localhost:${config.port}`);
   if (!config.anthropicApiKey) {
-    console.log('⚠️  No ANTHROPIC_API_KEY set. AI features will use mock responses.');
+    console.log('  No ANTHROPIC_API_KEY set. Using mock responses.');
+  } else {
+    console.log('  Claude API connected. AI responses enabled.');
   }
 });

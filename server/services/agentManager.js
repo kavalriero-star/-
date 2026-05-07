@@ -1,129 +1,78 @@
 const EventEmitter = require('events');
 
-const NAMED_LOCATIONS = {
-  desk_1: { x: 4, y: 4, label: "Atlas's Desk" },
-  desk_2: { x: 8, y: 4, label: "Nova's Desk" },
-  desk_3: { x: 23, y: 4, label: "Pixel's Desk" },
-  desk_4: { x: 4, y: 11, label: 'Desk 4' },
-  desk_5: { x: 8, y: 11, label: 'Desk 5' },
-  meeting_room: { x: 15, y: 4, label: 'Meeting Room' },
-  kitchen: { x: 26, y: 16, label: 'Kitchen' },
-  entrance: { x: 15, y: 18, label: 'Entrance' },
-  whiteboard: { x: 15, y: 2, label: 'Whiteboard' },
-  plant_corner: { x: 1, y: 1, label: 'Plant Corner' },
-  server_area: { x: 26, y: 10, label: 'Server Area' },
-};
+const AGENTS_ROSTER = [
+  { id:'a01', name:'태호', role:'CEO',              dept:'경영', spriteIndex:2,  homeDesk:14 },
+  { id:'a02', name:'민준', role:'프로젝트 매니저',    dept:'기획', spriteIndex:0,  homeDesk:0  },
+  { id:'a03', name:'지훈', role:'시니어 개발자',      dept:'개발', spriteIndex:1,  homeDesk:1  },
+  { id:'a04', name:'성민', role:'백엔드 개발자',      dept:'개발', spriteIndex:13, homeDesk:2  },
+  { id:'a05', name:'재현', role:'프론트 개발자',      dept:'개발', spriteIndex:11, homeDesk:3  },
+  { id:'a06', name:'소연', role:'프로덕트 디자이너',   dept:'기획', spriteIndex:3,  homeDesk:4  },
+  { id:'a07', name:'유나', role:'데이터 분석가',      dept:'개발', spriteIndex:5,  homeDesk:5  },
+  { id:'a08', name:'현우', role:'QA 테스터',         dept:'품질', spriteIndex:4,  homeDesk:6  },
+  { id:'a09', name:'다은', role:'DevOps',            dept:'개발', spriteIndex:8,  homeDesk:7  },
+  { id:'a10', name:'서윤', role:'영업 팀장',         dept:'영업', spriteIndex:10, homeDesk:8  },
+  { id:'a11', name:'준호', role:'영업 매니저',       dept:'영업', spriteIndex:6,  homeDesk:9  },
+  { id:'a12', name:'예린', role:'구매 담당',         dept:'구매', spriteIndex:9,  homeDesk:10 },
+  { id:'a13', name:'태민', role:'제조 매니저',       dept:'제조', spriteIndex:7,  homeDesk:11 },
+  { id:'a14', name:'하늘', role:'인사 담당',         dept:'인사', spriteIndex:12, homeDesk:12 },
+  { id:'a15', name:'시우', role:'재무 담당',         dept:'재무', spriteIndex:14, homeDesk:13 },
+  { id:'a16', name:'아린', role:'리셉션',            dept:'경영', spriteIndex:15, homeDesk:15 },
+];
 
-// Tiles that are not walkable (walls, desks, etc.)
-const NON_WALKABLE_TILES = new Set([2, 3, 5, 7, 8, 10, 11]);
+const CHAIN_BY_DEPT = {
+  '기획': ['CEO','프로젝트 매니저','프로덕트 디자이너','시니어 개발자','QA 테스터','데이터 분석가'],
+  '개발': ['CEO','프로젝트 매니저','시니어 개발자','백엔드 개발자','프론트 개발자','QA 테스터'],
+  '영업': ['CEO','영업 팀장','영업 매니저','데이터 분석가','프로젝트 매니저','QA 테스터'],
+  '구매': ['CEO','구매 담당','재무 담당','프로젝트 매니저','QA 테스터','데이터 분석가'],
+  '제조': ['CEO','제조 매니저','구매 담당','QA 테스터','데이터 분석가','프로젝트 매니저'],
+  '품질': ['CEO','QA 테스터','시니어 개발자','프로덕트 디자이너','데이터 분석가','프로젝트 매니저'],
+  '인사': ['CEO','인사 담당','프로젝트 매니저','재무 담당','QA 테스터','데이터 분석가'],
+  '재무': ['CEO','재무 담당','데이터 분석가','프로젝트 매니저','QA 테스터','시니어 개발자'],
+};
 
 class AgentManager extends EventEmitter {
   constructor() {
     super();
     this.agents = new Map();
-    this.nextId = 1;
   }
 
-  createAgent(name, role, spriteIndex, position = { x: 15, y: 10 }) {
-    const id = `agent_${this.nextId++}`;
-    const agent = {
-      id,
-      name,
-      role,
-      spriteIndex,
-      x: position.x,
-      y: position.y,
-      state: 'idle',
-      currentTask: null,
-      conversationHistory: [],
-    };
-    this.agents.set(id, agent);
-    this.emit('agent:spawn', { agent: this.serializeAgent(agent) });
-    return agent;
-  }
-
-  removeAgent(id) {
-    if (this.agents.delete(id)) {
-      this.emit('agent:remove', { agentId: id });
-      return true;
+  initAgents() {
+    for (const data of AGENTS_ROSTER) {
+      this.agents.set(data.id, {
+        ...data,
+        state: 'idle',
+        currentTask: null,
+        conversationHistory: [],
+      });
     }
-    return false;
   }
 
   getAgent(id) {
     return this.agents.get(id) || null;
   }
 
-  getAgentByName(name) {
+  getAgentByRole(role) {
     for (const agent of this.agents.values()) {
-      if (agent.name.toLowerCase() === name.toLowerCase()) return agent;
+      if (agent.role === role) return agent;
     }
     return null;
   }
 
   getAllAgents() {
-    return Array.from(this.agents.values()).map(a => this.serializeAgent(a));
+    return Array.from(this.agents.values()).map(a => ({
+      id: a.id,
+      name: a.name,
+      role: a.role,
+      dept: a.dept,
+      spriteIndex: a.spriteIndex,
+      homeDesk: a.homeDesk,
+      state: a.state,
+      currentTask: a.currentTask,
+    }));
   }
 
-  moveAgent(id, x, y) {
-    const agent = this.agents.get(id);
-    if (!agent) return false;
-
-    // Clamp to map bounds (1-28 for x, 1-18 for y, inside walls)
-    x = Math.max(1, Math.min(28, Math.round(x)));
-    y = Math.max(1, Math.min(18, Math.round(y)));
-
-    const oldX = agent.x;
-    const oldY = agent.y;
-    agent.x = x;
-    agent.y = y;
-    agent.state = 'moving';
-
-    this.emit('agent:move', {
-      agentId: id,
-      fromX: oldX,
-      fromY: oldY,
-      x,
-      y,
-    });
-
-    // Reset to idle after a delay
-    setTimeout(() => {
-      if (agent.state === 'moving') {
-        agent.state = 'idle';
-        this.emit('agent:state', { agentId: id, state: 'idle' });
-      }
-    }, 1500);
-
-    return true;
-  }
-
-  setAgentState(id, state, metadata = {}) {
-    const agent = this.agents.get(id);
-    if (!agent) return false;
-    agent.state = state;
-    if (metadata.task) agent.currentTask = metadata.task;
-    this.emit('agent:state', { agentId: id, state, ...metadata });
-    return true;
-  }
-
-  speakAgent(id, message, duration = 5000) {
-    const agent = this.agents.get(id);
-    if (!agent) return false;
-    this.emit('agent:speak', { agentId: id, message, duration });
-    return true;
-  }
-
-  getNamedLocations() {
-    return NAMED_LOCATIONS;
-  }
-
-  resolveLocation(locationOrCoords) {
-    if (typeof locationOrCoords === 'string') {
-      const loc = NAMED_LOCATIONS[locationOrCoords];
-      return loc ? { x: loc.x, y: loc.y } : null;
-    }
-    return locationOrCoords;
+  getChainRoles(department) {
+    return CHAIN_BY_DEPT[department] || CHAIN_BY_DEPT['기획'];
   }
 
   getAgentContext(id) {
@@ -132,32 +81,14 @@ class AgentManager extends EventEmitter {
 
     const otherAgents = Array.from(this.agents.values())
       .filter(a => a.id !== id)
-      .map(a => `- ${a.name} (${a.role}): at (${a.x}, ${a.y}), ${a.state}${a.currentTask ? `, working on: ${a.currentTask}` : ''}`);
-
-    const locationList = Object.entries(NAMED_LOCATIONS)
-      .map(([key, val]) => `- ${key}: ${val.label} (${val.x}, ${val.y})`)
-      .join('\n');
+      .map(a => `- ${a.name} (${a.role}, ${a.dept}부서): ${a.state}${a.currentTask ? `, 작업: ${a.currentTask}` : ''}`);
 
     return {
       agent,
       otherAgents: otherAgents.join('\n'),
-      locationList,
-    };
-  }
-
-  serializeAgent(agent) {
-    return {
-      id: agent.id,
-      name: agent.name,
-      role: agent.role,
-      spriteIndex: agent.spriteIndex,
-      x: agent.x,
-      y: agent.y,
-      state: agent.state,
-      currentTask: agent.currentTask,
     };
   }
 }
 
 const agentManager = new AgentManager();
-module.exports = { agentManager, AgentManager };
+module.exports = { agentManager, AgentManager, CHAIN_BY_DEPT };

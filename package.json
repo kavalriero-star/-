@@ -4,9 +4,8 @@
   "description": "Pixel Art AI Agent Virtual Office - AI agents working in a 2D pixel art office environment",
   "main": "server/index.js",
   "scripts": {
-    "start": "node scripts/generate-assets.js && node server/index.js",
-    "dev": "node scripts/generate-assets.js && node --watch server/index.js",
-    "generate-assets": "node scripts/generate-assets.js"
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js"
   },
   "keywords": ["pixel-art", "ai-agent", "virtual-office", "phaser", "claude"],
   "license": "MIT",
@@ -15,7 +14,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
-    "pngjs": "^7.0.0",
+
     "socket.io": "^4.8.1"
   }
 }

@@ -1,51 +1,124 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pixel Office AI - 가상 오피스 AI 에이전트</title>
-  <link rel="stylesheet" href="css/style.css">
-  <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
-  <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pixel Office AI — Living Office</title>
+
+<script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@1.3.9/dist/web/static/pretendard-dynamic-subset.min.css">
+<script src="https://cdn.jsdelivr.net/npm/iconify-icon@2.3.0/dist/iconify-icon.min.js"></script>
+<script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+<link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <div id="app">
-    <div id="header">
-      <h1>🏢 Pixel Office AI</h1>
+<div id="app">
+  <div id="header">
+    <h1>
+      <span class="logo-icon"><iconify-icon icon="solar:buildings-3-bold" style="color:#fff;font-size:16px"></iconify-icon></span>
+      Pixel Office — Living Floor
+    </h1>
+    <div class="header-right">
+      <div class="clock">
+        <iconify-icon icon="solar:clock-circle-linear" style="font-size:13px;color:#a1a1aa"></iconify-icon>
+        <span id="clock-time">09:00</span>
+        <span class="phase" id="clock-phase">아침</span>
+      </div>
       <span id="status-bar">연결 중...</span>
     </div>
-    <div id="main-container">
-      <div id="game-container"></div>
-      <div id="sidebar">
-        <div id="agent-info">
-          <h3>에이전트 정보</h3>
-          <div id="agent-list"></div>
+  </div>
+  <div id="main-container">
+    <div id="game-container">
+      <div id="tone-overlay"></div>
+      <div id="vignette"></div>
+      <div id="agent-detail"></div>
+      <div id="legend">
+        <div class="li"><div class="d" style="background:#4ade80"></div>대기</div>
+        <div class="li"><div class="d" style="background:#facc15"></div>작업</div>
+        <div class="li"><div class="d" style="background:#60a5fa"></div>이동</div>
+        <div class="li"><div class="d" style="background:#f59e0b"></div>휴식</div>
+        <div class="li"><div class="d" style="background:#a78bfa"></div>회의</div>
+        <div class="li"><div class="d" style="background:#f472b6"></div>대화</div>
+      </div>
+    </div>
+    <div id="sidebar">
+      <div id="agent-info">
+        <h3><iconify-icon icon="solar:users-group-rounded-linear" style="font-size:13px"></iconify-icon> 임직원 (16명)</h3>
+        <div class="agent-grid" id="agent-list"></div>
+      </div>
+      <div id="chat-container">
+        <h3><iconify-icon icon="solar:chat-round-dots-linear" style="font-size:13px"></iconify-icon> 업무 채팅</h3>
+        <div id="dept-selector">
+          <label>부서</label>
+          <select id="dept-select">
+            <option value="기획">기획</option><option value="개발">개발</option>
+            <option value="영업">영업</option><option value="구매">구매</option>
+            <option value="제조">제조</option><option value="품질">품질</option>
+            <option value="인사">인사</option><option value="재무">재무</option>
+          </select>
         </div>
-        <div id="chat-container">
-          <h3>💬 채팅</h3>
-          <div id="agent-selector">
-            <label>대상:</label>
-            <select id="target-agent"></select>
-          </div>
-          <div id="chat-messages"></div>
-          <div id="chat-input-area">
-            <input type="text" id="chat-input" placeholder="에이전트에게 명령을 입력하세요..." />
-            <button id="chat-send">전송</button>
-          </div>
+        <div id="agent-selector">
+          <label>담당</label>
+          <select id="target-agent"></select>
+        </div>
+        <div id="chat-messages"></div>
+        <div id="chat-input-area">
+          <input id="chat-input" placeholder="업무 내용을 입력하세요...">
+          <button id="chat-send">전송</button>
         </div>
       </div>
     </div>
   </div>
+</div>
 
-  <script type="module" src="js/managers/SocketManager.js"></script>
-  <script type="module" src="js/managers/AgentManager.js"></script>
-  <script type="module" src="js/entities/Agent.js"></script>
-  <script type="module" src="js/entities/Furniture.js"></script>
-  <script type="module" src="js/scenes/BootScene.js"></script>
-  <script type="module" src="js/scenes/OfficeScene.js"></script>
-  <script type="module" src="js/scenes/UIScene.js"></script>
-  <script type="module" src="js/ui/ChatPanel.js"></script>
-  <script type="module" src="js/ui/AgentInfoPanel.js"></script>
-  <script type="module" src="js/main.js"></script>
+<button id="tweaks-toggle" title="Tweaks">
+  <iconify-icon icon="solar:settings-bold" style="font-size:18px"></iconify-icon>
+</button>
+<div id="tweaks-panel">
+  <h4>Tweaks <button id="tweaks-close">×</button></h4>
+  <div class="tweak-row">
+    <label>시간 속도</label>
+    <div class="seg" data-tweak="speed">
+      <button data-v="1">1x</button>
+      <button data-v="2" class="active">2x</button>
+      <button data-v="4">4x</button>
+      <button data-v="8">8x</button>
+    </div>
+  </div>
+  <div class="tweak-row">
+    <label>조명 / 시간대</label>
+    <div class="seg" data-tweak="lighting">
+      <button data-v="auto" class="active">Auto</button>
+      <button data-v="day">낮</button>
+      <button data-v="dusk">저녁</button>
+      <button data-v="night">야근</button>
+    </div>
+  </div>
+  <div class="tweak-row">
+    <label>자율 행동</label>
+    <div class="toggle on" data-tweak="autonomy"></div>
+  </div>
+  <div class="tweak-row">
+    <label>말풍선 표시</label>
+    <div class="toggle on" data-tweak="bubbles"></div>
+  </div>
+  <div class="tweak-row">
+    <label>BGM</label>
+    <div class="toggle" data-tweak="bgm"></div>
+  </div>
+  <div class="tweak-row">
+    <label>레이아웃</label>
+    <div class="seg" data-tweak="layout">
+      <button data-v="open" class="active">오픈형</button>
+      <button data-v="cubicle">큐비클</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/asset-generation.js"></script>
+<script src="js/floorplan.js"></script>
+<script src="js/agents-data.js"></script>
+<script src="js/phaser-game.js"></script>
+<script src="js/app-orchestration.js"></script>
 </body>
 </html>
