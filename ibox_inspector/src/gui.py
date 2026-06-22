@@ -12,8 +12,8 @@ import numpy as np
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 from .grid import draw_results, load_grid, results_to_dict
-
-GRID_PATH = "config/grid.yaml"
+from .imaging import load_image
+from .paths import default_grid_path, sample_image_path
 
 
 def cv_to_qpixmap(image: np.ndarray) -> QtGui.QPixmap:
@@ -27,9 +27,13 @@ class InspectorCore:
     """검출기 + 격자 판정을 묶은 핵심 로직 (지연 로딩)."""
 
     def __init__(self):
-        self.grid = load_grid(GRID_PATH)
+        self.grid_path = default_grid_path()
+        self.grid = load_grid(self.grid_path)
         self._detector = None
         self._detector_failed = False
+
+    def reload_grid(self):
+        self.grid = load_grid(self.grid_path)
 
     @property
     def detector(self):
@@ -78,25 +82,73 @@ class ImageTab(QtWidgets.QWidget):
         open_btn.clicked.connect(self.open_image)
         side.addWidget(open_btn)
 
+        sample_btn = QtWidgets.QPushButton("샘플 이미지 열기")
+        sample_btn.clicked.connect(self.open_sample)
+        side.addWidget(sample_btn)
+
+        calib_btn = QtWidgets.QPushButton("격자 보정 (4모서리 클릭)")
+        calib_btn.clicked.connect(self.calibrate)
+        side.addWidget(calib_btn)
+
         self.summary = QtWidgets.QLabel("-")
         self.summary.setWordWrap(True)
         side.addWidget(self.summary)
 
         self.cell_list = QtWidgets.QListWidget()
         side.addWidget(self.cell_list, 1)
+
+        save_btn = QtWidgets.QPushButton("결과 이미지 저장")
+        save_btn.clicked.connect(self.save_result)
+        side.addWidget(save_btn)
         layout.addLayout(side, 1)
 
         self._overlay = None
+        self._last_image = None
+
+    def open_sample(self):
+        self._inspect_path(sample_image_path())
 
     def open_image(self):
         path, _ = QtWidgets.QFileDialog.getOpenFileName(
             self, "이미지 선택", "", "Images (*.jpg *.jpeg *.png *.bmp)")
+        if path:
+            self._inspect_path(path)
+
+    def calibrate(self):
+        path, _ = QtWidgets.QFileDialog.getOpenFileName(
+            self, "보정에 사용할 이미지 선택", "",
+            "Images (*.jpg *.jpeg *.png *.bmp)")
         if not path:
             return
-        image = cv2.imread(path)
+        image = load_image(path)
         if image is None:
             QtWidgets.QMessageBox.warning(self, "오류", "이미지를 열 수 없습니다.")
             return
+        from .calibrate_grid import calibrate as run_calibrate
+        if run_calibrate(image, rows=self.core.grid.rows,
+                         cols=self.core.grid.cols, out_path=self.core.grid_path):
+            self.core.reload_grid()
+            QtWidgets.QMessageBox.information(self, "완료", "격자 보정이 저장되었습니다.")
+            if self._last_image is not None:
+                self._inspect_image(self._last_image)
+
+    def save_result(self):
+        if self._overlay is None:
+            return
+        path, _ = QtWidgets.QFileDialog.getSaveFileName(
+            self, "결과 저장", "result.jpg", "Images (*.jpg *.png)")
+        if path:
+            cv2.imwrite(path, self._overlay)
+
+    def _inspect_path(self, path):
+        image = load_image(path)
+        if image is None:
+            QtWidgets.QMessageBox.warning(self, "오류", "이미지를 열 수 없습니다.")
+            return
+        self._inspect_image(image)
+
+    def _inspect_image(self, image):
+        self._last_image = image
         overlay, summary = self.core.process(image)
         self._overlay = overlay
         self.view.setPixmap(cv_to_qpixmap(overlay).scaled(
@@ -138,9 +190,38 @@ class CameraTab(QtWidgets.QWidget):
         self.start_btn.clicked.connect(self.toggle)
         ctrl.addWidget(self.start_btn)
 
+        self.calib_btn = QtWidgets.QPushButton("격자 보정 (현재 화면)")
+        self.calib_btn.clicked.connect(self.calibrate)
+        ctrl.addWidget(self.calib_btn)
+
         self.summary = QtWidgets.QLabel("-")
         ctrl.addWidget(self.summary, 1)
         layout.addLayout(ctrl)
+
+    def calibrate(self):
+        """현재 카메라에서 한 프레임을 잡아 4모서리 보정을 실행."""
+        cap = self.cap or cv2.VideoCapture(self.cam_index.value())
+        frame = None
+        if cap.isOpened():
+            for _ in range(5):
+                ok, f = cap.read()
+                if ok:
+                    frame = f
+        if self.cap is None:
+            cap.release()
+        if frame is None:
+            QtWidgets.QMessageBox.warning(self, "오류", "카메라 프레임을 가져올 수 없습니다.")
+            return
+        was_running = self.cap is not None
+        if was_running:
+            self.timer.stop()
+        from .calibrate_grid import calibrate as run_calibrate
+        if run_calibrate(frame, rows=self.core.grid.rows,
+                         cols=self.core.grid.cols, out_path=self.core.grid_path):
+            self.core.reload_grid()
+            QtWidgets.QMessageBox.information(self, "완료", "격자 보정이 저장되었습니다.")
+        if was_running:
+            self.timer.start(60)
 
     def toggle(self):
         if self.cap is None:

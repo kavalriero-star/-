@@ -23,5 +23,12 @@ outputs/
 *.result.jpg
 *.result.json
 
+# PyInstaller 빌드 산출물
+build/
+dist/
+.venv-build/
+*.spec
+!ibox_inspector.spec
+
 # OS
 .DS_Store

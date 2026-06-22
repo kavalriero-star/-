@@ -14,12 +14,15 @@ import sys
 import cv2
 
 from .grid import draw_results, load_grid, results_to_dict
+from .imaging import load_image
+from .paths import default_grid_path, sample_image_path
 
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description="박스 칸별 제품 유무 검사")
-    parser.add_argument("--image", required=True, help="검사할 이미지 경로")
-    parser.add_argument("--grid", default="config/grid.yaml",
+    parser.add_argument("--image", default=None,
+                        help="검사할 이미지 경로 (생략 시 샘플 이미지 사용)")
+    parser.add_argument("--grid", default=None,
                         help="격자 정의 파일 (기본: config/grid.yaml)")
     parser.add_argument("--model", default=None,
                         help="YOLO 가중치 경로 (기본: models/best.pt 또는 yolov8n.pt)")
@@ -31,12 +34,13 @@ def main(argv=None):
                         help="결과 오버레이 이미지 저장 경로 (기본: <image>.result.jpg)")
     args = parser.parse_args(argv)
 
-    image = cv2.imread(args.image)
+    image_path = args.image or sample_image_path()
+    image = load_image(image_path)
     if image is None:
-        print(f"[오류] 이미지를 열 수 없습니다: {args.image}", file=sys.stderr)
+        print(f"[오류] 이미지를 열 수 없습니다: {image_path}", file=sys.stderr)
         return 1
 
-    grid = load_grid(args.grid)
+    grid = load_grid(args.grid or default_grid_path())
     if args.conf is not None:
         grid.conf_threshold = args.conf
 
@@ -68,7 +72,7 @@ def main(argv=None):
         print(f"  [{r.row},{r.col}]  {mark}   (score={r.conf:.3f})")
 
     # 결과 이미지/JSON 저장
-    out_path = args.out or (os.path.splitext(args.image)[0] + ".result.jpg")
+    out_path = args.out or (os.path.splitext(image_path)[0] + ".result.jpg")
     overlay = draw_results(image, results, used_fallback)
     cv2.imwrite(out_path, overlay)
     json_path = os.path.splitext(out_path)[0] + ".json"

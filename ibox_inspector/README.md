@@ -15,10 +15,18 @@
 4. **출력**: 오버레이 이미지 + 콘솔 표 + JSON, 또는 GUI 실시간 표시
 
 > 학습된 모델(`models/best.pt`)이 아직 없으면 사전학습 `yolov8n.pt` 로 폴백하며,
-> 검출이 비면 **칸 내부 어두운 픽셀 비율** 기반 백업 판정을 자동 적용합니다.
-> 정확한 검출을 위해서는 아래 "커스텀 학습"을 따라 모델을 학습하세요.
+> 검출이 비면 **칸 내부 '파란색이 아닌(=제품)' 픽셀 비율** 기반 백업 판정을 자동
+> 적용합니다. 정확한 검출을 위해서는 아래 "커스텀 학습"을 따라 모델을 학습하세요.
 
-## 설치
+## 실행파일(.exe)로 바로 실행 — Python 설치 불필요
+- **빌드된 파일 받기**: GitHub 저장소 **Actions** 탭 → "Build executables" 실행 →
+  **Artifacts** 에서 OS별 파일(`iBoxInspector-windows` 등) 다운로드 후 실행
+- **직접 빌드**: `ibox_inspector` 폴더에서 Windows `build.bat`, macOS/Linux `bash build.sh`
+  → `dist/iBoxInspector`(GUI), `dist/ibox-cli`(명령줄) 생성
+
+자세한 단계는 [`실행방법.md`](실행방법.md) 참고.
+
+## 설치 (Python)
 ```bash
 cd ibox_inspector
 python -m venv .venv && source .venv/bin/activate   # 선택
@@ -75,14 +83,28 @@ ibox_inspector/
   data/dataset/            # 학습용 이미지/라벨 (직접 추가)
   src/detector.py          # YOLO 래퍼
   src/grid.py              # 격자 매핑 + 칸별 판정 + 시각화
+  src/imaging.py           # EXIF 회전 보정 이미지 로더
+  src/paths.py             # 개발/실행파일 양쪽 리소스 경로 처리
   src/inspect_image.py     # 이미지 검사 CLI
   src/calibrate_grid.py    # 격자 보정 도구
   src/train.py             # 커스텀 학습 스크립트
   src/gui.py               # PyQt5 GUI
+  tests/test_grid.py       # 격자/판정 회귀 테스트
   dataset.yaml             # YOLO 학습 데이터셋 정의
-  requirements.txt
+  requirements.txt         # 실행/학습용 의존성
+  requirements-build.txt   # 실행파일 빌드용 의존성(딥러닝 제외)
+  ibox_inspector.spec      # PyInstaller 빌드 스펙
+  build.bat / build.sh     # 실행파일 빌드 스크립트
+  run.bat / run.sh         # Python 으로 GUI 실행 스크립트
 ```
 
 ## 참고
-- 카메라/박스 위치가 바뀌면 `calibrate_grid` 로 격자를 다시 보정하세요.
+- 카메라/박스 위치가 바뀌면 `calibrate_grid` 로 격자를 다시 보정하세요. 좌표는 0~1
+  비율(정규화)로 저장되어 해상도가 달라도 동일 격자가 적용됩니다.
 - 행/열 수가 다르면 `grid.yaml` 의 `rows`/`cols` 를 수정하거나 보정 시 인자로 지정.
+- 휴대폰 사진의 EXIF 회전은 자동 보정됩니다(`src/imaging.py`).
+
+## 테스트
+```bash
+python -m tests.test_grid     # 또는 pytest
+```

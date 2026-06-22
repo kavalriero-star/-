@@ -32,6 +32,8 @@ class Grid:
     rows: int
     cols: int
     corners: np.ndarray            # shape (4, 2): tl, tr, br, bl
+    # corners 가 0~1 비율(정규화)이면 True. 이미지 해상도와 무관하게 동작한다.
+    normalized: bool = False
     conf_threshold: float = 0.40
     fallback_enabled: bool = True
     # 파란 박스 색 정의 (HSV). 이 범위에 드는 픽셀을 "빈 박스 바닥/벽"으로 간주
@@ -45,11 +47,30 @@ class Grid:
     _H_inv: np.ndarray = field(default=None, repr=False)
 
     def __post_init__(self):
+        # 절대 좌표면 즉시 변환행렬을 만든다. 정규화 좌표면 이미지 크기를 알 때
+        # (set_image_size) 만든다.
+        if not self.normalized:
+            self._build(self.corners)
+
+    def _build(self, abs_corners: np.ndarray) -> None:
         import cv2
         src = np.array([[0, 0], [1, 0], [1, 1], [0, 1]], dtype=np.float32)
-        dst = self.corners.astype(np.float32)
+        dst = abs_corners.astype(np.float32)
         self._H = cv2.getPerspectiveTransform(src, dst)
         self._H_inv = cv2.getPerspectiveTransform(dst, src)
+
+    def set_image_size(self, width: int, height: int) -> None:
+        """현재 처리할 이미지 크기에 맞춰 변환행렬을 (재)구성한다.
+
+        정규화 좌표면 width/height 를 곱해 절대 픽셀로 변환하므로, 같은 격자
+        정의가 사진/웹캠 등 어떤 해상도에서도 그대로 동작한다.
+        """
+        if self.normalized:
+            abs_corners = self.corners * np.array([width, height],
+                                                  dtype=np.float32)
+            self._build(abs_corners)
+        elif self._H is None:
+            self._build(self.corners)
 
     # ---- 좌표 변환 ----
     def norm_to_pixel(self, u: float, v: float) -> Tuple[float, float]:
@@ -87,6 +108,14 @@ class Grid:
         boxes: detector.Box 리스트 (x1,y1,x2,y2,conf,cls). 비어 있고 fallback이
         켜져 있으면 이미지 기반 어두운 픽셀 비율로 판정한다.
         """
+        # 이미지 해상도에 맞춰 격자 변환행렬을 구성
+        if image is not None:
+            self.set_image_size(image.shape[1], image.shape[0])
+        if self._H is None:
+            raise RuntimeError(
+                "정규화 격자는 이미지 크기가 필요합니다. evaluate(boxes, image=...) "
+                "로 호출하거나 set_image_size()를 먼저 호출하세요.")
+
         # 칸별 최고 신뢰도 집계
         best_conf: Dict[Tuple[int, int], float] = {}
         for b in boxes:
@@ -148,6 +177,7 @@ def load_grid(path: str) -> Grid:
         rows=int(cfg["rows"]),
         cols=int(cfg["cols"]),
         corners=corners,
+        normalized=bool(cfg.get("normalized", False)),
         conf_threshold=float(det.get("conf_threshold", 0.40)),
         fallback_enabled=bool(fb.get("enabled", True)),
         fallback_blue_hue=tuple(fb.get("blue_hue", [95, 130])),

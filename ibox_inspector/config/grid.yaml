@@ -4,23 +4,25 @@
 # perspective(원근) 방식을 사용합니다. 4개 모서리를 기준으로 rows x cols 칸을
 # 균등 분할합니다.
 #
-# 좌표는 "원본 이미지 픽셀" 기준입니다. (data/samples/box.jpg = 3000(가로)x4000(세로))
+# normalized: true 이면 corners 는 0~1 비율(이미지 가로/세로 기준)입니다.
+# 비율로 두면 사진/웹캠 등 해상도가 달라도 같은 격자가 적용됩니다.
 # 정확한 좌표는 다음 명령으로 보정하세요:
 #   python -m src.calibrate_grid --image data/samples/box.jpg
 #
 # corners 순서: 좌상(tl) -> 우상(tr) -> 우하(br) -> 좌하(bl)
 
 mode: perspective
+normalized: true
 
 rows: 4
 cols: 4
 
-# 아래 값은 샘플 이미지 기준 대략적인 초기값입니다. 반드시 보정하여 사용하세요.
+# 아래 값은 샘플 이미지 기준 대략적인 초기값(비율)입니다. 실제 환경에서 보정하세요.
 corners:
-  tl: [440, 870]
-  tr: [2480, 720]
-  br: [2660, 3180]
-  bl: [380, 3320]
+  tl: [0.147, 0.218]
+  tr: [0.827, 0.180]
+  br: [0.887, 0.795]
+  bl: [0.127, 0.830]
 
 # 판정 옵션
 detection:

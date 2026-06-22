@@ -1,0 +1,8 @@
+# 실행파일(.exe) 빌드용 의존성 — 무거운 ultralytics/torch 는 제외합니다.
+# (실행파일은 내장 색상 기반 판정으로 동작. YOLO 학습/추론은 requirements.txt 로 별도 사용)
+opencv-python>=4.7.0
+numpy>=1.23.0
+pyyaml>=6.0
+PyQt5>=5.15.0
+pillow>=9.0.0
+pyinstaller>=6.0.0
