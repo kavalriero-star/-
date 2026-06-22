@@ -53,3 +53,36 @@ jobs:
           name: ${{ matrix.artifact }}
           path: ibox_inspector/dist/*
           if-no-files-found: error
+
+  # 빌드된 실행파일을 공개 Release 로 업로드 -> 로그인 없이 링크로 바로 다운로드
+  release:
+    name: Publish release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Zip per platform
+        run: |
+          cd artifacts
+          for d in */; do
+            name="${d%/}"
+            (cd "$d" && zip -r "../${name}.zip" .)
+          done
+          ls -la
+
+      - name: Publish to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-latest
+          name: iBox Inspector 최신 실행파일
+          body: |
+            박스 칸별 제품 유무 검사기 자동 빌드입니다. OS에 맞는 zip 을 받아 압축을 풀고
+            iBoxInspector(.exe) 를 실행하세요. (Windows: iBoxInspector-windows.zip)
+          files: artifacts/*.zip
+          prerelease: false
+          make_latest: true
