@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# 모델 가중치 (용량이 크므로 커밋 제외)
+*.pt
+*.onnx
+models/*.pt
+
+# 학습 데이터셋 (직접 라벨링하여 추가)
+data/dataset/images/*
+data/dataset/labels/*
+!data/dataset/images/.gitkeep
+!data/dataset/labels/.gitkeep
+
+# 결과 출력물
+runs/
+outputs/
+*.result.jpg
+*.result.json
+
+# PyInstaller 빌드 산출물
+build/
+dist/
+.venv-build/
+*.spec
+!ibox_inspector.spec
+
+# OS
+.DS_Store
