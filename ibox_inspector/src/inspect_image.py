@@ -13,12 +13,14 @@ import sys
 
 import cv2
 
+from .bootstrap import configure_stdio
 from .grid import draw_results, load_grid, results_to_dict
 from .imaging import load_image
 from .paths import default_grid_path, sample_image_path
 
 
 def main(argv=None):
+    configure_stdio()
     parser = argparse.ArgumentParser(description="박스 칸별 제품 유무 검사")
     parser.add_argument("--image", default=None,
                         help="검사할 이미지 경로 (생략 시 샘플 이미지 사용)")

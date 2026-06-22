@@ -302,6 +302,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
 def main():
+    from .bootstrap import configure_stdio
+    configure_stdio()
     app = QtWidgets.QApplication(sys.argv)
     win = MainWindow()
     win.show()
