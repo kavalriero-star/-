@@ -1,0 +1,79 @@
+{
+  "key": "cases",
+  "summary": "2025-2026년 기준, 수익이 공개적으로 검증된 1인/소규모 AI 사업의 성공 패턴은 뚜렷합니다. (1) 특정 직군의 반복 업무 하나를 AI로 해결하는 초니치 도구(엑셀 수식, 증명사진, 음성메모, PDF 질의)가 가장 빠르게 수익화되며, (2) 대부분 출시까지 주말~6주 수준의 초고속 개발(노코드 Bubble, GPT/이미지 API 래핑)로 시작해 6~18개월 내 월 1만~30만 달러에 도달했습니다. (3) 마케팅은 X(트위터) 공개 빌딩, Product Hunt, 제휴(어필리에이트) 프로그램, 숏폼 오가닉이 주력이고 유료 광고 의존도는 낮습니다. (4) 국내에서도 부업 앱 개발로 월 1천만 원 이상을 인증한 사례가 있으나, 해외 대비 수익 공개(오픈 스타트업) 문화가 약해 검증 가능한 사례 수가 적고, '월 천만원 AI 자동화' 류 강의 판매성 주장이 많아 선별이 필요합니다. 수익 상한은 솔로 기준 연 30억~40억 원(PhotoAI, HeadshotPro) 수준까지 실증되었습니다.",
+  "items": [
+    {
+      "title": "PhotoAI — 피터 레벨스(Pieter Levels), AI 사진 생성으로 월 $132K~138K",
+      "detail": "셀카를 업로드하면 AI 프로필/모델 사진을 생성해주는 서비스. 2023년 2월 출시 첫 주 $5.4K MRR → 6개월차 $61.8K → 18개월차 $100K 돌파, 2025년 11월 기준 $138K MRR. 직원 0명, 40,870줄짜리 단일 index.php(PHP)로 운영하며 월 $105K 매출 중 $80K가 이익이라고 본인이 공개. 그의 전체 포트폴리오(RemoteOK, InteriorAI 등 포함)는 연 $3M(약 40억 원). 모든 수치를 X(@levelsio)와 오픈 스타트업 대시보드로 실시간 공개하는, 검증 신뢰도가 가장 높은 사례.",
+      "key_numbers": "$138K MRR(2025.11), 연 $3M 포트폴리오, 직원 0명, 18개월만에 $100K MRR",
+      "source_url": "https://www.indiehackers.com/post/photo-ai-by-pieter-levels-complete-deep-dive-case-study-0-to-132k-mrr-in-18-months-3a9a2b1579"
+    },
+    {
+      "title": "HeadshotPro — 대니 포스트마(Danny Postma), AI 증명사진으로 월 $300K",
+      "detail": "AI로 비즈니스 프로필 사진(헤드샷)을 생성. 2023년 3월 16일 출시 후 2주 만에 누적 $100K 매출, 1년 내 $300K MRR 도달, 2024-2025년에 걸쳐 $300K MRR(연 $3.6M)을 유지. 누적 고객 약 19.7만 명, 생성 헤드샷 1,790만 장. 발리에서 1인으로 시작해 이후 소규모 팀 추가. 어필리에이트 마케팅만으로 월 $50K+ 매출을 만든 것도 특징(Rewardful 사례연구). Stable Diffusion 파인튜닝 + 웹앱 조합.",
+      "key_numbers": "$300K MRR / $3.6M ARR, 출시 2주만에 $100K, 고객 19.7만명",
+      "source_url": "https://startupfounderstories.com/stories/danny-postma-headshotpro-ai-headshots"
+    },
+    {
+      "title": "Formula Bot — 데이비드 브레슬러(David Bressler), 노코드로 만든 엑셀 AI, 연 $2.8M",
+      "detail": "텍스트 설명을 엑셀 수식으로 바꿔주는 도구. 데이터 분석가였던 창업자가 코드를 한 줄도 안 쓰고 노코드 툴 Bubble + OpenAI API로 주말에 첫 버전 제작(2022년 8월). 레딧에서 입소문을 타며 폭발, 현재 사용자 75만+, 유료 사용자 5천 명, 월 $220K~226K 매출(연 $2.8M). '비개발자도 AI 래퍼로 큰 수익 가능'을 보여주는 대표 사례. Bubble 공식 블로그와 다수 인터뷰로 교차 검증됨.",
+      "key_numbers": "$220K~226K MRR, 연 $2.8M, 사용자 75만, 주말 MVP + 노코드",
+      "source_url": "https://www.nocode.mba/articles/nocode-case-study-formulabot"
+    },
+    {
+      "title": "Chatbase — 야세르 엘사이드(Yasser Elsaid), 솔로 창업 117일 만에 $1M ARR",
+      "detail": "웹사이트/문서를 학습시켜 고객지원 AI 챗봇을 만들어주는 SaaS. 24세 엔지니어가 6주 만에 첫 버전을 만들고 가격 페이지 게시 30분 만에 첫 결제 발생. 출시 117일 만에 $1M ARR, 이후 무투자(부트스트랩)로 $9M~10M ARR 돌파(유료 고객 8,000+). 지금은 18~30명 팀이지만 시작은 완전한 1인 창업. ChatGPT 열풍 초기에 'PDF/사이트에 챗봇 달기' 수요를 선점한 타이밍 승부 사례.",
+      "key_numbers": "117일만에 $1M ARR, 현재 $10M ARR, 투자 0원, 유료 고객 8,000+",
+      "source_url": "https://solofounders.com/blog/9m-arr-zero-investors-yasser-elsaid-on-bootstrapping-chatbase-as-a-solo-founder"
+    },
+    {
+      "title": "마크 루(Marc Lou) — 보일러플레이트/분석 툴 포트폴리오로 2025년 한 해 $1,032,000",
+      "detail": "AI 시대 솔로 메이커의 대표 주자. SaaS 보일러플레이트 ShipFast(월 ~$20K), 코딩 강의 CodeFast(월 ~$20K), 분석툴 DataFast($15.8K MRR) 등 3개 제품으로 2025년 연 매출 $1,032,000을 본인 뉴스레터에서 직접 공개. 직원 0명, 월 비용 약 $4K. 누적 16개 제품 시도 후 살아남은 것에 집중하는 '다산다사(多産多死)' 전략. trustmrr 등 외부 대시보드로 수치 추적 가능.",
+      "key_numbers": "2025년 $1.03M(직원 0명), 월 $84.9K 매출, 월 비용 $4K",
+      "source_url": "https://newsletter.marclou.com/p/i-made-1-032-000-in-2025"
+    },
+    {
+      "title": "AudioPen — 루이스 페레이라(Louis Pereira), 12시간 해커톤 빌드가 월 $15K~20K로",
+      "detail": "두서없는 음성 메모를 AI(Whisper+GPT)가 정리된 글로 바꿔주는 웹앱. 인도 고아에서 가업(소매업)을 운영하는 비전업 개발자가 반나절 해커톤에서 제작, 2023년 3월 출시. X에서 스크린샷·마일스톤 공유만으로 오가닉 성장해 유료 고객 1,000+명, 2025-2026년 기준 월 $15K~20K. 광고비 거의 0원, 직원 0명. '작게 만들어 평생 부업 소득' 모델의 교과서적 사례.",
+      "key_numbers": "월 $15K~20K, 개발 12시간, 유료 고객 1,000+, 마케팅비 ~0원",
+      "source_url": "https://www.indiehackers.com/post/tech/building-an-ai-tool-in-a-half-day-hackathon-and-hitting-20k-mo-BCloDTDRfjuip0pDghap"
+    },
+    {
+      "title": "PDF.ai — 데이먼 첸(Damon Chen), $20K에 산 사이드 프로젝트를 4개월 만에 $25K MRR로",
+      "detail": "PDF 문서와 대화(질의응답)하는 AI 툴. 2023년 6월, 매출 0원짜리 주말 프로젝트(GitHub 레포)를 $20K에 인수한 뒤 4개월 만에 $25K MRR·유료 사용자 1,250명 달성, 2023년 11월 월 $60K 돌파. 2024년 연 매출 $591.7K(getlatka 추정), Starter Story는 $1.5M ARR 페이스로 보도. 무투자, 프리미엄 모델($15/월). '이미 검증된 검색 수요(pdf ai 키워드)를 도메인+SEO로 선점'한 사례.",
+      "key_numbers": "인수가 $20K → 4개월만에 $25K MRR, 2023.11 월 $60K, 사용자 35만+",
+      "source_url": "https://www.indiehackers.com/post/pdf-ai-tool-made-25k-in-mrr-last-month-07148fa17d"
+    },
+    {
+      "title": "Submagic — 다비드 지툰(David Zitoun), 숏폼 AI 자막툴로 3년 만에 $8M ARR (무투자)",
+      "detail": "숏폼 영상에 AI 자막·B롤·효과를 자동으로 입혀주는 툴. 2023년 초 파리에서 2인 창업, 초기 자본 $500. 평생 30% 커미션 어필리에이트 프로그램(제휴자 1만+명)으로 90일 만에 $1M ARR, 2025년 4월 $8M ARR 도달. 직원 13명(1인당 매출 $615K), VC 투자 0원, 사용자 400만+. 소규모 팀이 크리에이터 이코노미 수요에 올라탄 대표 사례.",
+      "key_numbers": "$8M ARR(2025), 90일만에 $1M ARR, 직원 13명, 초기자본 $500",
+      "source_url": "https://getlatka.com/blog/submagic-revenue-bootstrap-ceo"
+    },
+    {
+      "title": "Jenni AI — 데이비드 박(David Park, 한국계 미국인), 학술 글쓰기 AI로 $10M ARR",
+      "detail": "연구자·학생용 논문 작성 보조 AI. 수년간 실패하던 제품을 2022년 말 학술 글쓰기 니치로 피벗한 뒤, 인스타그램/틱톡 UGC 숏폼 마케팅으로 급성장. ARR $1.8M(2023) → $8M(2024) → 2025년 초 $10M 돌파(월 $560K→$800K). 무투자, 팀 9→23명. GPT 기반이지만 그로스마진 83%로 Jasper/Copy.ai(~60%)보다 높음. '소규모 팀 + 니치 + 숏폼 마케팅' 조합의 상한선을 보여줌.",
+      "key_numbers": "$10M ARR(2025), 마진 83%, 팀 9~23명, 무투자",
+      "source_url": "https://sacra.com/c/jenni-ai/"
+    },
+    {
+      "title": "국내 사례: 1인 앱 개발자 김윤후 — 부업으로 앱 15개 운영, 월 1,000만 원+",
+      "detail": "직장(스타트업 근무)과 병행하며 간헐적 단식 관리 앱(글로벌 사용자 200만) 등 15개 앱을 혼자 출시·운영, 첫 달 수익 $0.52에서 시작해 월 1,000만 원 이상(일 매출 20~40만 원)까지 성장했다고 패스트캠퍼스 인터뷰에서 공개. 최근에는 AI 코딩 도구를 활용한 다작 전략이 국내 1인 개발 커뮤니티의 표준이 되는 흐름. 다만 국내 사례는 Stripe/오픈 대시보드 같은 제3자 검증이 없어 해외 사례 대비 신뢰도는 '본인 인터뷰 기반(중간)'으로 표시함. 패스트캠퍼스가 이 스토리를 강의 판매에 연결하고 있는 점도 감안 필요.",
+      "key_numbers": "월 1,000만원+(일 20~40만원), 앱 15개, 글로벌 사용자 200만 (신뢰도: 중간, 본인 공개)",
+      "source_url": "https://fastcampus.co.kr/story_article_indiehacker"
+    },
+    {
+      "title": "소액 검증 사례 묶음: Eightify(월 $45K)·My AskAI(월 $25K)·Brainrot($26K MRR)·음성노트 앱($4.5K MRR)",
+      "detail": "Starter Story·Indie Hackers에서 수익이 공개된 중소형 사례들. Eightify는 유튜브 영상 AI 요약 확장프로그램으로 프리미엄 모델 기반 월 평균 $45K. My AskAI는 2인 팀이 SaaS 고객지원용 AI 봇으로 월 $25K. Brainrot은 25만 팔로워 오디언스+Product Hunt 1위로 출시한 스크린타임 게이미피케이션 앱 $26K MRR(솔로). 21세 솔로 창업자의 AI 음성노트 정리 앱은 틱톡/릴스 오가닉 90%로 $4.5K MRR. Starter Story 집계 기준 성공한 AI 사업 평균 월 매출은 $27.9K, 최고 사례는 연 $2.4M+.",
+      "key_numbers": "월 $4.5K~$45K 구간, AI 사업 평균 월 $27.9K(Starter Story 집계)",
+      "source_url": "https://www.starterstory.com/ideas/ai-based-business/how-much-do-they-make"
+    },
+    {
+      "title": "주의(신뢰도 낮음/제외 처리): '월 천만원 AI 자동화' 강의성 주장 및 미검증 국내 슈퍼케이스",
+      "detail": "국내 검색 상위에 노출되는 'AI 자동화로 월 1억'(자유일보 칼럼), '혼자 앱 3,000개로 연 매출 100억'(케빈, eopla 매거진), 'ChatGPT 수익화 10종 부업' 류 콘텐츠는 매출 대시보드·결제내역 등 검증 가능한 근거가 없고 상당수가 강의/전자책 판매로 이어지는 퍼널이어서 본 리서치에서는 신뢰도 낮음으로 분류. 반면 위에 제시한 해외 사례들은 Stripe 연동 공개 대시보드(levels.io), 창업자 실명 인터뷰 다수, getlatka/Sacra 등 제3자 추정치로 교차 검증이 가능하다는 차이가 있음.",
+      "key_numbers": "검증 불가 주장: '월 1억', '연 100억' 등 — 근거 미제시로 제외/저신뢰 표기",
+      "source_url": "https://www.jayupress.com/news/articleView.html?idxno=44169"
+    }
+  ],
+  "crawl_status": "성공: WebSearch 8회(Indie Hackers, Starter Story, getlatka, Sacra, solofounders.com, nocode.mba, 마크 루 뉴스레터 등 검색 스니펫 확보). 차단/실패: eopla.net(HTTP 403, curl 우회도 실패), maily.so(403), fastcampus.co.kr(403) — 한국 사이트 3곳은 직접 크롤링이 차단되어 검색 결과 스니펫 기반으로 대체함. levels.io, indiehackers.com 등은 검색 결과 요약으로 수치 확인(직접 페치 생략). X(트위터)는 로그인 장벽으로 직접 접근 불가하여 @levelsio 등의 공개 수치는 2차 출처(Indie Hackers, ppc.land 등)로 교차 확인함."
+}

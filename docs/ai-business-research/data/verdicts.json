@@ -1,0 +1,66 @@
+[
+  {
+    "angle": "trends",
+    "title": "글로벌 AI 총지출: 2026년 2.59조 달러, 전년 대비 47% 성장 (Gartner)",
+    "claim": "글로벌 AI 총지출: 2026년 2.59조 달러, 전년 대비 47% 성장 (Gartner): 2026년 AI 총지출 $2.59조(+47%), 2025년 GenAI 지출 $6,440억(+76.4%) (출처: https://www.gartner.com/en/newsroom/press-releases/2026-05-19-gartner-forecasts-worldwide-ai-spending-to-grow-47-percent-in-2026)",
+    "verdict": "confirmed",
+    "note": "2026년 AI 총지출 $2.59조(+47%) 수치는 2026-05-19자 Gartner 발표를 그대로 전한 BusinessWire, BigDATAwire, CIO Dive 등 복수의 독립 2차 출처에서 일치 확인되었고, 2025년 GenAI 지출 $6,440억(+76.4%)도 Gartner 2025-03-31 보도자료 및 VentureBeat·Tech Monitor 보도와 정확히 일치한다. 반박 관점에서 검토했으나 수치·성장률·출처 날짜 모두 과장 없이 정확했다.",
+    "secondary_source": "https://www.businesswire.com/news/home/20260519405832/en/Gartner-Forecasts-Worldwide-AI-Spending-to-Grow-47-in-2026"
+  },
+  {
+    "angle": "trends",
+    "title": "AI 플랫폼·모델 시장: 2026년 640억 달러로 63% 성장 (Gartner, 2026-07-20 발표)",
+    "claim": "AI 플랫폼·모델 시장: 2026년 640억 달러로 63% 성장 (Gartner, 2026-07-20 발표): 2025년 $390억 → 2026년 $640억(+63.4%) (출처: https://www.gartner.com/en/newsroom/press-releases/2026-07-20-gartner-forecasts-worldwide-ai-platforms-and-models-market-to-grow-63-percent-in-2026)",
+    "verdict": "confirmed",
+    "note": "Gartner 원문 URL은 프록시 차단으로 직접 열람하지 못했으나, ANI(2026-07-20자), ARN, ITBrief NZ, TechEdgeAI 등 복수의 독립 2차 출처가 2025년 $390억 → 2026년 $640억(+63.4%) 수치와 발표일(2026-07-20)을 동일하게 보도하여 주장과 정확히 일치함을 확인했습니다. 반박 관점에서 과장·왜곡 정황(예: 수치 단위 오류, 날짜 불일치)은 발견되지 않았습니다.",
+    "secondary_source": "https://aninews.in/news/business/global-ai-platforms-and-models-market-to-grow-63-pc-to-usd-64-billion-in-2026-gartner20260720151040/"
+  },
+  {
+    "angle": "trends",
+    "title": "생성형 AI 시장 규모: 2026년 약 3,950억 달러 (Statista), 2034-35년 1.2조 달러대 전망",
+    "claim": "생성형 AI 시장 규모: 2026년 약 3,950억 달러 (Statista), 2034-35년 1.2조 달러대 전망: Statista 2026년 $3,947억 / Precedence CAGR 36.97%, 2035년 $1.21조 / Fortune BI 2034년 $1.26조 (출처: https://www.statista.com/outlook/tmo/artificial-intelligence/generative-ai/worldwide/)",
+    "verdict": "confirmed",
+    "note": "Statista 2026년 $394.66B, Precedence Research 2035년 $1,206.24B(CAGR 36.97%), Fortune Business Insights 2034년 $1,260.15B(CAGR 29.30%)가 각 기관의 공식 페이지 및 2차 출처(보도자료 등)에서 모두 확인되어 주장 수치와 일치함. 다만 기관별 시장 정의 차이로 2026년 추정치 간 편차가 큰 점(예: FBI는 2026년 $161B)은 참고 필요.",
+    "secondary_source": "https://www.precedenceresearch.com/generative-ai-market; https://www.einpresswire.com/article/889908690/generative-ai-market-size-to-worth-usd-1-260-15-billion-by-2034-cagr-of-29-30-during-2026-2034"
+  },
+  {
+    "angle": "trends",
+    "title": "AI 에이전트 시장: 2025년 78억 달러 → 2030년 526억 달러, CAGR 46.3% (MarketsandMarkets)",
+    "claim": "AI 에이전트 시장: 2025년 78억 달러 → 2030년 526억 달러, CAGR 46.3% (MarketsandMarkets): 2025년 $78.4억 → 2030년 $526.2억(CAGR 46.3%), 버티컬 AI 에이전트 세그먼트 CAGR 62.7% (출처: https://www.marketsandmarkets.com/Market-Reports/ai-agents-market-15761548.html)",
+    "verdict": "confirmed",
+    "note": "MarketsandMarkets 보도자료(PR Newswire 배포) 및 Yahoo Finance 신디케이션, 복수의 제3자 통계 사이트에서 2025년 $78.4억 → 2030년 $526.2억, CAGR 46.3%, 버티컬 AI 에이전트 세그먼트 최고 CAGR 62.7% 수치가 모두 일치함을 확인했습니다. 반박 관점에서 검토했으나 원출처 수치와 정확히 부합하며 과장이나 왜곡이 발견되지 않았습니다.",
+    "secondary_source": "https://www.prnewswire.com/news-releases/ai-agents-market-worth-52-62-billion-by-2030---exclusive-report-by-marketsandmarkets-302435486.html"
+  },
+  {
+    "angle": "cases",
+    "title": "PhotoAI — 피터 레벨스(Pieter Levels), AI 사진 생성으로 월 $132K~138K",
+    "claim": "PhotoAI — 피터 레벨스(Pieter Levels), AI 사진 생성으로 월 $132K~138K: $138K MRR(2025.11), 연 $3M 포트폴리오, 직원 0명, 18개월만에 $100K MRR (출처: https://www.indiehackers.com/post/photo-ai-by-pieter-levels-complete-deep-dive-case-study-0-to-132k-mrr-in-18-months-3a9a2b1579)",
+    "verdict": "confirmed",
+    "note": "PhotoAI의 2023.2 출시 후 2024.8.30 월 $100K 돌파(약 18개월), 2025년 $120K~138K MRR, 포트폴리오 연 $3M·직원 0명 주장 모두 레벨스 본인의 공개 발표와 ppc.land, Indie Hackers 뉴스, Lex Fridman 팟캐스트 등 복수의 독립 2차 출처로 교차 확인됨. 다만 수치는 본인 공개(Stripe 대시보드) 기반 자가보고이며, $100K는 엄밀한 MRR이 아닌 월 매출(연간 결제 포함)이라는 소폭의 표현상 과장 여지가 있음.",
+    "secondary_source": "https://ppc.land/how-one-photo-ai-app-generates-132k-monthly-after-70-failed-startups/"
+  },
+  {
+    "angle": "cases",
+    "title": "HeadshotPro — 대니 포스트마(Danny Postma), AI 증명사진으로 월 $300K",
+    "claim": "HeadshotPro — 대니 포스트마(Danny Postma), AI 증명사진으로 월 $300K: $300K MRR / $3.6M ARR, 출시 2주만에 $100K, 고객 19.7만명 (출처: https://startupfounderstories.com/stories/danny-postma-headshotpro-ai-headshots)",
+    "verdict": "confirmed",
+    "note": "Starter Story, Indie Hackers, Latka 등 복수의 독립 2차 출처가 $300K/월 매출(출시 1년차), 출시 2주 $100K, 고객 197,000+명(제3자 리뷰 사이트에서도 동일 수치 확인)을 일관되게 보도하며 반증 자료는 발견되지 않았습니다. 다만 원출처는 창업자 자가 보고이고 일회성 결제 위주 상품이라 'MRR'은 엄밀한 구독 반복 매출이 아닌 월 매출로 보는 것이 정확합니다.",
+    "secondary_source": "https://www.starterstory.com/stories/headshotpro-breakdown"
+  },
+  {
+    "angle": "cases",
+    "title": "Formula Bot — 데이비드 브레슬러(David Bressler), 노코드로 만든 엑셀 AI, 연 $2.8M",
+    "claim": "Formula Bot — 데이비드 브레슬러(David Bressler), 노코드로 만든 엑셀 AI, 연 $2.8M: $220K~226K MRR, 연 $2.8M, 사용자 75만, 주말 MVP + 노코드 (출처: https://www.nocode.mba/articles/nocode-case-study-formulabot)",
+    "verdict": "refuted",
+    "note": "창업자·제품 개요(데이비드 브레슬러, Bubble 노코드, 주말 MVP, 75만 사용자)는 사실이나, 핵심 수익 주장($220K~226K MRR, 연 $2.8M)은 반박됨. 창업자 인터뷰 기반 독립 출처들(Starter Story $26K/월, startups.fyi $23K MRR, GetLatka $29.1K, 2024년 Substack 인터뷰 $24K MRR)이 일관되게 약 10분의 1 수준($23K~29K MRR, 연 $30만 안팎)을 보고하며, $226K MRR 수치는 자체 제목조차 '$1M 툴'이라 표기한 저품질 애그리게이터 블로그(Pickle Rooms 등)에서만 발견되고($22.6K의 소수점 오류로 추정), 출처로 제시된 nocode.mba 기사에도 해당 수치가 확인되지 않음.",
+    "secondary_source": "https://www.startups.fyi/product/formula-bot (Formula Bot $23K MRR); https://www.starterstory.com/stories/excelformulabot ($26K/month)"
+  },
+  {
+    "angle": "cases",
+    "title": "Chatbase — 야세르 엘사이드(Yasser Elsaid), 솔로 창업 117일 만에 $1M ARR",
+    "claim": "Chatbase — 야세르 엘사이드(Yasser Elsaid), 솔로 창업 117일 만에 $1M ARR: 117일만에 $1M ARR, 현재 $10M ARR, 투자 0원, 유료 고객 8,000+ (출처: https://solofounders.com/blog/9m-arr-zero-investors-yasser-elsaid-on-bootstrapping-chatbase-as-a-solo-founder)",
+    "verdict": "confirmed",
+    "note": "117일 $1M ARR, 무투자 부트스트랩, $10M ARR 돌파(창업자 X 공식 발표 및 언론 보도자료), 유료 고객 8,000+(실제 10,000+ 보도로 보수적 수치)가 복수 독립 2차 출처에서 일관되게 확인됨. 다만 수치는 감사되지 않은 창업자 자기보고 기반이라는 한계는 있음.",
+    "secondary_source": "https://www.wboc.com/online_features/press_releases/chatbase-reaches-10m-arr-as-a-profitable-challenger-to-sierra-decagon-and-fin/article_ea903107-b04c-55a9-a12d-810797b1f35b.html"
+  }
+]
