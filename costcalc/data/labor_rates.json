@@ -1,0 +1,26 @@
+{
+  "day": {
+    "label": "주간",
+    "daily_wage": 163492.14136363636,
+    "monthly": 3596827.11,
+    "annual": 43161925.32
+  },
+  "night_fixed": {
+    "label": "야간 고정",
+    "daily_wage": 202121.27454545454,
+    "monthly": 4446668.04,
+    "annual": 53360016.480000004
+  },
+  "two_shift": {
+    "label": "2교대",
+    "daily_wage": 182806.46181818182,
+    "monthly": 4021742.16,
+    "annual": 48260905.92
+  },
+  "holiday": {
+    "label": "휴일(격주)",
+    "daily_wage": 201569.1906818182,
+    "monthly": 4434522.195,
+    "annual": 53214266.34
+  }
+}
