@@ -64,6 +64,13 @@ body {
   width: 26px; height: 26px; border-radius: 7px; display: grid; place-items: center;
   background: linear-gradient(135deg, var(--steel), #6fb0cf); font-size: 14px; font-weight: 800;
 }
+.appbar .proj-switch { display: flex; align-items: center; gap: 6px; }
+.proj-select {
+  background: rgba(255,255,255,.12); color: #fff; border: 1px solid rgba(255,255,255,.25);
+  border-radius: 6px; padding: 5px 8px; font-size: 12.5px; font-weight: 600; font-family: inherit;
+  max-width: 220px;
+}
+.proj-select option { color: #1a2333; }
 .appbar .meta { color: #cdd9e8; font-size: 12px; }
 .appbar .meta b { color: #fff; font-weight: 600; }
 .appbar .spacer { flex: 1; }

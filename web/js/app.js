@@ -1,7 +1,7 @@
 /* 앱 컨트롤러 — 상태, 이벤트 위임, 실시간 재계산, 저장/내보내기 */
 const App = (() => {
   const { getJSON, postJSON, toast, debounce, deepClone } = Util;
-  const LS_KEY = "elemec_cost_state_v1";
+  const LS_PROJECTS = "elemec_projects_v2";
 
   let State = {
     project: null,      // 편집 대상 (parts/assemblies/project)
@@ -9,6 +9,14 @@ const App = (() => {
     result: null,       // 서버 계산 결과 (+ 분석)
     activeView: { type: "summary" },
   };
+  // 다중 견적(프로젝트) 관리: 여러 견적을 저장·전환. SAMPLE = 서버 기본(SDI) 스냅샷.
+  let Projects = { activeId: null, items: {} };   // items[id] = { id, project, config }
+  let SAMPLE = null;
+
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g,
+    c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const projName = (it) => (it.project.project && it.project.project.title) || "(제목없음)";
+  const activeItem = () => Projects.items[Projects.activeId];
 
   // 중첩 경로 세터: "materials.3.unit_price"
   function setPath(obj, path, val) {
@@ -47,9 +55,9 @@ const App = (() => {
   function draw() {
     const a = document.activeElement;
     let focus = null;
-    if (a && (a.dataset.bind || a.dataset.cfg)) {
-      focus = { key: a.dataset.bind ? "bind" : "cfg", val: a.dataset.bind || a.dataset.cfg,
-                s: a.selectionStart, e: a.selectionEnd };
+    if (a && (a.dataset.bind || a.dataset.cfg || a.dataset.projbind)) {
+      const key = a.dataset.bind ? "bind" : a.dataset.cfg ? "cfg" : "projbind";
+      focus = { key, val: a.dataset[key], s: a.selectionStart, e: a.selectionEnd };
     }
     document.getElementById("view").innerHTML = Render.render(State);
     document.querySelectorAll(".nav-item").forEach(n => {
@@ -58,8 +66,7 @@ const App = (() => {
       n.classList.toggle("active", !!on);
     });
     if (focus) {
-      const sel = focus.key === "bind" ? `[data-bind="${focus.val}"]` : `[data-cfg="${focus.val}"]`;
-      const t = document.querySelector(sel);
+      const t = document.querySelector(`[data-${focus.key}="${focus.val}"]`);
       if (t) { t.focus(); try { t.setSelectionRange(focus.s, focus.e); } catch (e) {} }
     }
     applyValidationHints();
@@ -106,6 +113,10 @@ const App = (() => {
       } else if (t.dataset.cfg) {
         setPath(State.master.config, t.dataset.cfg, num(t.value));
         recalc();
+      } else if (t.dataset.projbind) {
+        if (!State.project.project) State.project.project = {};
+        setPath(State.project.project, t.dataset.projbind, t.value);
+        updateMeta(); renderProjectSwitcher(); persist();
       }
     });
     // 셀렉트 변경: 톤수(숫자) / 참조 사출품(문자) / 재료 유형 전환
@@ -282,9 +293,69 @@ const App = (() => {
     });
   }
 
+  // ---- 견적(프로젝트) 관리 ----
+  function saveProjects() { try { localStorage.setItem(LS_PROJECTS, JSON.stringify(Projects)); } catch (e) {} }
+  function newProjId() {
+    let n = Date.now().toString(36), id = "proj_" + n, i = 0;
+    while (Projects.items[id]) id = `proj_${n}_${++i}`;
+    return id;
+  }
+  function renderProjectSwitcher() {
+    const sel = document.getElementById("projSelect");
+    if (!sel) return;
+    sel.innerHTML = Object.keys(Projects.items).map(id =>
+      `<option value="${id}" ${id === Projects.activeId ? "selected" : ""}>${esc(projName(Projects.items[id]))}</option>`).join("");
+  }
+  function loadActiveIntoState() {
+    const it = activeItem();
+    State.project = it.project;
+    State.master.config = it.config || deepClone(SAMPLE.config);
+  }
+  async function switchProject(id) {
+    if (!Projects.items[id] || id === Projects.activeId) return;
+    persist();
+    Projects.activeId = id;
+    loadActiveIntoState();
+    State.activeView = { type: "summary" };
+    await recalc(); renderProjectSwitcher();
+    toast(`'${projName(activeItem())}' 견적으로 전환했습니다`);
+  }
+  async function newProject() {
+    persist();
+    try {
+      const tmpl = await getJSON("/api/template/project");
+      const id = newProjId();
+      Projects.items[id] = { id, project: tmpl, config: deepClone(SAMPLE.config) };
+      Projects.activeId = id;
+      loadActiveIntoState();
+      State.activeView = { type: "summary" };
+      await recalc(); renderProjectSwitcher();
+      toast("새 견적을 만들었습니다. 사이드바 ＋로 신규 모델을 추가하세요.");
+    } catch (e) { toast("새 견적 생성 실패: " + e.message, "err"); }
+  }
+  async function deleteProject() {
+    if (Object.keys(Projects.items).length <= 1) { toast("최소 1개 견적은 유지됩니다.", "warn"); return; }
+    if (!confirm(`'${projName(activeItem())}' 견적을 삭제할까요?`)) return;
+    const removed = { id: Projects.activeId, ...activeItem() };
+    const removedId = Projects.activeId;
+    delete Projects.items[removedId];
+    Projects.activeId = Object.keys(Projects.items)[0];
+    loadActiveIntoState();
+    State.activeView = { type: "summary" };
+    await recalc(); renderProjectSwitcher();
+    toast(`'${projName(removed)}' 견적 삭제됨`, "warn", 5000, {
+      label: "실행취소", fn: () => {
+        Projects.items[removedId] = { id: removedId, project: removed.project, config: removed.config };
+        Projects.activeId = removedId; loadActiveIntoState();
+        recalc(); renderProjectSwitcher(); toast("삭제를 취소했습니다");
+      }
+    });
+  }
+
   // ---- 액션: 저장/불러오기/내보내기/초기화/테마 ----
   function persist() {
-    try { localStorage.setItem(LS_KEY, JSON.stringify({ project: State.project, config: State.master.config })); } catch (e) {}
+    const it = activeItem();
+    if (it) { it.project = State.project; it.config = State.master.config; saveProjects(); }
   }
   function saveFile() {
     const blob = new Blob([JSON.stringify({ project: State.project, config: State.master.config }, null, 2)], { type: "application/json" });
@@ -301,8 +372,8 @@ const App = (() => {
       const data = JSON.parse(await f.text());
       if (data.project) State.project = data.project;
       if (data.config) State.master.config = data.config;
-      await recalc(); buildNav();
-      toast("견적 데이터를 불러왔습니다");
+      await recalc(); renderProjectSwitcher();
+      toast("견적 데이터를 현재 견적으로 불러왔습니다");
     } catch (err) { toast("불러오기 실패: " + err.message, "err"); }
     e.target.value = "";
   }
@@ -328,10 +399,10 @@ const App = (() => {
     } catch (e) { setBusy(false, "오류"); toast("엑셀 생성 실패: " + e.message, "err", 4000); }
   }
   async function reset() {
-    if (!confirm("모든 편집 내용을 초기(엑셀 기준)값으로 되돌립니다. 계속할까요?")) return;
-    localStorage.removeItem(LS_KEY);
+    if (!confirm("모든 견적/편집을 초기(SDI 샘플) 상태로 되돌립니다. 계속할까요?")) return;
+    localStorage.removeItem(LS_PROJECTS);
     await bootstrap(true);
-    toast("초기값으로 되돌렸습니다");
+    toast("초기 상태로 되돌렸습니다");
   }
   function toggleTheme() {
     const r = document.documentElement;
@@ -343,22 +414,28 @@ const App = (() => {
   async function bootstrap(forceServer = false) {
     const boot = await getJSON("/api/bootstrap");
     State.master = boot.master;
-    State.project = boot.project;
-    State.result = boot.result;
+    SAMPLE = { project: boot.project, config: deepClone(boot.master.config) };
+
+    let saved = null;
     if (!forceServer) {
-      try {
-        const saved = JSON.parse(localStorage.getItem(LS_KEY) || "null");
-        if (saved && saved.project) {
-          State.project = saved.project;
-          if (saved.config) State.master.config = saved.config;
-          const result = await postJSON("/api/calc", { project: State.project, config: State.master.config });
-          State.result = result;
-          toast("이전 작업을 복원했습니다", "warn");
-        }
-      } catch (e) {}
+      try { saved = JSON.parse(localStorage.getItem(LS_PROJECTS) || "null"); } catch (e) {}
     }
-    buildNav(); updateMeta(); draw();
+    if (saved && saved.items && Object.keys(saved.items).length) {
+      Projects = saved;
+      if (!Projects.items[Projects.activeId]) Projects.activeId = Object.keys(Projects.items)[0];
+    } else {
+      Projects = {
+        activeId: "sample_sdi",
+        items: { sample_sdi: { id: "sample_sdi", project: boot.project, config: deepClone(boot.master.config) } },
+      };
+    }
+    loadActiveIntoState();
+    try {
+      State.result = await postJSON("/api/calc", { project: State.project, config: State.master.config });
+    } catch (e) { State.result = boot.result; }
+    buildNav(); updateMeta(); renderProjectSwitcher(); draw();
     setBusy(false, "계산 완료");
+    if (saved) toast("이전 견적을 복원했습니다", "warn");
   }
 
   function init() {
@@ -372,6 +449,9 @@ const App = (() => {
     document.getElementById("fileInput").onchange = onFile;
     document.getElementById("addAssy").onclick = () => addProduct("assy");
     document.getElementById("addPart").onclick = () => addProduct("part");
+    document.getElementById("projSelect").onchange = (e) => switchProject(e.target.value);
+    document.getElementById("btnNewProj").onclick = newProject;
+    document.getElementById("btnDelProj").onclick = deleteProject;
     wire();
     bootstrap().catch(e => toast("초기화 실패: " + e.message, "err", 5000));
   }

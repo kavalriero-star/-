@@ -12,6 +12,11 @@
     <!-- 앱바 -->
     <header class="appbar">
       <div class="brand"><span class="logo">원</span> 엘레멕 원가계산</div>
+      <div class="proj-switch">
+        <select id="projSelect" class="proj-select" title="견적 선택"></select>
+        <button class="btn btn-ghost btn-sm" id="btnNewProj" title="백지에서 새 견적 만들기">＋ 새 견적</button>
+        <button class="btn btn-ghost btn-sm" id="btnDelProj" title="현재 견적 삭제">🗑</button>
+      </div>
       <div class="meta" id="projMeta">불러오는 중…</div>
       <div class="spacer"></div>
       <span class="warn-badge" id="warnBadge" style="display:none"></span>

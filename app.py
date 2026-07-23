@@ -126,16 +126,29 @@ def _new_assembly_template(new_id, name="신규 조립품"):
     }
 
 
+def _new_project_template(title="새 견적"):
+    """백지 견적(프로젝트) 스캐폴드. 품목은 비어 있고 사용자가 추가한다."""
+    today = datetime.date.today().isoformat()
+    return {
+        "project": {"title": title, "doc_no": "", "revision": "", "customer": "",
+                    "date": today, "note": ""},
+        "parts": [],
+        "assemblies": [],
+    }
+
+
 @app.get("/api/template/<kind>")
 def template(kind):
-    """신규 품목 템플릿 반환. kind = 'part' | 'assy'"""
+    """신규 템플릿 반환. kind = 'part' | 'assy' | 'project'"""
     new_id = request.args.get("id", f"{kind}_new")
-    name = request.args.get("name") or ("신규 사출품" if kind == "part" else "신규 조립품")
+    name = request.args.get("name")
     if kind == "part":
-        return jsonify(_new_part_template(new_id, name))
+        return jsonify(_new_part_template(new_id, name or "신규 사출품"))
     if kind == "assy":
-        return jsonify(_new_assembly_template(new_id, name))
-    return jsonify(error="알 수 없는 품목 유형"), 400
+        return jsonify(_new_assembly_template(new_id, name or "신규 조립품"))
+    if kind == "project":
+        return jsonify(_new_project_template(name or "새 견적"))
+    return jsonify(error="알 수 없는 유형"), 400
 
 
 @app.post("/api/calc")

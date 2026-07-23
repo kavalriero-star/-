@@ -2,18 +2,46 @@
    편집 입력에는 data-bind="kind:id:path" 부여 → app.js가 위임 처리 */
 const Render = (() => {
   const { won, pct } = Util;
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g,
+    c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
   const bind = (kind, id, path, val, cls = "cell", extra = "") =>
     `<input class="${cls}" data-bind="${kind}:${id}:${path}" value="${val}" ${extra}>`;
   const bindText = (kind, id, path, val) => bind(kind, id, path, val ?? "", "cell text");
 
   // ---- 견적 요약 ----
+  const projField = (label, key, val) =>
+    `<div class="field"><label>${label}</label><input class="text" data-projbind="${key}" value="${(val ?? "").toString().replace(/"/g,'&quot;')}"></div>`;
+
   function summary(S) {
     const r = S.result, sm = r.summary;
+    const pj = (S.project && S.project.project) || {};
     const nAssy = r.assemblies.length, nLine = sm.lines.length;
     let h = `<div class="view-head"><h1>견적 요약</h1>
-      <span class="sub">${r.project.title || ""}</span><div class="spacer"></div>
+      <span class="sub">${esc(pj.title || "")}</span><div class="spacer"></div>
       <button class="btn btn-sm" onclick="App.exportExcel()">⬇ 엑셀</button></div>`;
+
+    // 견적 정보 (편집)
+    h += `<div class="card"><div class="card-head"><h3>견적 정보</h3>
+      <span class="sub">이 견적의 기본 정보</span></div><div class="card-body"><div class="pgrid">
+      ${projField("견적명", "title", pj.title)}
+      ${projField("문서번호", "doc_no", pj.doc_no)}
+      ${projField("리비전", "revision", pj.revision)}
+      ${projField("고객사", "customer", pj.customer)}
+      ${projField("작성일", "date", pj.date)}
+      </div></div></div>`;
+
+    if (nAssy === 0 && r.parts.length === 0) {
+      h += `<div class="card"><div class="card-body" style="text-align:center;padding:48px 20px">
+        <div style="font-size:38px">🗂️</div>
+        <h3 style="margin:12px 0 6px">아직 품목이 없습니다</h3>
+        <p class="muted" style="margin:0 0 18px">좌측 사이드바의 <b>＋</b> 버튼으로 신규 조립품·사출품을 추가해 원가 견적을 시작하세요.</p>
+        <button class="btn btn-primary btn-sm" onclick="App.addProduct('assy')">＋ 신규 조립품 추가</button>
+        <button class="btn btn-sm" onclick="App.addProduct('part')">＋ 신규 사출품 추가</button>
+      </div></div>`;
+      return h;
+    }
+
     h += `<div class="kpi-grid">
       <div class="kpi accent"><div class="label">연간 매출 합계</div><div class="value">${won(sm.total_year/1e8,1)}<span class="unit">억원</span></div></div>
       <div class="kpi"><div class="label">월 매출 합계</div><div class="value">${won(sm.total_month/1e6,0)}<span class="unit">백만원</span></div></div>

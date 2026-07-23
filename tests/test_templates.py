@@ -56,4 +56,21 @@ def test_template_endpoints():
     client = flask_app.app.test_client()
     assert client.get("/api/template/part").status_code == 200
     assert client.get("/api/template/assy").status_code == 200
+    assert client.get("/api/template/project").status_code == 200
     assert client.get("/api/template/bogus").status_code == 400
+
+
+def test_blank_project_calculates(master):
+    """백지 견적(품목 0개)도 검증·계산·요약이 오류 없이 동작."""
+    blank = flask_app._new_project_template("빈 견적")
+    validate_project(blank, master)
+    res = calc_project(blank, master)
+    assert res["assemblies"] == [] and res["parts"] == []
+
+
+def test_blank_project_via_api():
+    """백지 견적 calc/export API가 200을 반환."""
+    client = flask_app.app.test_client()
+    blank = flask_app._new_project_template("빈 견적")
+    assert client.post("/api/calc", json={"project": blank}).status_code == 200
+    assert client.post("/api/export", json={"project": blank}).status_code == 200
