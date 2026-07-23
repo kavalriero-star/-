@@ -1,0 +1,68 @@
+{
+  "version": "R6-2600723",
+  "currency": "KRW",
+  "labor": {
+    "rate_per_day": 182806.46181818182,
+    "rate_table": {
+      "day": 163492.14136363636,
+      "night_fixed": 202121.27454545454,
+      "two_shift": 182806.46181818182,
+      "holiday": 201569.1906818182
+    },
+    "indirect_rate": 0.3
+  },
+  "overhead_rates": {
+    "welfare_rate": 0.15,
+    "consumable_rate": 0.005,
+    "etc_rate": 0.005,
+    "repair_rate_on_invest": 0.06
+  },
+  "depreciation": {
+    "equip_years": 6,
+    "operating_days": 264,
+    "dedicated_years": 3,
+    "months_per_year": 12
+  },
+  "building": {
+    "land_value": 8500000000,
+    "divisor1": 14000,
+    "divisor2": 20,
+    "days": 264,
+    "cost_per_m2_day": 114.9891774891775
+  },
+  "utility": {
+    "power_unit_price": 180,
+    "part_hours": 21,
+    "part_factor": 0.5,
+    "assembly_hours": 12,
+    "assembly_factor": 0.5
+  },
+  "material": {
+    "busbar_discount": 0.9,
+    "setting_material_multiplier": 5
+  },
+  "loss_rate": {
+    "injection": 0.03,
+    "assembly": 0.01
+  },
+  "quote": {
+    "default_admin_rate": 0.065,
+    "default_profit_rate": 0.04,
+    "scenario_profit_rates": [
+      0.04,
+      0.03,
+      0.05,
+      0.07,
+      0.1
+    ],
+    "scenario_admin_rates": [
+      0.065,
+      0.108
+    ]
+  },
+  "transport": {
+    "freight_per_trip": 700000,
+    "box_per_5ton": 168,
+    "load_factor": 0.9
+  }
+}

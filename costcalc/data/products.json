@@ -1,0 +1,1006 @@
+{
+  "project": {
+    "title": "U6A5 · U8A1 INNER COVER ASS'Y 이원화 견적 검토",
+    "doc_no": "2600723",
+    "revision": "R6",
+    "customer": "삼성SDI",
+    "date": "2026-07-23",
+    "note": "타사50 : 삼진50 M/S 기준. 당사 월 5만개 (U6A5 4만, U8A1 1만)."
+  },
+  "parts": [
+    {
+      "id": "part_inner_cover_a",
+      "name": "Inner Cover A (A5)",
+      "kind": "injection",
+      "module": "U6A5",
+      "customer": "삼성SDI",
+      "model": "U6A5",
+      "material_code": "V143-00042A",
+      "vendor": "삼진엘앤디",
+      "volume": 20000,
+      "production": {
+        "ton": 450,
+        "cavity": 1,
+        "cycle_time": 50,
+        "efficiency": 0.9,
+        "shift_hours": 12,
+        "shifts": 2,
+        "work_days": 22
+      },
+      "materials": [
+        {
+          "name": "NET 재료비",
+          "kind": "net_weight",
+          "sub": "PC",
+          "weight_g": 521.33,
+          "unit_price": 3900,
+          "grade": "UF-1002",
+          "note": ""
+        },
+        {
+          "name": "M8 Insert NUT",
+          "kind": "qty",
+          "sub": "BRASS",
+          "qty": 2,
+          "unit_price": 540,
+          "grade": "M8 * L15",
+          "note": "Insert"
+        },
+        {
+          "name": "M4 Insert NUT",
+          "kind": "qty",
+          "sub": "BRASS",
+          "qty": 6,
+          "unit_price": 62,
+          "grade": "M4 * L4.8",
+          "note": "Insert"
+        }
+      ],
+      "labor": [
+        {
+          "name": "사출, 외관검사",
+          "workers": 0.5
+        },
+        {
+          "name": "라벨 부착, 비전검사, 포장",
+          "workers": 0.5
+        }
+      ],
+      "overhead": {
+        "loss_rate": 0.03,
+        "dedicated_base_monthly": 25000,
+        "dedicated_equipment": [
+          {
+            "name": "인서트 자동 공급기",
+            "price": 106000000,
+            "note": "90,000,000 ⇒ 106,000,000 (인서트 변경 투자 증가)"
+          },
+          {
+            "name": "인서트 비전 검사기",
+            "price": 23000000,
+            "note": "비전검사기 추가"
+          }
+        ]
+      }
+    },
+    {
+      "id": "part_inner_cover_b",
+      "name": "Inner Cover B (A5)",
+      "kind": "injection",
+      "module": "U6A5",
+      "customer": "삼성SDI",
+      "model": "U6A5",
+      "material_code": "V143-00041A",
+      "vendor": "삼진엘앤디",
+      "volume": 20000,
+      "production": {
+        "ton": 450,
+        "cavity": 1,
+        "cycle_time": 50,
+        "efficiency": 0.9,
+        "shift_hours": 12,
+        "shifts": 2,
+        "work_days": 22
+      },
+      "materials": [
+        {
+          "name": "NET 재료비",
+          "kind": "net_weight",
+          "sub": "PC",
+          "weight_g": 521.34,
+          "unit_price": 3900,
+          "grade": "UF-1002",
+          "note": ""
+        },
+        {
+          "name": "M8 Insert NUT",
+          "kind": "qty",
+          "sub": "BRASS",
+          "qty": 2,
+          "unit_price": 540,
+          "grade": "M8 * L15",
+          "note": "Insert"
+        },
+        {
+          "name": "M4 Insert NUT",
+          "kind": "qty",
+          "sub": "BRASS",
+          "qty": 6,
+          "unit_price": 62,
+          "grade": "M4 * L4.8",
+          "note": "Insert"
+        }
+      ],
+      "labor": [
+        {
+          "name": "사출, 외관검사",
+          "workers": 0.5
+        },
+        {
+          "name": "라벨 부착, 검사, 포장",
+          "workers": 0.5
+        }
+      ],
+      "overhead": {
+        "loss_rate": 0.03,
+        "dedicated_base_monthly": 25000,
+        "dedicated_equipment": [
+          {
+            "name": "인서트 자동 공급기",
+            "price": 106000000,
+            "note": ""
+          },
+          {
+            "name": "인서트 비전 검사기",
+            "price": 23000000,
+            "note": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "part_holder_busbar_a",
+      "name": "Holder BUSBAR A(U8)",
+      "kind": "injection",
+      "module": "U8A1",
+      "customer": "삼성SDI",
+      "model": "U8A1",
+      "material_code": "",
+      "vendor": "삼진엘앤디",
+      "volume": 5000,
+      "production": {
+        "ton": 450,
+        "cavity": 1,
+        "cycle_time": 50,
+        "efficiency": 0.9,
+        "shift_hours": 12,
+        "shifts": 2,
+        "work_days": 22
+      },
+      "materials": [
+        {
+          "name": "NET 재료비",
+          "kind": "net_weight",
+          "sub": "PC",
+          "weight_g": 476.55,
+          "unit_price": 4200,
+          "grade": "HN1022",
+          "note": ""
+        },
+        {
+          "name": "M8 Insert NUT",
+          "kind": "qty",
+          "sub": "BRASS",
+          "qty": 4,
+          "unit_price": 540,
+          "grade": "M8 * L15",
+          "note": "Insert"
+        },
+        {
+          "name": "M4 Insert NUT",
+          "kind": "qty",
+          "sub": "BRASS",
+          "qty": 6,
+          "unit_price": 62,
+          "grade": "M4 * L4.8",
+          "note": "Insert"
+        }
+      ],
+      "labor": [
+        {
+          "name": "사출, 외관검사",
+          "workers": 0.5
+        },
+        {
+          "name": "라벨 부착, 검사, 포장",
+          "workers": 0.5
+        }
+      ],
+      "overhead": {
+        "loss_rate": 0.03,
+        "dedicated_base_monthly": 50000,
+        "dedicated_equipment": [
+          {
+            "name": "인서트 자동 공급기",
+            "price": 90000000,
+            "note": "U6A5, U8A1 공용 생산 대응"
+          }
+        ]
+      }
+    },
+    {
+      "id": "part_holder_busbar_b",
+      "name": "Holder BUSBAR B(U8)",
+      "kind": "injection",
+      "module": "U8A1",
+      "customer": "삼성SDI",
+      "model": "U8A1",
+      "material_code": "",
+      "vendor": "삼진엘앤디",
+      "volume": 5000,
+      "production": {
+        "ton": 450,
+        "cavity": 1,
+        "cycle_time": 50,
+        "efficiency": 0.9,
+        "shift_hours": 12,
+        "shifts": 2,
+        "work_days": 22
+      },
+      "materials": [
+        {
+          "name": "NET 재료비",
+          "kind": "net_weight",
+          "sub": "PC",
+          "weight_g": 476.34,
+          "unit_price": 4200,
+          "grade": "HN1022",
+          "note": ""
+        },
+        {
+          "name": "M8 Insert NUT",
+          "kind": "qty",
+          "sub": "BRASS",
+          "qty": 4,
+          "unit_price": 540,
+          "grade": "M8 * L15",
+          "note": "Insert"
+        },
+        {
+          "name": "M4 Insert NUT",
+          "kind": "qty",
+          "sub": "BRASS",
+          "qty": 6,
+          "unit_price": 62,
+          "grade": "M4 * L4.8",
+          "note": "Insert"
+        }
+      ],
+      "labor": [
+        {
+          "name": "사출, 외관검사",
+          "workers": 0.5
+        },
+        {
+          "name": "라벨 부착, 검사, 포장",
+          "workers": 0.5
+        }
+      ],
+      "overhead": {
+        "loss_rate": 0.03,
+        "dedicated_base_monthly": 50000,
+        "dedicated_equipment": [
+          {
+            "name": "인서트 자동 공급기",
+            "price": 90000000,
+            "note": "U6A5, U8A1 공용 생산 대응"
+          }
+        ]
+      }
+    }
+  ],
+  "assemblies": [
+    {
+      "id": "assy_inner_cover_a",
+      "name": "Inner Cover ASSY A(A5)",
+      "kind": "assembly",
+      "module": "U6A5",
+      "customer": "삼성SDI",
+      "model": "U6A5",
+      "material_code": "V045-0126AA",
+      "vendor": "삼진엘앤디",
+      "volume": 20000,
+      "quote_lines": [
+        {
+          "customer": "공용",
+          "type": "Type A",
+          "material_code": "V045-0126AA",
+          "name": "U6A5_Inner Cover Ass'y Type A",
+          "volume": 20000,
+          "competitor_price": 19000
+        }
+      ],
+      "production": {
+        "lines": 1,
+        "cycle_time": 15,
+        "efficiency": 0.9,
+        "shift_hours": 10.5,
+        "shifts": 1,
+        "work_days": 22
+      },
+      "materials": [
+        {
+          "name": "Inner Cover A (A5)",
+          "kind": "part_ref",
+          "ref": "part_inner_cover_a",
+          "qty": 1,
+          "note": "사출품 롤업원가"
+        },
+        {
+          "name": "Busbar A",
+          "kind": "busbar",
+          "qty": 2,
+          "base_price": 440.5,
+          "note": ""
+        },
+        {
+          "name": "Busbar VT",
+          "kind": "busbar",
+          "qty": 4,
+          "base_price": 458.9,
+          "note": ""
+        },
+        {
+          "name": "Busbar V",
+          "kind": "busbar",
+          "qty": 3,
+          "base_price": 464,
+          "note": ""
+        },
+        {
+          "name": "VOLTAGE SENSING",
+          "kind": "qty",
+          "sub": "대하전선",
+          "qty": 1,
+          "unit_price": 1407,
+          "grade": "",
+          "note": "지정도급"
+        },
+        {
+          "name": "TEMP SENSING",
+          "kind": "qty",
+          "sub": "레트론",
+          "qty": 1,
+          "unit_price": 5300,
+          "grade": "",
+          "note": "지정도급"
+        },
+        {
+          "name": "RIVET",
+          "kind": "qty",
+          "sub": "서울금속",
+          "qty": 13,
+          "unit_price": 13,
+          "grade": "",
+          "note": "지정도급"
+        },
+        {
+          "name": "REAR LABEL A",
+          "kind": "qty",
+          "sub": "창대라벨",
+          "qty": 1,
+          "unit_price": 108,
+          "grade": "W130*L241 T0.1",
+          "note": "지정도급"
+        }
+      ],
+      "labor": [
+        {
+          "name": "Busbar 수동 조립",
+          "workers": 1
+        },
+        {
+          "name": "Busbar LR 조립",
+          "workers": 1
+        },
+        {
+          "name": "하네스 조립",
+          "workers": 2
+        },
+        {
+          "name": "Rivet 조립",
+          "workers": 3
+        },
+        {
+          "name": "IR/비전 검사",
+          "workers": 1
+        },
+        {
+          "name": "라벨 부착 / 포장",
+          "workers": 1
+        }
+      ],
+      "overhead": {
+        "loss_rate": 0.01,
+        "dedicated_base_monthly": 50000,
+        "area_m2": 500,
+        "power_kw": 87,
+        "dedicated_equipment": [
+          {
+            "name": "버스바 조립기",
+            "price": 52000000,
+            "note": "20,000,000 ⇒ 52,000,000 (3기종 혼용)"
+          },
+          {
+            "name": "조립 컨베어, 작업다이",
+            "price": 10000000,
+            "note": ""
+          },
+          {
+            "name": "리벳",
+            "price": 53100000,
+            "note": "13,000,000 ⇒ 53,100,000 (카운터 추가)"
+          },
+          {
+            "name": "IR, 비전 검사기",
+            "price": 211000000,
+            "note": "238,000,000 ⇒ 211,000,000"
+          }
+        ],
+        "packaging": {
+          "danpla_box_price": 40000,
+          "danpla_returns": 25,
+          "pack_unit": 10,
+          "vinyl_numer": 1400,
+          "vinyl_denom": 23300,
+          "vinyl_pack_unit": 1,
+          "netrong_price": 0,
+          "netrong_qty": 0,
+          "pallet_price": 17000,
+          "pallet_pack_factor": 12,
+          "pallet_div": 5
+        },
+        "transport": {
+          "box_qty": 10
+        }
+      },
+      "quote": {
+        "admin_rate": 0.065,
+        "profit_rate": 0.04
+      }
+    },
+    {
+      "id": "assy_inner_cover_b",
+      "name": "Inner Cover ASSY B(A5)",
+      "kind": "assembly",
+      "module": "U6A5",
+      "customer": "삼성SDI",
+      "model": "U6A5",
+      "material_code": "V045-0125AA",
+      "vendor": "삼진엘앤디",
+      "volume": 20000,
+      "quote_lines": [
+        {
+          "customer": "공용",
+          "type": "Type B",
+          "material_code": "V045-0125AA",
+          "name": "U6A5_Inner Cover Ass'y Type B",
+          "volume": 20000,
+          "competitor_price": 19000
+        }
+      ],
+      "production": {
+        "lines": 1,
+        "cycle_time": 15,
+        "efficiency": 0.9,
+        "shift_hours": 10.5,
+        "shifts": 1,
+        "work_days": 22
+      },
+      "materials": [
+        {
+          "name": "Inner Cover B (A5)",
+          "kind": "part_ref",
+          "ref": "part_inner_cover_b",
+          "qty": 1,
+          "note": "사출품 롤업원가"
+        },
+        {
+          "name": "Busbar A",
+          "kind": "busbar",
+          "qty": 2,
+          "base_price": 440.5,
+          "note": ""
+        },
+        {
+          "name": "Busbar VT",
+          "kind": "busbar",
+          "qty": 4,
+          "base_price": 458.9,
+          "note": ""
+        },
+        {
+          "name": "Busbar V",
+          "kind": "busbar",
+          "qty": 3,
+          "base_price": 464,
+          "note": ""
+        },
+        {
+          "name": "VOLTAGE SENSING",
+          "kind": "qty",
+          "sub": "대하전선",
+          "qty": 1,
+          "unit_price": 1428,
+          "grade": "",
+          "note": "지정도급"
+        },
+        {
+          "name": "TEMP SENSING",
+          "kind": "qty",
+          "sub": "레트론",
+          "qty": 1,
+          "unit_price": 5300,
+          "grade": "",
+          "note": "지정도급"
+        },
+        {
+          "name": "RIVET",
+          "kind": "qty",
+          "sub": "서울금속",
+          "qty": 13,
+          "unit_price": 13,
+          "grade": "",
+          "note": "지정도급"
+        },
+        {
+          "name": "REAR LABEL B",
+          "kind": "qty",
+          "sub": "창대라벨",
+          "qty": 1,
+          "unit_price": 108,
+          "grade": "W130*L241 T0.1",
+          "note": "지정도급"
+        }
+      ],
+      "labor": [
+        {
+          "name": "Busbar 수동 조립",
+          "workers": 1
+        },
+        {
+          "name": "Busbar LR 조립",
+          "workers": 1
+        },
+        {
+          "name": "하네스 조립",
+          "workers": 2
+        },
+        {
+          "name": "Rivet 조립",
+          "workers": 3
+        },
+        {
+          "name": "IR/비전 검사",
+          "workers": 1
+        },
+        {
+          "name": "라벨 부착 / 포장",
+          "workers": 1
+        }
+      ],
+      "overhead": {
+        "loss_rate": 0.01,
+        "dedicated_base_monthly": 50000,
+        "area_m2": 500,
+        "power_kw": 87,
+        "dedicated_equipment": [
+          {
+            "name": "버스바 조립기",
+            "price": 52000000,
+            "note": ""
+          },
+          {
+            "name": "조립 컨베어, 작업다이",
+            "price": 10000000,
+            "note": ""
+          },
+          {
+            "name": "리벳",
+            "price": 53100000,
+            "note": ""
+          },
+          {
+            "name": "IR, 비전 검사기",
+            "price": 211000000,
+            "note": ""
+          }
+        ],
+        "packaging": {
+          "danpla_box_price": 40000,
+          "danpla_returns": 25,
+          "pack_unit": 10,
+          "vinyl_numer": 1400,
+          "vinyl_denom": 23300,
+          "vinyl_pack_unit": 1,
+          "netrong_price": 0,
+          "netrong_qty": 0,
+          "pallet_price": 17000,
+          "pallet_pack_factor": 12,
+          "pallet_div": 5
+        },
+        "transport": {
+          "box_qty": 10
+        }
+      },
+      "quote": {
+        "admin_rate": 0.065,
+        "profit_rate": 0.04
+      }
+    },
+    {
+      "id": "assy_holder_busbar_a",
+      "name": "ASSY Holder BUSBAR A(U8)",
+      "kind": "assembly",
+      "module": "U8A1",
+      "customer": "삼성SDI",
+      "model": "U8A1",
+      "material_code": "V045-0158AA",
+      "vendor": "삼진엘앤디",
+      "volume": 5000,
+      "quote_lines": [
+        {
+          "customer": "슈나이더外",
+          "type": "Type A",
+          "material_code": "V045-0158AA",
+          "name": "ASSY-HOLDER BUSBAR A",
+          "volume": 2500,
+          "competitor_price": 23000
+        },
+        {
+          "customer": "슈나이더向",
+          "type": "Type A",
+          "material_code": "V045-0187AA",
+          "name": "ASSY-HOLDER BUSBAR A (Schneider)",
+          "volume": 2500,
+          "competitor_price": 23000
+        }
+      ],
+      "production": {
+        "lines": 1,
+        "cycle_time": 15,
+        "efficiency": 0.9,
+        "shift_hours": 10.5,
+        "shifts": 1,
+        "work_days": 22
+      },
+      "materials": [
+        {
+          "name": "Holder BUSBAR A(U8)",
+          "kind": "part_ref",
+          "ref": "part_holder_busbar_a",
+          "qty": 1,
+          "note": "사출품 롤업원가"
+        },
+        {
+          "name": "Busbar-ANGLE",
+          "kind": "busbar",
+          "qty": 2,
+          "base_price": 656.7,
+          "note": ""
+        },
+        {
+          "name": "Busbar-CTC LONG",
+          "kind": "busbar",
+          "qty": 4,
+          "base_price": 638.2,
+          "note": ""
+        },
+        {
+          "name": "Busbar-CTC SHORT",
+          "kind": "busbar",
+          "qty": 3,
+          "base_price": 639.6,
+          "note": ""
+        },
+        {
+          "name": "VOLTAGE SENSING",
+          "kind": "qty",
+          "sub": "대하전선",
+          "qty": 1,
+          "unit_price": 1407,
+          "grade": "",
+          "note": "지정도급"
+        },
+        {
+          "name": "TEMP SENSING",
+          "kind": "qty",
+          "sub": "레트론",
+          "qty": 1,
+          "unit_price": 5700,
+          "grade": "",
+          "note": "지정도급"
+        },
+        {
+          "name": "RIVET",
+          "kind": "qty",
+          "sub": "서울금속",
+          "qty": 13,
+          "unit_price": 13,
+          "grade": "",
+          "note": "지정도급"
+        },
+        {
+          "name": "REAR LABEL B",
+          "kind": "qty",
+          "sub": "창대라벨",
+          "qty": 1,
+          "unit_price": 114,
+          "grade": "W130*L241 T0.1",
+          "note": "지정도급"
+        }
+      ],
+      "labor": [
+        {
+          "name": "Busbar 수동 조립",
+          "workers": 1
+        },
+        {
+          "name": "Busbar LR 조립",
+          "workers": 1
+        },
+        {
+          "name": "하네스 조립",
+          "workers": 3
+        },
+        {
+          "name": "Rivet 조립",
+          "workers": 2
+        },
+        {
+          "name": "IR/비전 검사",
+          "workers": 1
+        },
+        {
+          "name": "라벨 부착 / 포장",
+          "workers": 1
+        }
+      ],
+      "overhead": {
+        "loss_rate": 0.01,
+        "dedicated_base_monthly": 50000,
+        "area_m2": 500,
+        "power_kw": 87,
+        "dedicated_equipment": [
+          {
+            "name": "버스바 조립기",
+            "price": 20000000,
+            "note": ""
+          },
+          {
+            "name": "조립 컨베어, 작업다이",
+            "price": 10000000,
+            "note": ""
+          },
+          {
+            "name": "리벳",
+            "price": 13000000,
+            "note": ""
+          },
+          {
+            "name": "IR, 비전 검사기",
+            "price": 238000000,
+            "note": ""
+          },
+          {
+            "name": "라벨 출력기",
+            "price": 600000,
+            "note": ""
+          }
+        ],
+        "packaging": {
+          "danpla_box_price": 40000,
+          "danpla_returns": 25,
+          "pack_unit": 10,
+          "vinyl_numer": 1400,
+          "vinyl_denom": 23300,
+          "vinyl_pack_unit": 1,
+          "netrong_price": 0,
+          "netrong_qty": 0,
+          "pallet_price": 17000,
+          "pallet_pack_factor": 12,
+          "pallet_div": 5
+        },
+        "transport": {
+          "box_qty": 10
+        }
+      },
+      "quote": {
+        "admin_rate": 0.075,
+        "profit_rate": 0.07
+      }
+    },
+    {
+      "id": "assy_holder_busbar_b",
+      "name": "ASSY Holder BUSBAR B(U8)",
+      "kind": "assembly",
+      "module": "U8A1",
+      "customer": "삼성SDI",
+      "model": "U8A1",
+      "material_code": "V045-0159AA",
+      "vendor": "삼진엘앤디",
+      "volume": 5000,
+      "quote_lines": [
+        {
+          "customer": "슈나이더外",
+          "type": "Type B",
+          "material_code": "V045-0159AA",
+          "name": "ASSY-HOLDER BUSBAR B",
+          "volume": 2500,
+          "competitor_price": 23000
+        },
+        {
+          "customer": "슈나이더向",
+          "type": "Type B",
+          "material_code": "V045-0188AA",
+          "name": "ASSY-HOLDER BUSBAR B (Schneider)",
+          "volume": 2500,
+          "competitor_price": 23000
+        }
+      ],
+      "production": {
+        "lines": 1,
+        "cycle_time": 15,
+        "efficiency": 0.9,
+        "shift_hours": 10.5,
+        "shifts": 1,
+        "work_days": 22
+      },
+      "materials": [
+        {
+          "name": "Holder BUSBAR B(U8)",
+          "kind": "part_ref",
+          "ref": "part_holder_busbar_b",
+          "qty": 1,
+          "note": "사출품 롤업원가"
+        },
+        {
+          "name": "Busbar-ANGLE",
+          "kind": "busbar",
+          "qty": 2,
+          "base_price": 656.7,
+          "note": ""
+        },
+        {
+          "name": "Busbar-CTC LONG",
+          "kind": "busbar",
+          "qty": 4,
+          "base_price": 638.2,
+          "note": ""
+        },
+        {
+          "name": "Busbar-CTC SHORT",
+          "kind": "busbar",
+          "qty": 3,
+          "base_price": 639.6,
+          "note": ""
+        },
+        {
+          "name": "VOLTAGE SENSING",
+          "kind": "qty",
+          "sub": "대하전선",
+          "qty": 1,
+          "unit_price": 1428,
+          "grade": "",
+          "note": "지정도급"
+        },
+        {
+          "name": "TEMP SENSING",
+          "kind": "qty",
+          "sub": "레트론",
+          "qty": 1,
+          "unit_price": 5700,
+          "grade": "",
+          "note": "지정도급"
+        },
+        {
+          "name": "RIVET",
+          "kind": "qty",
+          "sub": "서울금속",
+          "qty": 13,
+          "unit_price": 13,
+          "grade": "",
+          "note": "지정도급"
+        },
+        {
+          "name": "REAR LABEL B",
+          "kind": "qty",
+          "sub": "창대라벨",
+          "qty": 1,
+          "unit_price": 114,
+          "grade": "W130*L241 T0.1",
+          "note": "지정도급"
+        }
+      ],
+      "labor": [
+        {
+          "name": "Busbar 수동 조립",
+          "workers": 1
+        },
+        {
+          "name": "Busbar LR 조립",
+          "workers": 1
+        },
+        {
+          "name": "하네스 조립",
+          "workers": 3
+        },
+        {
+          "name": "Rivet 조립",
+          "workers": 2
+        },
+        {
+          "name": "IR/비전 검사",
+          "workers": 1
+        },
+        {
+          "name": "라벨 부착 / 포장",
+          "workers": 1
+        }
+      ],
+      "overhead": {
+        "loss_rate": 0.01,
+        "dedicated_base_monthly": 50000,
+        "area_m2": 500,
+        "power_kw": 87,
+        "dedicated_equipment": [
+          {
+            "name": "버스바 조립기",
+            "price": 20000000,
+            "note": ""
+          },
+          {
+            "name": "조립 컨베어, 작업다이",
+            "price": 10000000,
+            "note": ""
+          },
+          {
+            "name": "리벳",
+            "price": 13000000,
+            "note": ""
+          },
+          {
+            "name": "IR, 비전 검사기",
+            "price": 238000000,
+            "note": ""
+          },
+          {
+            "name": "라벨 출력기",
+            "price": 600000,
+            "note": ""
+          }
+        ],
+        "packaging": {
+          "danpla_box_price": 40000,
+          "danpla_returns": 25,
+          "pack_unit": 10,
+          "vinyl_numer": 1400,
+          "vinyl_denom": 23300,
+          "vinyl_pack_unit": 1,
+          "netrong_price": 0,
+          "netrong_qty": 0,
+          "pallet_price": 17000,
+          "pallet_pack_factor": 12,
+          "pallet_div": 5
+        },
+        "transport": {
+          "box_qty": 10
+        }
+      },
+      "quote": {
+        "admin_rate": 0.075,
+        "profit_rate": 0.07
+      }
+    }
+  ]
+}
