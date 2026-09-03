@@ -142,6 +142,12 @@ th.num { text-align: right; }
 .badge--error { color: var(--st-error); }
 .badge--idle  { color: var(--st-idle); }
 
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
 .empty { padding: var(--sp-8) var(--sp-4); text-align: center; color: var(--text-muted); }
 
 .actions { display: flex; gap: var(--sp-2); margin-top: var(--sp-4); }
@@ -200,9 +206,11 @@ th.num { text-align: right; }
     </form>
 
     <h2>생산 실적</h2>
+    <!-- 표가 숨겨져도 결과 건수는 알려야 하므로 표 바깥에 둔다 -->
+    <p class="sr-only" id="count" role="status" aria-live="polite"></p>
     <div class="table-scroll">
-      <table>
-        <caption id="caption" aria-live="polite">조건에 맞는 항목을 표시합니다.</caption>
+      <table id="table">
+        <caption id="caption">조건에 맞는 항목을 표시합니다.</caption>
         <thead>
           <tr>
             <th scope="col">라인</th>
@@ -290,8 +298,12 @@ function render() {
     tbody.append(tr);
   }
 
-  $("empty").hidden = rows.length > 0;
+  // 0건이면 표 자체를 감춘다 — 머리글만 남은 빈 표를 그리지 않는다
+  const isEmpty = rows.length === 0;
+  $("table").hidden = isEmpty;
+  $("empty").hidden = !isEmpty;
   $("caption").textContent = `총 ${nf.format(rows.length)}건`;
+  $("count").textContent = `조회 결과 ${nf.format(rows.length)}건`;
   $("updated").textContent = df.format(new Date());
 }
 
