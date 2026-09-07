@@ -799,6 +799,8 @@
   }
   document.getElementById('loading').remove();
   frame();
+  // 외부 내보내기(GLB 등)용 접근점
+  window.__layout = { scene, layers: L, THREE };
   }
 })();
 </script>

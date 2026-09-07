@@ -10,3 +10,9 @@
 - 표시 토글: 이름표, 작업자, 구역선, 2 m 격자
 - 조작: 드래그 회전, 휠 확대, Shift+드래그 이동, 설비 위에 마우스를 올리면 이름 표시
 - 구성: Gasket Machine·Core IMT·Day Tanks, 스프링대차, 검사/라벨 부착 컨베이어, screw 공정 6개소, 포장 2개소, 본드/라벨 보관, 대차 보관 구역, 안전문
+
+### 다운로드
+
+- `3d-layout/standalone.html` — three.js가 내장된 단일 파일. 인터넷 없이 브라우저에서 바로 열립니다.
+- `3d-layout/gasket-line.glb` — glTF 바이너리 모델. Blender, Windows 3D 뷰어, SketchUp, Unity 등에서 열 수 있습니다.
+- `3d-layout/preview.png` — 등각 시점 렌더링 이미지.
