@@ -1,0 +1,806 @@
+<title>가스켓 라인 3D 레이아웃</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #ecece8;
+    --panel: rgba(255, 255, 255, 0.88);
+    --panel-line: rgba(28, 35, 48, 0.12);
+    --ink: #1c2330;
+    --muted: #5d6573;
+    --accent: #2f6fdc;
+    --accent-ink: #ffffff;
+    --chip-line: rgba(28, 35, 48, 0.18);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #1b1d21;
+      --panel: rgba(30, 33, 39, 0.9);
+      --panel-line: rgba(255, 255, 255, 0.12);
+      --ink: #eef0f3;
+      --muted: #a2a9b4;
+      --accent: #5b8ff0;
+      --accent-ink: #0f1420;
+      --chip-line: rgba(255, 255, 255, 0.2);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #1b1d21;
+    --panel: rgba(30, 33, 39, 0.9);
+    --panel-line: rgba(255, 255, 255, 0.12);
+    --ink: #eef0f3;
+    --muted: #a2a9b4;
+    --accent: #5b8ff0;
+    --accent-ink: #0f1420;
+    --chip-line: rgba(255, 255, 255, 0.2);
+  }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "IBM Plex Sans KR", "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+    overflow: hidden;
+  }
+  #app { position: fixed; inset: 0; }
+  #view { position: absolute; inset: 0; touch-action: none; cursor: grab; }
+  #view.dragging { cursor: grabbing; }
+  canvas { display: block; }
+
+  .panel {
+    position: absolute;
+    background: var(--panel);
+    border: 1px solid var(--panel-line);
+    border-radius: 8px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    padding: 14px 16px;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
+  }
+  #ctl { top: 16px; left: 16px; width: 248px; }
+  #ctl h1 {
+    margin: 0 0 2px;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+  #ctl .sub { margin: 0 0 12px; font-size: 12px; color: var(--muted); }
+  .row-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 12px 0 6px;
+  }
+  .views { display: flex; gap: 6px; }
+  .views button {
+    flex: 1;
+    font: inherit;
+    font-size: 12.5px;
+    font-weight: 500;
+    padding: 6px 0;
+    border-radius: 6px;
+    border: 1px solid var(--chip-line);
+    background: transparent;
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .views button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .views button:focus-visible, .toggles input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .toggles { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 10px; }
+  .toggles label { display: flex; align-items: center; gap: 7px; font-size: 13px; cursor: pointer; }
+  .toggles input { accent-color: var(--accent); margin: 0; width: 15px; height: 15px; }
+
+  #legend { left: 16px; bottom: 16px; padding: 10px 14px; display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; }
+  #legend span { display: inline-flex; align-items: center; gap: 6px; }
+  #legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; border: 1px solid var(--chip-line); }
+  #legend i.dash { width: 18px; height: 0; border: 0; border-top: 2px dashed #2f6fdc; border-radius: 0; }
+
+  #hint { right: 16px; bottom: 16px; padding: 8px 12px; font-size: 12px; color: var(--muted); }
+  #tip {
+    position: absolute;
+    pointer-events: none;
+    padding: 4px 9px;
+    font-size: 12.5px;
+    font-weight: 500;
+    background: var(--ink);
+    color: var(--bg);
+    border-radius: 5px;
+    transform: translate(12px, 14px);
+    white-space: nowrap;
+  }
+  #loading {
+    position: absolute; inset: 0; display: grid; place-items: center;
+    font-size: 13px; color: var(--muted); background: var(--bg);
+  }
+  @media (max-width: 640px) {
+    #ctl { width: auto; right: 16px; }
+    #hint { display: none; }
+    #legend { right: 16px; }
+  }
+</style>
+
+<div id="app">
+  <div id="view"></div>
+  <div id="loading">3D 모델 구성 중…</div>
+
+  <section id="ctl" class="panel" aria-label="보기 설정">
+    <h1>가스켓 라인 3D 레이아웃</h1>
+    <p class="sub">60 m × 30 m · 도포(Gasket) → screw 공정 → 검사/라벨 → 포장</p>
+
+    <div class="row-label">시점</div>
+    <div class="views" role="group" aria-label="카메라 시점">
+      <button type="button" data-view="iso" aria-pressed="true">등각</button>
+      <button type="button" data-view="top" aria-pressed="false">평면</button>
+      <button type="button" data-view="front" aria-pressed="false">정면</button>
+      <button type="button" data-view="back" aria-pressed="false">후면</button>
+    </div>
+
+    <div class="row-label">표시</div>
+    <div class="toggles">
+      <label><input type="checkbox" data-layer="labels" checked> 이름표</label>
+      <label><input type="checkbox" data-layer="workers" checked> 작업자</label>
+      <label><input type="checkbox" data-layer="zones" checked> 구역선</label>
+      <label><input type="checkbox" data-layer="grid"> 2 m 격자</label>
+    </div>
+  </section>
+
+  <div id="legend" class="panel" aria-label="범례">
+    <span><i style="background:#f6f6f3"></i>설비·구조물</span>
+    <span><i style="background:#b4b9c0"></i>대차·프레임</span>
+    <span><i style="background:#1f63c8"></i>작업자</span>
+    <span><i style="background:#3f8f4e"></i>로봇·라벨</span>
+    <span><i style="background:#7a4a2a"></i>안전문</span>
+    <span><i class="dash"></i>구역선</span>
+  </div>
+
+  <div id="hint" class="panel">드래그 회전 · 휠 확대 · Shift+드래그 이동 · 설비에 마우스를 올리면 이름 표시</div>
+  <div id="tip" hidden></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function () {
+  'use strict';
+  if (!window.THREE) {
+    document.getElementById('loading').textContent = '3D 라이브러리를 불러오지 못했습니다. 네트워크 연결을 확인해 주세요.';
+    return;
+  }
+  // 이름표를 캔버스에 그리므로 웹폰트가 준비된 뒤 씬을 구성한다 (최대 1.5초 대기)
+  const fontReady = (document.fonts && document.fonts.load)
+    ? Promise.race([document.fonts.load('600 44px "IBM Plex Sans KR"'), new Promise(res => setTimeout(res, 1500))]).catch(() => null)
+    : Promise.resolve();
+  fontReady.then(main, main);
+
+  function main() {
+
+  // ---------- 공장 규격 (단위: m) ----------
+  const F = { W: 60, D: 30, wallH: 2.6, wallT: 0.8 };
+
+  const COL = {
+    white: 0xf6f6f3, panel: 0xeceded, floor: 0xe3e3de, apron: 0xd3d3ce,
+    metal: 0xb4b9c0, steel: 0x8b9096, dark: 0x4a4f56, rubber: 0x2c2f33,
+    blue: 0x1f63c8, blueLight: 0x3b7fe0, skin: 0xe8c9a6,
+    green: 0x3f8f4e, greenDark: 0x2c6b39, wood: 0x7a4a2a, woodDark: 0x54321a,
+    yellow: 0xd9a531, zone: 0x2f6fdc, grid: 0xb9bcc4
+  };
+  const matCache = new Map();
+  function M(hex, extra) {
+    const key = hex + JSON.stringify(extra || {});
+    if (!matCache.has(key)) {
+      matCache.set(key, new THREE.MeshStandardMaterial(Object.assign({
+        color: new THREE.Color(hex).convertSRGBToLinear(), roughness: 0.78, metalness: 0.12
+      }, extra || {})));
+    }
+    return matCache.get(key);
+  }
+
+  // ---------- 렌더러 / 씬 ----------
+  const viewEl = document.getElementById('view');
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  viewEl.appendChild(renderer.domElement);
+
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0xecece8).convertSRGBToLinear();
+
+  const camera = new THREE.PerspectiveCamera(38, 1, 0.5, 500);
+  const TARGET = new THREE.Vector3(F.W / 2, 0, F.D / 2 - 1);
+
+  const hemi = new THREE.HemisphereLight(0xffffff, 0xcfcfc8, 0.85);
+  scene.add(hemi);
+  const sun = new THREE.DirectionalLight(0xffffff, 0.85);
+  sun.position.set(F.W / 2 + 25, 60, F.D / 2 + 40);
+  sun.target.position.copy(TARGET);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(2048, 2048);
+  const sc = sun.shadow.camera;
+  sc.left = -45; sc.right = 45; sc.top = 40; sc.bottom = -40; sc.near = 10; sc.far = 160;
+  sun.shadow.bias = -0.0006;
+  scene.add(sun); scene.add(sun.target);
+
+  // 레이어 그룹
+  const L = {
+    labels: new THREE.Group(), workers: new THREE.Group(), zones: new THREE.Group(), grid: new THREE.Group()
+  };
+  Object.values(L).forEach(g => scene.add(g));
+  L.grid.visible = false;
+
+  // ---------- 기본 도형 헬퍼 ----------
+  function group(name, parent) {
+    const g = new THREE.Group();
+    if (name) g.userData.name = name;
+    (parent || scene).add(g);
+    return g;
+  }
+  function box(parent, w, h, d, x, z, m, y) {
+    const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m);
+    mesh.position.set(x, (y || 0) + h / 2, z);
+    mesh.castShadow = mesh.receiveShadow = true;
+    parent.add(mesh);
+    return mesh;
+  }
+  function cyl(parent, r, h, x, z, m, y, seg) {
+    const mesh = new THREE.Mesh(new THREE.CylinderGeometry(r, r, h, seg || 28), m);
+    mesh.position.set(x, (y || 0) + h / 2, z);
+    mesh.castShadow = mesh.receiveShadow = true;
+    parent.add(mesh);
+    return mesh;
+  }
+  // x축 방향으로 눕힌 원통 (롤러, 바퀴 축 등)
+  function rollerX(parent, r, len, x, y, z, m) {
+    const mesh = new THREE.Mesh(new THREE.CylinderGeometry(r, r, len, 20), m);
+    mesh.rotation.z = Math.PI / 2;
+    mesh.position.set(x, y, z);
+    mesh.castShadow = mesh.receiveShadow = true;
+    parent.add(mesh);
+    return mesh;
+  }
+  function sphere(parent, r, x, y, z, m) {
+    const mesh = new THREE.Mesh(new THREE.SphereGeometry(r, 20, 16), m);
+    mesh.position.set(x, y, z);
+    mesh.castShadow = true;
+    parent.add(mesh);
+    return mesh;
+  }
+
+  // ---------- 이름표 (캔버스 스프라이트) ----------
+  function label(text, x, y, z, opts) {
+    opts = opts || {};
+    const lines = text.split('\n');
+    const fs = 44, pad = 16, lh = fs * 1.22;
+    const c = document.createElement('canvas');
+    const ctx = c.getContext('2d');
+    const font = `600 ${fs}px "IBM Plex Sans KR", "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif`;
+    ctx.font = font;
+    const tw = Math.max.apply(null, lines.map(l => ctx.measureText(l).width));
+    c.width = Math.ceil(tw + pad * 2);
+    c.height = Math.ceil(lines.length * lh + pad * 2);
+    ctx.font = font;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    // 반투명 흰 바탕
+    ctx.fillStyle = 'rgba(255,255,255,0.82)';
+    const r = 14;
+    ctx.beginPath();
+    ctx.moveTo(r, 0); ctx.lineTo(c.width - r, 0); ctx.quadraticCurveTo(c.width, 0, c.width, r);
+    ctx.lineTo(c.width, c.height - r); ctx.quadraticCurveTo(c.width, c.height, c.width - r, c.height);
+    ctx.lineTo(r, c.height); ctx.quadraticCurveTo(0, c.height, 0, c.height - r);
+    ctx.lineTo(0, r); ctx.quadraticCurveTo(0, 0, r, 0); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = opts.color || '#1c2330';
+    lines.forEach((l, i) => ctx.fillText(l, c.width / 2, pad + lh * (i + 0.5)));
+
+    const tex = new THREE.CanvasTexture(c);
+    tex.encoding = THREE.sRGBEncoding;
+    tex.minFilter = THREE.LinearFilter;
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false, depthWrite: false, transparent: true }));
+    const H = (opts.size || 0.95) * lines.length + 0.35;
+    sp.scale.set(H * c.width / c.height, H, 1);
+    sp.position.set(x, y, z);
+    sp.renderOrder = 999;
+    L.labels.add(sp);
+    return sp;
+  }
+
+  // ---------- 구성 요소 빌더 ----------
+  function worker(x, z, rotY, name) {
+    const g = group(name || '작업자', L.workers);
+    g.position.set(x, 0, z);
+    g.rotation.y = rotY || 0;
+    const b = M(COL.blue), bl = M(COL.blueLight), skin = M(COL.skin);
+    box(g, 0.24, 0.85, 0.28, -0.16, 0, b);
+    box(g, 0.24, 0.85, 0.28, 0.16, 0, b);
+    box(g, 0.66, 0.72, 0.38, 0, 0, b, 0.85);
+    const la = box(g, 0.18, 0.62, 0.2, -0.44, 0, bl, 0.95);
+    const ra = box(g, 0.18, 0.62, 0.2, 0.44, 0, bl, 0.95);
+    la.rotation.x = ra.rotation.x = -0.45;
+    la.position.z = ra.position.z = 0.12;
+    sphere(g, 0.2, 0, 1.8, 0, skin);
+    cyl(g, 0.23, 0.14, 0, 0, b, 1.9);
+    return g;
+  }
+
+  function robot(parent, x, z, rotY) {
+    const g = new THREE.Group();
+    g.position.set(x, 0, z);
+    g.rotation.y = rotY || 0;
+    parent.add(g);
+    cyl(g, 0.3, 0.16, 0, 0, M(COL.dark));
+    cyl(g, 0.17, 0.55, 0, 0, M(COL.metal), 0.16);
+    cyl(g, 0.16, 0.26, 0, 0, M(COL.green), 0.71);
+    const ua = new THREE.Group(); ua.position.set(0, 0.84, 0); ua.rotation.x = -0.55; g.add(ua);
+    box(ua, 0.2, 0.95, 0.2, 0, 0, M(COL.metal));
+    const fa = new THREE.Group(); fa.position.set(0, 0.95, 0); fa.rotation.x = 1.55; ua.add(fa);
+    cyl(fa, 0.14, 0.24, 0, 0, M(COL.green), -0.12);
+    box(fa, 0.16, 0.75, 0.16, 0, 0, M(COL.metal));
+    box(fa, 0.1, 0.28, 0.1, 0, 0, M(COL.dark), 0.75);
+    return g;
+  }
+
+  function monitor(parent, x, z, rotY, y) {
+    const g = new THREE.Group(); g.position.set(x, y || 0, z); g.rotation.y = rotY || 0; parent.add(g);
+    box(g, 0.1, 0.3, 0.1, 0, 0, M(COL.metal));
+    box(g, 0.72, 0.5, 0.06, 0, 0, M(COL.dark), 0.3);
+    box(g, 0.62, 0.4, 0.02, 0, 0.04, M(0x8fc3ff, { emissive: new THREE.Color(0x2b5f9e), emissiveIntensity: 0.5 }), 0.35);
+    return g;
+  }
+
+  // 대차: 와이어 메시 프레임 카트
+  function cart(parent, x, z, w, d, h, opts) {
+    opts = opts || {};
+    const g = new THREE.Group(); g.position.set(x, 0, z); parent.add(g);
+    const post = M(COL.metal);
+    const mesh = M(COL.steel, { transparent: true, opacity: 0.42, side: THREE.DoubleSide, depthWrite: false });
+    const base = 0.26;
+    [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([sx, sz]) => {
+      box(g, 0.07, h - base, 0.07, sx * (w / 2 - 0.04), sz * (d / 2 - 0.04), post, base);
+      const wheel = rollerX(g, 0.11, 0.07, sx * (w / 2 - 0.15), 0.11, sz * (d / 2 - 0.15), M(COL.rubber));
+      rollerX(g, 0.05, 0.09, sx * (w / 2 - 0.15), 0.11, sz * (d / 2 - 0.15), M(COL.yellow));
+      wheel.castShadow = false;
+    });
+    const shelves = opts.shelves || 3;
+    for (let k = 0; k < shelves; k++) {
+      const y = base + k * ((h - base - 0.15) / (shelves - 1 || 1));
+      box(g, w, 0.05, d, 0, 0, post, y);
+    }
+    if (!opts.open) {
+      box(g, w, h - base - 0.05, 0.015, 0, -d / 2 + 0.03, mesh, base);
+      box(g, 0.015, h - base - 0.05, d, -w / 2 + 0.03, 0, mesh, base);
+      box(g, 0.015, h - base - 0.05, d, w / 2 - 0.03, 0, mesh, base);
+    }
+    if (opts.top) box(g, w + 0.08, 0.14, d + 0.08, 0, 0, M(COL.rubber), h - 0.08);
+    if (opts.rail) {
+      box(g, w, 0.06, 0.06, 0, -d / 2, M(COL.yellow), h - 0.02);
+      box(g, w, 0.06, 0.06, 0, d / 2, M(COL.yellow), h - 0.02);
+    }
+    return g;
+  }
+
+  function springCart(x, z, size, name) {
+    const g = group(name || '스프링대차');
+    cart(g, x, z, size, size, 2.4, { shelves: 3, rail: true });
+    return g;
+  }
+
+  function springCartLow(x, z, name) {
+    const g = group(name || '스프링대차');
+    cart(g, x, z, 2.3, 1.9, 1.1, { shelves: 2, top: true, open: true });
+    box(g, 2.3, 0.05, 0.05, x, z - 0.95, M(COL.yellow), 1.06);
+    box(g, 2.3, 0.05, 0.05, x, z + 0.95, M(COL.yellow), 1.06);
+    return g;
+  }
+
+  function screwStation(x, name) {
+    const g = group(name || 'screw 공정');
+    box(g, 3.2, 0.9, 2.7, x, 2.1, M(COL.white));
+    box(g, 3.2, 0.08, 2.7, x, 2.1, M(COL.metal), 0.9);
+    box(g, 3.2, 0.3, 0.16, x, 0.83, M(COL.panel), 1.0);
+    robot(g, x - 0.75, 1.55, 0.35);
+    monitor(g, x + 1.05, 1.15, 0.2, 0.98);
+    box(g, 0.9, 0.28, 0.6, x + 0.35, 2.6, M(COL.steel), 0.98);
+    box(g, 0.5, 0.12, 0.4, x + 0.35, 2.6, M(COL.green), 1.26);
+    box(g, 3.2, 0.75, 1.6, x, 4.25, M(COL.white));
+    worker(x, 5.35, Math.PI);
+    return g;
+  }
+
+  function screwStationWide(x, name) {
+    const g = group(name || 'screw 공정');
+    box(g, 4.6, 0.9, 2.4, x, 2.3, M(COL.white));
+    box(g, 4.6, 0.08, 2.4, x, 2.3, M(COL.metal), 0.9);
+    robot(g, x - 1.3, 1.9, 0.5);
+    box(g, 0.7, 0.9, 0.5, x - 0.1, 1.7, M(COL.steel), 0.98);
+    cyl(g, 0.12, 0.5, x - 0.1, 2.3, M(COL.dark), 0.98);
+    monitor(g, x + 1.55, 1.5, 0.15, 0.98);
+    box(g, 1.2, 0.75, 2.4, x - 1.7, 5.4, M(COL.white));
+    box(g, 1.2, 0.75, 2.4, x + 1.7, 5.4, M(COL.white));
+    worker(x, 5.0, Math.PI);
+    return g;
+  }
+
+  function packingStation(x, z, name) {
+    const g = group(name || '포장');
+    box(g, 3.6, 0.85, 2.7, x + 0.7, z, M(COL.white));
+    box(g, 3.6, 0.06, 2.7, x + 0.7, z, M(COL.metal), 0.85);
+    box(g, 1.0, 0.7, 0.9, x - 0.2, z - 0.4, M(0xc9a36a), 0.91);
+    box(g, 1.0, 0.04, 0.9, x - 0.2, z - 0.4, M(0xb08a55), 1.61);
+    monitor(g, x + 1.6, z - 0.9, -0.5, 0.91);
+    box(g, 0.9, 0.4, 0.8, x + 1.9, z + 0.5, M(COL.steel), 0.91);
+    cyl(g, 0.16, 0.9, x + 2.3, z - 1.1, M(COL.metal), 0.91, 16);
+    cyl(g, 0.16, 0.9, x - 1.0, z + 1.2, M(COL.metal), 0, 16);
+    worker(x - 1.4, z, Math.PI / 2);
+    return g;
+  }
+
+  function labelRack(x, z, name) {
+    const g = group(name || '라벨 보관대');
+    const w = 4, d = 3.3, h = 2.0;
+    [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([sx, sz]) => box(g, 0.08, h, 0.08, x + sx * (w / 2 - 0.05), z + sz * (d / 2 - 0.05), M(COL.metal)));
+    box(g, w, 0.08, d, x, z, M(COL.panel), 0.25);
+    box(g, w, 0.08, d, x, z, M(COL.panel), h - 0.08);
+    box(g, w, h, 0.03, x, z - d / 2 + 0.05, M(COL.panel, { transparent: true, opacity: 0.55 }));
+    for (let i = 0; i < 3; i++) for (let j = 0; j < 2; j++) {
+      const bx = x - 1.2 + i * 1.2, bz = z - 0.75 + j * 1.5;
+      cyl(g, 0.3, 0.95, bx, bz, M(COL.greenDark), 0.33, 18);
+      cyl(g, 0.12, 0.2, bx, bz, M(COL.rubber), 1.28, 12);
+    }
+    return g;
+  }
+
+  function door(x, z, rotY, width, name) {
+    // 여닫이 안전문 2짝: 그룹 원점이 문 개구부의 중앙, rotY로 벽 방향 지정
+    const g = group(name || '안전문');
+    g.position.set(x, 0, z); g.rotation.y = rotY;
+    const half = width / 2, dh = 2.4;
+    box(g, width + 0.3, 0.16, 0.5, 0, 0, M(COL.woodDark), dh);
+    box(g, 0.14, dh, 0.5, -half - 0.07, 0, M(COL.woodDark));
+    box(g, 0.14, dh, 0.5, half + 0.07, 0, M(COL.woodDark));
+    [-1, 1].forEach(s => {
+      const hinge = new THREE.Group(); hinge.position.set(s * half, 0, 0); hinge.rotation.y = -s * 1.2; g.add(hinge);
+      box(hinge, half - 0.05, dh - 0.05, 0.1, -s * (half - 0.05) / 2, 0, M(COL.wood), 0.02);
+      box(hinge, half - 0.35, dh - 0.6, 0.02, -s * (half - 0.05) / 2, 0.06, M(COL.woodDark), 0.3);
+    });
+    return g;
+  }
+
+  function dashedLine(points) {
+    const pts = points.map(p => new THREE.Vector3(p[0], 0.04, p[1]));
+    const geo = new THREE.BufferGeometry().setFromPoints(pts);
+    const line = new THREE.Line(geo, new THREE.LineDashedMaterial({ color: new THREE.Color(COL.zone).convertSRGBToLinear(), dashSize: 0.7, gapSize: 0.4 }));
+    line.computeLineDistances();
+    L.zones.add(line);
+    return line;
+  }
+
+  // ---------- 바닥 / 벽 ----------
+  (function buildShell() {
+    const floor = new THREE.Mesh(new THREE.PlaneGeometry(F.W, F.D), M(COL.floor, { roughness: 0.95, metalness: 0 }));
+    floor.rotation.x = -Math.PI / 2; floor.position.set(F.W / 2, 0, F.D / 2); floor.receiveShadow = true; scene.add(floor);
+    const apron = new THREE.Mesh(new THREE.PlaneGeometry(F.W + 30, F.D + 30), M(COL.apron, { roughness: 1, metalness: 0 }));
+    apron.rotation.x = -Math.PI / 2; apron.position.set(F.W / 2, -0.02, F.D / 2); apron.receiveShadow = true; scene.add(apron);
+
+    const wm = M(COL.white, { roughness: 0.9 });
+    const g = group('외벽');
+    const t = F.wallT, H = F.wallH;
+    box(g, F.W + 2 * t, H, t, F.W / 2, -t / 2, wm);                       // 뒤
+    box(g, t, H, F.D + 2 * t, -t / 2, F.D / 2, wm);                        // 왼쪽
+    // 오른쪽 벽: 안전문 개구부 z 17~24
+    box(g, t, H, 17 + t, F.W + t / 2, (17 - t) / 2, wm);
+    box(g, t, H, F.D - 24 + t, F.W + t / 2, 24 + (F.D - 24 + t) / 2, wm);
+    // 앞 벽: 안전문 개구부 x 1~7
+    box(g, 1 + t, H, t, (1 - t) / 2, F.D + t / 2, wm);
+    box(g, F.W - 7 + t, H, t, 7 + (F.W - 7 + t) / 2, F.D + t / 2, wm);
+
+    door(F.W + 0.1, 20.5, Math.PI / 2, 7, '안전문 (우측)');
+    door(4, F.D + 0.1, Math.PI, 6, '안전문 (전면)');
+    label('안전문', F.W - 1.8, 3.0, 15.4);
+    label('안전문', 8.5, 1.4, 29.2);
+
+    // 격자 (2 m)
+    const pts = [];
+    for (let x = 0; x <= F.W; x += 2) pts.push(new THREE.Vector3(x, 0.03, 0), new THREE.Vector3(x, 0.03, F.D));
+    for (let z = 0; z <= F.D; z += 2) pts.push(new THREE.Vector3(0, 0.03, z), new THREE.Vector3(F.W, 0.03, z));
+    const grid = new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(pts),
+      new THREE.LineBasicMaterial({ color: new THREE.Color(COL.grid).convertSRGBToLinear(), transparent: true, opacity: 0.55 }));
+    L.grid.add(grid);
+  })();
+
+  // ---------- 좌측 상단: 도포 설비 블록 ----------
+  (function buildGasketBlock() {
+    const g = group('Gasket Machine (涂胶机)');
+    box(g, 9.4, 0.6, 5.9, 5.5, 3.35, M(COL.white));
+    [2.6, 5.9].forEach(x => {
+      cyl(g, 1.25, 2.2, x, 3.7, M(COL.white), 0.6, 40);
+      cyl(g, 1.3, 0.12, x, 3.7, M(COL.dark), 2.8, 40);
+      cyl(g, 0.25, 0.3, x, 3.7, M(COL.metal), 2.92, 16);
+      label('본드', x, 3.7, 3.7, { size: 0.8 });
+    });
+    label('(涂胶机)\nGasket Machine', 5.2, 4.9, 1.0, { size: 0.85 });
+
+    const c = group('Core IMT');
+    box(c, 6.9, 2.4, 6.1, 4.25, 9.25, M(COL.white));
+    label('Core IMT', 4.25, 3.1, 9.25);
+
+    // 직선 도포 장비 (겐트리)
+    const lm = group('도포 겐트리');
+    box(lm, 0.22, 1.1, 12, 8.0, 8.5, M(COL.metal));
+    box(lm, 0.22, 1.1, 12, 9.9, 8.5, M(COL.metal));
+    box(lm, 2.2, 0.16, 12, 8.95, 8.5, M(COL.panel), 0.9);
+    [3.5, 8.6, 13.5].forEach(z => box(lm, 2.4, 0.3, 0.4, 8.95, z, M(COL.steel), 1.1));
+    box(lm, 1.6, 1.2, 1.0, 8.95, 6.0, M(COL.metal), 1.3);
+    box(lm, 0.5, 0.5, 0.5, 8.95, 6.0, M(COL.green), 2.5);
+    box(lm, 2.4, 0.3, 0.3, 8.95, 2.7, M(COL.steel), 1.1);
+    box(lm, 0.4, 2.0, 0.4, 8.0, 2.7, M(COL.metal));
+    box(lm, 0.4, 2.0, 0.4, 9.9, 2.7, M(COL.metal));
+
+    // 소형 설비 (Core IMT 하단)
+    const se = group('보조 설비');
+    box(se, 2.4, 1.5, 1.5, 5.0, 13.3, M(COL.dark));
+    box(se, 0.8, 0.6, 0.8, 4.3, 13.3, M(COL.metal), 1.5);
+  })();
+
+  // ---------- Day Tanks / A胶 이송 ----------
+  (function buildDayTanks() {
+    const g = group('Day Tanks · A胶 자동 이송 시스템');
+    dashedLine([[0.8, 12.8], [6.1, 12.8], [6.1, 23.4], [0.8, 23.4], [0.8, 12.8]]);
+    box(g, 4.6, 0.25, 8.6, 3.4, 18.2, M(COL.panel));
+    [[3.4, 16.3], [3.1, 18.9]].forEach(([x, z]) => {
+      cyl(g, 1.1, 1.9, x, z, M(COL.white), 0.25, 36);
+      cyl(g, 1.15, 0.1, x, z, M(COL.metal), 2.15, 36);
+      cyl(g, 0.2, 0.35, x, z, M(COL.metal), 2.25, 12);
+    });
+    // 프레임과 배관
+    [[1.4, 14.2], [5.4, 14.2], [1.4, 22.2], [5.4, 22.2]].forEach(([x, z]) => box(g, 0.1, 2.6, 0.1, x, z, M(COL.metal)));
+    box(g, 4.1, 0.1, 0.1, 3.4, 14.2, M(COL.metal), 2.5);
+    box(g, 4.1, 0.1, 0.1, 3.4, 22.2, M(COL.metal), 2.5);
+    box(g, 0.1, 0.1, 8.1, 1.4, 18.2, M(COL.metal), 2.5);
+    box(g, 0.1, 0.1, 8.1, 5.4, 18.2, M(COL.metal), 2.5);
+    box(g, 1.4, 1.0, 1.2, 1.9, 21.3, M(COL.steel), 0.25);
+    box(g, 0.9, 0.6, 0.9, 4.9, 21.6, M(COL.dark), 0.25);
+    const pipe = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 6.5, 8), M(COL.metal));
+    pipe.rotation.x = Math.PI / 2; pipe.position.set(5.2, 2.3, 18.2); g.add(pipe);
+    label('Day Tanks', 3.4, 3.3, 14.3, { color: '#6d7480' });
+    label('A胶 자동\n이송 시스템', 3.4, 1.4, 22.6, { size: 0.8 });
+
+    // 온도수 순환 시스템
+    const t = group('온도수 순환 시스템');
+    box(t, 3.4, 0.15, 2.6, 8.0, 13.6, M(COL.panel));
+    [[6.5, 12.5], [9.5, 12.5], [6.5, 14.7], [9.5, 14.7]].forEach(([x, z]) => box(t, 0.1, 2.0, 0.1, x, z, M(COL.metal)));
+    box(t, 3.1, 0.1, 0.1, 8.0, 12.5, M(COL.metal), 1.95);
+    box(t, 3.1, 0.1, 0.1, 8.0, 14.7, M(COL.metal), 1.95);
+    box(t, 1.3, 1.1, 1.0, 7.3, 13.6, M(COL.steel), 0.15);
+    cyl(t, 0.45, 1.3, 9.0, 13.6, M(COL.white), 0.15, 24);
+    box(t, 0.5, 0.4, 0.5, 8.0, 13.6, M(COL.green), 1.25);
+    label('온도수 순환\n시스템', 9.3, 1.6, 16.6, { size: 0.8 });
+  })();
+
+  // ---------- 스프링대차 (좌측 4대) ----------
+  [[14.1, 5.8], [18.9, 5.8], [14.1, 10.9], [18.9, 10.9]].forEach(([x, z]) => {
+    springCart(x, z, 3.4);
+    label('스프링대차', x, 3.3, z - 0.6, { size: 0.85 });
+  });
+
+  // ---------- 검사 / 라벨 부착 컨베이어 ----------
+  (function buildConveyor() {
+    const g = group('검사 / 라벨 부착 컨베이어');
+    box(g, 3.4, 0.7, 12.8, 23.25, 7.4, M(COL.dark));
+    box(g, 3.4, 0.06, 12.8, 23.25, 7.4, M(COL.panel), 0.7);
+    for (let z = 1.3; z <= 13.5; z += 0.48) rollerX(g, 0.09, 3.2, 23.25, 0.82, z, M(COL.metal));
+    box(g, 0.12, 0.35, 12.8, 21.6, 7.4, M(COL.metal), 0.76);
+    box(g, 0.12, 0.35, 12.8, 24.9, 7.4, M(COL.metal), 0.76);
+    // 검사/라벨 유닛
+    box(g, 3.8, 1.7, 2.6, 23.25, 6.2, M(COL.panel), 0.9);
+    box(g, 3.85, 0.3, 0.7, 23.25, 6.2, M(COL.green), 1.65);
+    box(g, 1.6, 0.9, 1.0, 22.6, 4.3, M(COL.metal), 0.9);
+    monitor(g, 24.4, 4.3, 0.6, 0.9);
+    box(g, 1.2, 0.6, 0.8, 23.25, 8.6, M(COL.steel), 0.9);
+    label('검사/라벨\n부착', 23.25, 3.9, 2.4, { size: 0.85 });
+
+    // 컨베이어 우측 대차 3대
+    const cs = group('대차 (검사 대기)');
+    [7.4, 10.0, 12.6].forEach(z => cart(cs, 26.1, z, 2.2, 2.5, 2.0, { shelves: 3, rail: true }));
+  })();
+
+  // ---------- screw 공정 ----------
+  [27.6, 31.0, 34.5, 37.9].forEach(x => screwStation(x));
+  label('screw 공정', 32.7, 4.7, 0.2, { size: 1.05 });
+  screwStationWide(47.8); screwStationWide(55.0);
+  label('screw 공정', 47.8, 4.2, 0.6, { size: 0.95 });
+  label('screw 공정', 55.0, 4.2, 0.6, { size: 0.95 });
+
+  // ---------- 본드 드럼 / 라벨 보관대 / 파티션 ----------
+  (function buildSupplies() {
+    const g = group('본드 드럼');
+    [41.3, 43.0].forEach(x => {
+      cyl(g, 0.95, 1.6, x, 3.8, M(COL.white), 0, 36);
+      cyl(g, 0.98, 0.08, x, 3.8, M(COL.metal), 1.6, 36);
+      cyl(g, 0.2, 0.2, x, 3.8, M(COL.dark), 1.68, 12);
+      label('본드', x, 2.9, 3.4, { size: 0.8 });
+    });
+    labelRack(42, 6.6);
+    labelRack(42, 10.3);
+    label('라벨', 42, 2.7, 6.0, { size: 0.8 });
+    label('라벨', 42, 2.7, 9.7, { size: 0.8 });
+
+    const p = group('파티션');
+    box(p, 1.7, 3.2, 9.8, 45.45, 8.5, M(COL.white));
+    box(p, 1.6, 4.0, 4.4, 51.65, 1.7, M(COL.white));
+    box(p, 1.8, 2.4, 2.7, 51.6, 5.65, M(COL.white));
+  })();
+
+  // ---------- 포장 ----------
+  packingStation(35.0, 10.9);
+  label('포장', 35.0, 3.1, 8.8);
+  packingStation(54.9, 11.1);
+  label('포장', 54.9, 3.1, 9.0);
+
+  // ---------- 구역선 (파선) ----------
+  dashedLine([[6.3, 13.8], [55.4, 13.8], [55.4, 17.9], [56.6, 17.9], [56.6, 24.7], [F.W + 0.4, 24.7]]);
+  dashedLine([[55.4, 17.9], [9.1, 17.9], [9.1, 24.2], [6.3, 24.2], [6.3, 13.8]]);
+
+  // ---------- 대차 보관 (하단) ----------
+  (function buildCartYard() {
+    const cols = [
+      { xs: [15.2, 17.9], name: '대차 50개' },
+      { xs: [21.0, 23.4], name: '대차 50개' },
+      { xs: [28.6, 31.0], name: '대차 100개' },
+      { xs: [34.3, 36.8], name: '대차 100개' }
+    ];
+    cols.forEach(c => {
+      const g = group(c.name);
+      c.xs.forEach(x => [21.6, 24.4, 27.2].forEach(z => cart(g, x, z, 2.1, 2.6, 2.4, { shelves: 4, rail: true })));
+      const cx = (c.xs[0] + c.xs[1]) / 2;
+      label(c.name.replace(' ', '\n'), cx, 3.6, 19.6, { size: 0.85 });
+    });
+
+    // 스프링대차 저상형 2열 × 5대
+    [21.3, 26.2].forEach((z, i) => {
+      const g = group('스프링대차 (저상)');
+      [42.3, 44.8, 47.3, 49.7, 52.2].forEach(x => springCartLow(x, z));
+      label('스프링대차', 47.3, 2.3, z - 1.9, { size: 0.85 });
+    });
+
+    // 좌측 하단 스프링대차 2대
+    [1.5, 5.3].forEach(x => {
+      springCart(x, 26.9, 2.8);
+      label('스프링대차', x, 2.9, 28.5, { size: 0.8 });
+    });
+  })();
+
+  // ---------- 카메라 제어 ----------
+  class Orbit {
+    constructor(cam, el, target) {
+      this.cam = cam; this.el = el; this.target = target;
+      this.sph = new THREE.Spherical();
+      this.pointers = new Map();
+      this.mode = null; this.lastDist = 0;
+      this.minR = 6; this.maxR = 220;
+      this.sync();
+      el.addEventListener('pointerdown', e => this.down(e));
+      el.addEventListener('pointermove', e => this.move(e));
+      el.addEventListener('pointerup', e => this.up(e));
+      el.addEventListener('pointercancel', e => this.up(e));
+      el.addEventListener('wheel', e => { e.preventDefault(); this.sph.radius *= Math.pow(1.0015, e.deltaY); this.update(); }, { passive: false });
+      el.addEventListener('contextmenu', e => e.preventDefault());
+    }
+    sync() { this.sph.setFromVector3(this.cam.position.clone().sub(this.target)); this.update(); }
+    update() {
+      this.sph.phi = Math.min(Math.max(this.sph.phi, 0.04), Math.PI / 2 - 0.03);
+      this.sph.radius = Math.min(Math.max(this.sph.radius, this.minR), this.maxR);
+      this.cam.position.copy(this.target).add(new THREE.Vector3().setFromSpherical(this.sph));
+      this.cam.lookAt(this.target);
+    }
+    down(e) {
+      this.el.setPointerCapture(e.pointerId);
+      this.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (this.pointers.size === 2) {
+        const p = [...this.pointers.values()];
+        this.lastDist = Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y);
+        this.mode = 'pinch';
+      } else {
+        this.mode = (e.button === 2 || e.shiftKey || e.ctrlKey) ? 'pan' : 'rotate';
+      }
+      this.el.classList.add('dragging');
+    }
+    move(e) {
+      const p = this.pointers.get(e.pointerId);
+      if (!p) return;
+      const dx = e.clientX - p.x, dy = e.clientY - p.y;
+      p.x = e.clientX; p.y = e.clientY;
+      if (this.mode === 'rotate') {
+        this.sph.theta -= dx * 0.005; this.sph.phi -= dy * 0.005;
+      } else if (this.mode === 'pan') {
+        const k = 2 * this.sph.radius * Math.tan(THREE.MathUtils.degToRad(this.cam.fov / 2)) / this.el.clientHeight;
+        const right = new THREE.Vector3().setFromMatrixColumn(this.cam.matrix, 0);
+        const up = new THREE.Vector3().setFromMatrixColumn(this.cam.matrix, 1);
+        this.target.addScaledVector(right, -dx * k).addScaledVector(up, dy * k);
+      } else if (this.mode === 'pinch' && this.pointers.size === 2) {
+        const q = [...this.pointers.values()];
+        const d = Math.hypot(q[0].x - q[1].x, q[0].y - q[1].y);
+        if (d > 0 && this.lastDist > 0) this.sph.radius *= this.lastDist / d;
+        this.lastDist = d;
+      }
+      this.update();
+    }
+    up(e) {
+      this.pointers.delete(e.pointerId);
+      if (this.pointers.size === 0) { this.mode = null; this.el.classList.remove('dragging'); }
+      else if (this.pointers.size === 1) this.mode = 'rotate';
+    }
+  }
+
+  const VIEWS = {
+    iso: [3, 40, 51], top: [0, 78, 0.01], front: [0, 12, 66], back: [0, 36, -55]
+  };
+  camera.position.copy(TARGET).add(new THREE.Vector3(...VIEWS.iso));
+  const orbit = new Orbit(camera, viewEl, TARGET);
+
+  function fit() {
+    const w = viewEl.clientWidth, h = viewEl.clientHeight;
+    camera.aspect = w / h;
+    // 좁은 화면에서는 전체가 보이도록 화각 보정
+    camera.fov = w / h < 1.4 ? 38 * Math.min(1.9, 1.4 / (w / h)) : 38;
+    camera.updateProjectionMatrix();
+    renderer.setSize(w, h);
+  }
+  fit();
+  new ResizeObserver(fit).observe(viewEl);
+
+  document.querySelectorAll('[data-view]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('[data-view]').forEach(b => b.setAttribute('aria-pressed', b === btn ? 'true' : 'false'));
+      TARGET.set(F.W / 2, 0, F.D / 2 - 1);
+      camera.position.copy(TARGET).add(new THREE.Vector3(...VIEWS[btn.dataset.view]));
+      orbit.sync();
+    });
+  });
+  document.querySelectorAll('[data-layer]').forEach(cb => {
+    cb.addEventListener('change', () => { L[cb.dataset.layer].visible = cb.checked; });
+  });
+
+  // ---------- 호버 이름 표시 ----------
+  const tip = document.getElementById('tip');
+  const ray = new THREE.Raycaster();
+  const ndc = new THREE.Vector2();
+  let hoverPending = null;
+  viewEl.addEventListener('pointermove', e => {
+    if (e.buttons) { tip.hidden = true; return; }
+    hoverPending = { x: e.clientX, y: e.clientY };
+  });
+  viewEl.addEventListener('pointerleave', () => { tip.hidden = true; hoverPending = null; });
+  function pick() {
+    if (!hoverPending) return;
+    const { x, y } = hoverPending; hoverPending = null;
+    const r = viewEl.getBoundingClientRect();
+    ndc.set(((x - r.left) / r.width) * 2 - 1, -((y - r.top) / r.height) * 2 + 1);
+    ray.setFromCamera(ndc, camera);
+    const hits = ray.intersectObjects(scene.children, true);
+    let name = null;
+    for (const h of hits) {
+      if (h.object.isSprite || h.object.isLine) continue;
+      let o = h.object;
+      while (o && !o.userData.name) o = o.parent;
+      name = o ? o.userData.name : null;
+      break;
+    }
+    if (name) { tip.textContent = name; tip.style.left = (x - r.left) + 'px'; tip.style.top = (y - r.top) + 'px'; tip.hidden = false; }
+    else tip.hidden = true;
+  }
+
+  // ---------- 렌더 루프 ----------
+  function frame() {
+    pick();
+    renderer.render(scene, camera);
+    requestAnimationFrame(frame);
+  }
+  document.getElementById('loading').remove();
+  frame();
+  // 외부 내보내기(GLB 등)용 접근점
+  window.__layout = { scene, layers: L, THREE };
+  }
+})();
+</script>
