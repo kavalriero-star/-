@@ -1,0 +1,1012 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>룬북 개인용</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@400;600&display=swap">
+<style>
+/* 레이아웃: 상단 시안 이동줄 아래에 7개 화면을 하나씩 보여 주는 앱 셸. 집필 화면만 3열 고정 높이.
+   색: 종이색 배경 / 먹색 글자 / 벽돌색 강조 / 장르 4색 / AI 2색(도형+글자와 함께 사용). 글꼴: 본문 명조, UI 고딕. */
+:root{
+  --bg:#FAF7F0; --panel:#F2EEE4; --card:#FFFDF8; --text:#2A2620; --sub:#6B6458; --faint:#8A8274;
+  --accent:#9A3412; --on-accent:#FFFFFF; --warn:#B45309; --err:#B42318; --ok:#2F6B4F;
+  --select:#F3D9B8; --line:#DDD6C6; --shadow:0 1px 2px rgba(42,38,32,.10);
+  --claude:#2F5A8C; --gpt:#2F6B4F;
+  --g-fantasy:#5B3F9E; --g-hunter:#0F6B78; --g-wuxia:#8A2B2B; --g-history:#6F5410;
+  --sans:"Noto Sans KR","Pretendard","Malgun Gothic",system-ui,sans-serif;
+  --serif:"Noto Serif KR","Batang","AppleMyungjo",serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#1D1C1A; --panel:#262522; --card:#2C2B27; --text:#E4DFD3; --sub:#A8A294; --faint:#8A8576;
+    --accent:#E8A66B; --on-accent:#1D1C1A; --warn:#E0B04A; --err:#F08A7E; --ok:#7CC4A0;
+    --select:#4A3B22; --line:#3A3833; --shadow:0 1px 2px rgba(0,0,0,.4);
+    --claude:#8FB5E8; --gpt:#7CC4A0;
+    --g-fantasy:#B9A2F0; --g-hunter:#6CC3CF; --g-wuxia:#E88F8F; --g-history:#D9B35C;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#1D1C1A; --panel:#262522; --card:#2C2B27; --text:#E4DFD3; --sub:#A8A294; --faint:#8A8576;
+  --accent:#E8A66B; --on-accent:#1D1C1A; --warn:#E0B04A; --err:#F08A7E; --ok:#7CC4A0;
+  --select:#4A3B22; --line:#3A3833; --shadow:0 1px 2px rgba(0,0,0,.4);
+  --claude:#8FB5E8; --gpt:#7CC4A0;
+  --g-fantasy:#B9A2F0; --g-hunter:#6CC3CF; --g-wuxia:#E88F8F; --g-history:#D9B35C;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.55;-webkit-text-size-adjust:100%}
+button{font:inherit;color:inherit;cursor:pointer}
+input,textarea,select{font:inherit;color:inherit}
+button:focus-visible,[tabindex]:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,[contenteditable]:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1,h2,h3,h4{margin:0;text-wrap:balance}
+p{margin:0}
+.muted{color:var(--sub)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.wrap{max-width:1440px;margin-inline:auto;padding-inline:16px;padding-block:10px 56px}
+
+/* 상단 줄 */
+.bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding-block:6px}
+.brand{font-family:var(--serif);font-weight:600;font-size:18px;letter-spacing:.02em}
+.brand small{font-family:var(--sans);font-weight:500;font-size:12px;color:var(--sub);margin-left:6px}
+.grow{flex:1 1 auto}
+.nav{display:flex;gap:6px;overflow-x:auto;padding-block:4px;scrollbar-width:thin}
+.nav button{white-space:nowrap;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:4px 12px;font-size:12.5px}
+.nav button[aria-current="true"]{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.note{font-size:12.5px;color:var(--sub);padding-block:2px 8px}
+
+/* 공용 */
+.btn{border:1px solid var(--line);background:var(--card);border-radius:8px;padding:7px 14px;min-height:32px;font-weight:500}
+.btn:hover:not(:disabled){border-color:var(--sub)}
+.btn.primary{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.btn.ghost{background:transparent}
+.btn.sm{padding:3px 10px;min-height:28px;font-size:12.5px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.chip{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--line);border-radius:999px;padding:1px 9px;font-size:12px;background:var(--card);color:var(--sub);white-space:nowrap}
+.chip.on{border-color:var(--accent);color:var(--accent);background:transparent}
+.pill{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;padding:1px 8px;border-radius:999px;border:1px solid currentColor}
+.pill.ok{color:var(--ok)} .pill.warn{color:var(--warn)} .pill.bad{color:var(--err)}
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600}
+.badge.claude{color:var(--claude)} .badge.chatgpt{color:var(--gpt)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow)}
+.title{font-size:22px;font-weight:700;margin-block:8px 4px}
+.screen{padding-block:8px}
+.dot-g{display:inline-block;width:10px;height:10px;border-radius:50%}
+
+/* S1 */
+.home{max-width:760px;margin-inline:auto;display:grid;gap:16px}
+.home .chips{display:flex;flex-wrap:wrap;gap:8px}
+.proj{display:flex;gap:12px;align-items:center;width:100%;text-align:left;padding:12px 14px;border-left:5px solid var(--g-hunter)}
+.proj .meta{font-size:12.5px;color:var(--sub)}
+
+/* S2 */
+.gen{display:grid;gap:12px;max-width:900px;margin-inline:auto}
+.gcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.gcard{text-align:left;padding:12px;border-top:4px solid var(--gc,var(--line));min-height:92px}
+.gcard[aria-pressed="true"]{outline:2px solid var(--accent);background:var(--select)}
+.gcard b{display:block;margin-bottom:2px}
+.field label{display:block;font-weight:600;margin-bottom:4px}
+.field textarea,.field input[type=text]{width:100%;border:1px solid var(--line);background:var(--card);border-radius:8px;padding:8px 10px;resize:vertical}
+.mix{padding:12px;display:grid;gap:10px}
+.mix .row{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--card)}
+.seg button{border:0;background:transparent;padding:4px 10px;font-size:12.5px;border-right:1px solid var(--line)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent)}
+
+/* S3 위저드 */
+.wiz{display:grid;grid-template-columns:240px minmax(0,1fr) 340px;gap:12px;align-items:start}
+.col{background:var(--panel);border-radius:10px;padding:12px;min-width:0}
+.step{display:flex;align-items:center;gap:8px;width:100%;text-align:left;border:0;background:transparent;padding:7px 8px;border-radius:8px}
+.step:hover:not(:disabled){background:var(--select)}
+.step:disabled{color:var(--faint);cursor:default}
+.step .mk{width:16px;text-align:center}
+.step.now{font-weight:700;background:var(--select)}
+.step em{font-style:normal;font-size:11px;border:1px solid currentColor;border-radius:4px;padding:0 4px;color:var(--sub)}
+.step em.ai{color:var(--warn)}
+.prog{height:6px;background:var(--line);border-radius:4px;overflow:hidden;margin-block:6px 4px}
+.prog i{display:block;height:100%;background:var(--accent)}
+.turn{max-width:760px;margin-inline:auto;display:grid;gap:12px}
+.qbox{padding:14px 16px}
+.qbox .q{font-size:17px;font-weight:600;margin-top:6px;text-wrap:balance}
+.ack{font-size:13px;color:var(--sub)}
+.cands{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.cand{padding:12px;display:grid;gap:6px;align-content:start;cursor:pointer;border:1px solid var(--line);background:var(--card);border-radius:10px}
+.cand.sel{outline:2px solid var(--accent);background:var(--select)}
+.cand.dim{opacity:.5;cursor:default}
+.cand.own{border-style:dashed;background:transparent}
+.cand.merged{grid-column:1/-1;border-color:var(--accent)}
+.cand h4{font-size:15px}
+.cand .letter{font-weight:700;color:var(--accent)}
+.cand .risk{font-size:12.5px;color:var(--sub)}
+.cand header{display:flex;justify-content:space-between;align-items:center}
+.cand footer{display:flex;gap:6px;flex-wrap:wrap;margin-top:2px}
+.cand textarea,.cand input[type=text]{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:6px;padding:6px 8px;resize:vertical}
+.actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.talk{display:flex;gap:8px}
+.talk input{flex:1;min-width:0;border:1px solid var(--line);background:var(--card);border-radius:8px;padding:8px 10px}
+.bubble{font-size:13px;padding:6px 10px;border-radius:10px;background:var(--panel);width:fit-content;max-width:100%}
+.bubble.me{background:var(--select);margin-left:auto}
+.skel{border-radius:10px;background:linear-gradient(90deg,var(--panel),var(--line),var(--panel));background-size:200% 100%;animation:sk 1.4s linear infinite;height:128px}
+@keyframes sk{to{background-position:-200% 0}}
+.sum{padding:10px 12px;margin-bottom:8px;border-radius:8px;background:var(--card);border:1px solid var(--line)}
+.sum.fresh{animation:fresh 1.2s ease-out}
+@keyframes fresh{from{background:var(--select)}to{background:var(--card)}}
+.sum.slot{border-style:dashed;background:transparent;color:var(--faint)}
+.sum.aifill{border-style:dashed}
+.sum h4{font-size:13px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.sum p{font-size:13px;color:var(--sub)}
+.sum .tools{display:flex;gap:6px;margin-top:6px}
+.tag{font-size:11px;border:1px dashed var(--warn);color:var(--warn);border-radius:4px;padding:0 5px}
+.tag.rev{border-style:solid}
+
+/* S4 집필 */
+.shell3{position:relative;display:grid;grid-template-columns:260px minmax(0,1fr) 400px;gap:12px;height:720px}
+.shell3.sbs{grid-template-columns:minmax(0,.7fr) minmax(0,1.6fr)}
+.shell3.sbs .tree{display:none}
+.pane{background:var(--panel);border-radius:10px;min-width:0;min-height:0;overflow:auto}
+.tree{padding:12px}
+.tree h3{font-size:13px;color:var(--sub);margin-block:8px 4px}
+.tree ul{list-style:none;margin:0;padding:0}
+.tree li button{display:flex;gap:8px;align-items:center;width:100%;text-align:left;border:0;background:transparent;padding:5px 8px;border-radius:6px}
+.tree li button[aria-current="true"]{background:var(--select);font-weight:600}
+.tree .cnt{margin-left:auto;font-size:12px;color:var(--sub);font-variant-numeric:tabular-nums}
+.tree input{width:100%;border:1px solid var(--line);background:var(--card);border-radius:6px;padding:5px 8px;margin-block:4px}
+.editor{display:flex;flex-direction:column;position:relative;background:var(--panel)}
+.ed-head{display:flex;gap:8px;align-items:center;padding:8px 12px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.ed-body{flex:1;overflow:auto;padding:28px 40px 80px}
+.measure{max-width:34em;margin-inline:auto}
+.ms{font-family:var(--serif);font-size:17px;line-height:1.85;letter-spacing:-.01em;outline:0}
+body[data-font="sans"] .ms{font-family:var(--sans)}
+.ms p{margin:0 0 .9em;position:relative}
+.ent{border-bottom:2px dotted var(--accent);cursor:pointer}
+.ent:hover{background:var(--select)}
+.edot{position:absolute;right:-26px;top:.55em;width:10px;height:10px;border-radius:50%;background:var(--warn);border:0;padding:0;cursor:pointer}
+.edot.off{display:none}
+.ed-foot{display:flex;gap:14px;align-items:center;padding:6px 12px;border-top:1px solid var(--line);font-size:12.5px;color:var(--sub);font-variant-numeric:tabular-nums}
+.fab{position:absolute;right:16px;bottom:48px;z-index:4}
+.fab > .btn{box-shadow:var(--shadow);background:var(--accent);color:var(--on-accent);border-color:var(--accent);border-radius:999px;padding:8px 16px}
+.fabmenu{position:absolute;right:0;bottom:46px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:6px;display:grid;gap:2px;min-width:170px;box-shadow:var(--shadow)}
+.fabmenu button{text-align:left;border:0;background:transparent;padding:7px 10px;border-radius:6px}
+.fabmenu button:hover{background:var(--select)}
+.pop{position:fixed;z-index:30;width:260px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.18)}
+.pop h4{font-size:14px}
+.pop p{font-size:13px;color:var(--sub);margin-block:4px 8px}
+.selchip{position:fixed;z-index:31}
+.memo{margin:12px 12px 0}
+.memo summary{cursor:pointer;font-weight:600}
+.memo li{margin-block:4px;font-size:13px}
+body.focus .shell3{grid-template-columns:minmax(0,1fr)}
+body.focus .tree,body.focus .rec{display:none}
+body.focus .fab,body.focus .edot{opacity:.5}
+
+/* 추천 패널 */
+.rec{display:flex;flex-direction:column;background:var(--panel)}
+.rec-head{padding:10px 12px 0;display:grid;gap:8px;border-bottom:1px solid var(--line)}
+.handle{display:none;width:44px;height:5px;border-radius:3px;background:var(--faint);margin-inline:auto}
+.tabs{display:flex;gap:2px}
+.tabs button{flex:1;border:0;background:transparent;padding:8px 4px;border-bottom:3px solid transparent;font-weight:600;color:var(--sub)}
+.tabs button[aria-selected="true"]{color:var(--text);border-bottom-color:var(--accent)}
+.rec-body{padding:12px;overflow:auto;display:grid;gap:10px;align-content:start;flex:1}
+.rtop{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.rcard{padding:12px;display:grid;gap:8px}
+.rcard header{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.rcard h4{font-size:15px}
+.kv{display:grid;grid-template-columns:5.5em minmax(0,1fr);gap:6px 10px;margin:0;font-size:13.5px}
+.kv dt{color:var(--sub);font-weight:600}
+.kv dd{margin:0}
+.opt{border:1px solid var(--line);border-radius:10px;padding:10px;display:grid;gap:6px;background:var(--bg)}
+.opt h5{margin:0;font-size:14.5px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.opt .l{font-weight:700;color:var(--accent)}
+.fb{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.why{display:flex;gap:6px;flex-wrap:wrap}
+.tech{border-top:1px solid var(--line);padding-top:8px;display:grid;gap:4px}
+.tech .ex{font-family:var(--serif);background:var(--bg);border-left:3px solid var(--accent);padding:6px 10px;border-radius:4px}
+.tech .lab{font-size:11px;color:var(--sub)}
+.warncard{border-color:var(--warn);padding:12px;display:grid;gap:8px}
+.empty{padding:14px;text-align:center;color:var(--sub);display:grid;gap:10px;justify-items:center}
+.errbox{border-color:var(--err);padding:12px;display:grid;gap:8px}
+.errbox b{color:var(--err)}
+.sbs2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sbs2 > div{display:grid;gap:10px;align-content:start;min-width:0}
+details.old{font-size:13px;color:var(--sub)}
+.tabbar{display:none}
+.sugg{border-color:var(--ok);padding:10px 12px;display:grid;gap:6px}
+
+/* S6 */
+.lib{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:12px;align-items:start}
+.cats{display:grid;gap:2px}
+.cats button{text-align:left;border:0;background:transparent;padding:7px 10px;border-radius:6px;display:flex;justify-content:space-between}
+.cats button[aria-pressed="true"]{background:var(--select);font-weight:600}
+.lgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.lc{padding:12px;text-align:left;display:grid;gap:4px;align-content:start}
+.lc[aria-pressed="true"]{outline:2px solid var(--accent)}
+.lc.aifill{border-style:dashed}
+.lc small{color:var(--sub)}
+.det{display:grid;gap:10px}
+.det textarea{width:100%;min-height:96px;border:1px solid var(--line);background:var(--card);border-radius:8px;padding:8px 10px}
+
+/* S7 */
+.set{display:grid;gap:12px;max-width:900px;margin-inline:auto}
+.aic{padding:14px;display:grid;gap:8px}
+.aic header{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.tbl{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 12px;align-items:center}
+select,.tsel{border:1px solid var(--line);background:var(--card);border-radius:8px;padding:5px 8px;min-height:32px}
+.tgl{display:flex;gap:10px;align-items:flex-start}
+
+#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--text);color:var(--bg);padding:8px 16px;border-radius:999px;font-size:13px;z-index:50;max-width:90vw}
+
+/* 반응형 */
+@media (max-width:1199px){
+  .wiz{grid-template-columns:minmax(0,1fr) 300px}
+  .wiz > .steps{grid-column:1/-1}
+  .wiz .steps #wizSteps{display:flex;gap:4px;overflow-x:auto}
+  .wiz .step{width:auto;white-space:nowrap}
+  .shell3{grid-template-columns:minmax(0,1fr) 340px}
+  .tree{position:absolute;left:0;top:0;bottom:0;width:260px;z-index:20;display:none;box-shadow:0 4px 14px rgba(0,0,0,.2)}
+  .tree.open{display:block}
+  .lib{grid-template-columns:minmax(0,1fr) 300px}
+  .lib .cats-col{grid-column:1/-1}
+  .cats{grid-auto-flow:column;overflow-x:auto;grid-auto-columns:max-content}
+}
+@media (min-width:1200px){ .only-narrow{display:none} }
+@media (max-width:759px){
+  .wiz{grid-template-columns:minmax(0,1fr)}
+  .shell3{display:block;height:auto}
+  .editor{min-height:60vh}
+  .ed-body{padding:18px 22px 120px;max-height:62vh}
+  .edot{right:-14px}
+  .rec{position:fixed;left:0;right:0;bottom:calc(56px + env(safe-area-inset-bottom,0px));z-index:25;border-radius:14px 14px 0 0;box-shadow:0 -4px 14px rgba(0,0,0,.18);transition:height .15s}
+  .rec[data-sheet="peek"]{height:56px;overflow:hidden}
+  .rec[data-sheet="half"]{height:50vh}
+  .rec[data-sheet="full"]{height:calc(90vh - 56px)}
+  .handle{display:block;margin-top:2px}
+  .fab{position:fixed;bottom:calc(124px + env(safe-area-inset-bottom,0px));right:16px;z-index:27}
+  #shell:not([data-sheet="peek"]) .fab{display:none}
+  .tabbar{display:flex;position:fixed;left:0;right:0;bottom:0;height:calc(56px + env(safe-area-inset-bottom,0px));padding-bottom:env(safe-area-inset-bottom,0px);background:var(--card);border-top:1px solid var(--line);z-index:26}
+  .tabbar button{flex:1;border:0;background:transparent;font-weight:600;color:var(--sub)}
+  .tabbar button[aria-current="true"]{color:var(--accent)}
+  .lib{grid-template-columns:minmax(0,1fr)}
+  .sbs2{grid-template-columns:1fr}
+  .title{font-size:20px}
+}
+@media (prefers-reduced-motion: reduce){ *{transition:none!important;animation:none!important} }
+</style>
+</head>
+<body data-screen="s1" data-font="serif">
+<div class="wrap">
+  <header class="bar">
+    <span class="brand">룬북<small>개인용 · 시안</small></span>
+    <span class="grow"></span>
+    <span class="muted" id="saveState">저장됨 · 방금</span>
+    <button class="btn sm" id="btnFont" type="button" aria-label="본문 서체 바꾸기">본문: 명조</button>
+    <button class="btn sm" id="btnTheme" type="button" aria-label="화면 테마 바꾸기">테마: 시스템</button>
+  </header>
+  <nav class="nav" id="nav" aria-label="시안 화면 이동"></nav>
+  <p class="note">시안입니다. AI 응답과 소요 시간은 모의 데이터이고, 파일 저장은 하지 않습니다. 오른쪽 위 “AI 연결” 화면에서 한도 도달·로그인 만료 같은 오류 상태도 켜 볼 수 있습니다.</p>
+
+  <!-- S1 시작 -->
+  <section class="screen" id="s1">
+    <div class="home">
+      <div>
+        <h1 class="title">어떤 이야기를 쓰시겠어요?</h1>
+        <p class="muted">새 작품은 AI와 한 단계씩 세계관과 인물을 만들며 시작합니다.</p>
+      </div>
+      <div class="chips" id="aiChips" aria-label="AI 연결 상태"></div>
+      <div><button class="btn primary" type="button" data-act="go" data-to="s2">새 작품 시작</button></div>
+      <div>
+        <h2 style="font-size:15px;margin-bottom:8px">최근 작품</h2>
+        <div style="display:grid;gap:8px" id="projList"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- S2 장르·컨셉 -->
+  <section class="screen" id="s2" hidden>
+    <div class="gen">
+      <div>
+        <h1 class="title">장르와 한 줄 컨셉</h1>
+        <p class="muted">장르는 두 개까지 고를 수 있습니다. 둘을 고르면 혼합형으로 다룹니다.</p>
+      </div>
+      <div class="gcards" id="gcards" role="group" aria-label="장르"></div>
+      <div class="card mix" id="mixBox" hidden>
+        <b>혼합 정책 <span class="muted" style="font-weight:400">· 두 체계가 만날 때의 규칙입니다. AI 추천값을 그대로 써도 됩니다.</span></b>
+        <div class="row"><span>주 장르 비중</span>
+          <input type="range" id="mixW" min="50" max="90" value="60" step="10" aria-label="주 장르 비중">
+          <span id="mixWv" class="chip">60 : 40</span></div>
+        <div class="row"><span>체계 관계</span>
+          <div class="seg" id="segRel" role="group" aria-label="체계 관계">
+            <button type="button" data-v="translate" aria-pressed="true">대응표(번역)</button>
+            <button type="button" data-v="parallel" aria-pressed="false">병존</button>
+            <button type="button" data-v="layer" aria-pressed="false">겹침</button>
+            <button type="button" data-v="replace" aria-pressed="false">대체</button></div></div>
+        <div class="row"><span>고증 수준</span>
+          <div class="seg" id="segAcc" role="group" aria-label="고증 수준">
+            <button type="button" data-v="strict" aria-pressed="false">엄격</button>
+            <button type="button" data-v="loose" aria-pressed="true">느슨</button>
+            <button type="button" data-v="off" aria-pressed="false">끔</button></div></div>
+        <div class="row"><button class="btn sm" type="button" id="mixAi">AI 추천값 그대로</button>
+          <span class="muted" id="mixNote">전투는 무협체, 사회 장면은 현대체로 어휘 구역을 나눕니다.</span></div>
+      </div>
+      <div class="field">
+        <label for="logline">한 줄 컨셉</label>
+        <textarea id="logline" rows="3" placeholder="“___가 ___ 때문에 ___하는 이야기”로 적어 보세요."></textarea>
+        <div style="margin-top:6px"><button class="btn sm" type="button" id="btnEx">예시 넣기</button></div>
+      </div>
+      <div class="actions">
+        <button class="btn primary" type="button" id="btnStartWiz" disabled>AI와 함께 만들기 시작</button>
+        <span class="muted" id="startHint">장르를 하나 이상 고르고 컨셉을 적으면 시작할 수 있어요.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- S3 위저드 -->
+  <section class="screen" id="s3" hidden>
+    <div class="actions" style="margin-bottom:8px">
+      <span class="muted" id="wizSave">저장됨 · 방금</span><span class="grow"></span>
+      <button class="btn sm" type="button" data-act="go" data-to="s4">일시정지하고 집필 화면으로</button>
+    </div>
+    <div class="wiz">
+      <aside class="col steps" aria-label="단계 목록"><div id="wizProg"></div><div id="wizSteps"></div></aside>
+      <main class="col" style="background:transparent;padding:0"><div id="wizMain"></div></main>
+      <aside class="col" aria-label="확정된 설정"><h3 style="font-size:14px;margin-bottom:8px">확정된 설정</h3><div id="wizCards"></div></aside>
+    </div>
+  </section>
+
+  <!-- S4 집필 / S5 추천 패널 -->
+  <section class="screen" id="s4" hidden>
+    <div class="shell3" id="shell" data-sheet="peek">
+      <aside class="pane tree" id="tree" aria-label="구조">
+        <h3>1부 · 도입</h3>
+        <ul id="treeList"></ul>
+        <h3>설정 카드 빠른 검색</h3>
+        <label class="sr" for="qsearch">설정 카드 검색</label>
+        <input type="search" id="qsearch" placeholder="이름·별칭">
+        <ul id="qlist"></ul>
+      </aside>
+      <main class="pane editor" id="editor">
+        <div class="ed-head">
+          <button class="btn sm only-narrow" type="button" id="btnTree">구조</button>
+          <b id="edTitle">1화 · 장면 3/6</b>
+          <span class="chip">장면 목적: 석비의 글자를 확인한다</span>
+          <span class="grow"></span>
+          <button class="btn sm" type="button" id="btnFocus" aria-pressed="false">집중 모드</button>
+        </div>
+        <div class="ed-body" id="edBody">
+          <div class="measure">
+            <div class="ms" id="ms" contenteditable="true" spellcheck="false" aria-label="본문 편집">
+              <p>게이트 안쪽 공기에서는 비 온 뒤의 쇠 냄새가 났다. <span class="ent" data-card="char_main" contenteditable="false">도윤</span>은 손전등을 낮추고 <span class="ent" data-card="item_stele" contenteditable="false">석비</span> 앞에 무릎을 꿇었다. 이끼 아래로 드러난 글자는 분명 한자였다. <span class="ent" data-card="faction_cheongun" contenteditable="false">靑雲</span>. 할아버지의 낡은 공책 표지에 적힌 두 글자와 같은 획이었다.</p>
+              <p>“E급 한도윤 헌터, 응답하세요. 교신이 15분째 끊겨 있습니다.”<button class="edot" id="edot" type="button" contenteditable="false" aria-label="설정 확인이 필요한 곳 1건"></button></p>
+              <p>이어폰에서 <span class="ent" data-card="faction_main" contenteditable="false">협회</span> 관제실의 목소리가 지직거렸다. 도윤은 대답하지 않았다. 석비 위에 손바닥을 얹자, 단전 깊은 곳에서 오래 잠들어 있던 무언가가 한 번, 천천히 몸을 뒤척였다.</p>
+            </div>
+            <details class="memo" id="memoBox"><summary>이 장면 메모 <span class="chip" id="memoN">0</span></summary><ul id="memoList"></ul></details>
+          </div>
+        </div>
+        <div class="ed-foot"><span id="cnt">0자</span><span>목표 5,500자</span><span id="edSave">저장됨</span><span class="grow"></span><span class="muted">본문은 AI가 건드리지 않습니다</span></div>
+        <div class="fab" id="fab">
+          <div class="fabmenu" id="fabMenu" hidden role="menu">
+            <button type="button" role="menuitem" data-pick="ctx">지금 어디쯤?</button>
+            <button type="button" role="menuitem" data-pick="dir">다음에 뭘 쓰지?</button>
+            <button type="button" role="menuitem" data-pick="exp">이 문장 다르게</button>
+          </div>
+          <button class="btn" type="button" id="btnStuck" aria-haspopup="true" aria-expanded="false">막혔어요</button>
+        </div>
+      </main>
+      <aside class="pane rec" id="rec" data-sheet="peek" aria-label="추천 패널">
+        <div class="rec-head">
+          <button class="handle" id="handle" type="button" aria-label="패널 높이 바꾸기"></button>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <div class="seg" id="aiSeg" role="group" aria-label="사용할 AI">
+              <button type="button" data-v="auto" aria-pressed="true">자동</button>
+              <button type="button" data-v="claude" aria-pressed="false">● Claude</button>
+              <button type="button" data-v="chatgpt" aria-pressed="false">◆ ChatGPT</button>
+            </div>
+            <span class="grow"></span>
+            <button class="btn sm ghost" type="button" data-act="go" data-to="s7">연결 설정</button>
+          </div>
+          <div class="tabs" role="tablist" id="tabs">
+            <button type="button" role="tab" data-tab="ctx" aria-selected="true">맥락</button>
+            <button type="button" role="tab" data-tab="dir" aria-selected="false">방향</button>
+            <button type="button" role="tab" data-tab="exp" aria-selected="false">표현</button>
+          </div>
+        </div>
+        <div class="rec-body" id="recBody"></div>
+      </aside>
+    </div>
+    <nav class="tabbar" aria-label="하단 메뉴">
+      <button type="button" data-act="go" data-to="s4" aria-current="true">집필</button>
+      <button type="button" data-act="go" data-to="s6">설정집</button>
+      <button type="button" data-act="go" data-to="s7">메뉴</button>
+    </nav>
+  </section>
+
+  <!-- S6 설정집 -->
+  <section class="screen" id="s6" hidden>
+    <h1 class="title">설정집</h1>
+    <div class="lib">
+      <aside class="col cats-col"><div class="cats" id="cats"></div></aside>
+      <main><div class="lgrid" id="lgrid"></div></main>
+      <aside class="col" id="ldet" aria-label="카드 상세"></aside>
+    </div>
+  </section>
+
+  <!-- S7 AI 연결 -->
+  <section class="screen" id="s7" hidden>
+    <div class="set">
+      <div><h1 class="title">AI 연결</h1>
+        <p class="muted">API 키가 아니라 이 PC에 로그인된 Claude·ChatGPT 구독을 씁니다. 룬북 도우미가 공식 도구를 한 번씩 실행해 답을 받아 옵니다.</p></div>
+      <div class="card aic" id="helperCard"></div>
+      <div class="card aic" id="claudeCard"></div>
+      <div class="card aic" id="gptCard"></div>
+      <div class="card aic">
+        <h2 style="font-size:15px">작업별 AI와 대필 수위</h2>
+        <div class="tbl" id="mapTbl"></div>
+        <div class="tgl"><input type="checkbox" id="autoFb" style="margin-top:4px"><label for="autoFb"><b>한도에 닿으면 다른 AI로 자동 전환</b><br><span class="muted">켜면 원고 일부가 다른 회사 서비스로 전송됩니다. 기본은 꺼짐이고, 전환할 때마다 묻습니다.</span></label></div>
+        <div class="muted">구독 사용량: 확인할 수 없음 (공식 도구가 남은 한도를 알려 주지 않을 수 있습니다). 룬북은 오늘 보낸 요청 횟수만 셉니다: <b id="reqN">0</b>회</div>
+      </div>
+      <div class="card aic" id="prefCard"></div>
+      <div class="card aic">
+        <h2 style="font-size:15px">시안 상태 시뮬레이터</h2>
+        <p class="muted">실제 연결이 없는 시안에서 오류 화면을 확인하기 위한 장치입니다. 정식 앱에는 없습니다.</p>
+        <label class="sr" for="sim">시뮬레이션 상태</label>
+        <select id="sim">
+          <option value="normal">정상</option>
+          <option value="limit_claude">Claude 사용 한도 도달</option>
+          <option value="login_chatgpt">ChatGPT 로그인 만료</option>
+          <option value="helper_off">룬북 도우미 꺼짐</option>
+        </select>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="pop" id="pop" hidden role="dialog" aria-label="설정 카드 요약"></div>
+<div class="selchip" id="selchip" hidden><button class="btn sm primary" type="button" id="selBtn">표현 추천</button></div>
+<div id="toast" role="status" aria-live="polite" hidden></div>
+
+<script>
+(function(){
+'use strict';
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const sleep=(ms,fn)=>setTimeout(fn,ms);
+let toastT=null;
+function toast(m){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>{t.hidden=true},2200)}
+document.body.dataset.font=document.body.dataset.font||'serif';document.body.dataset.screen=document.body.dataset.screen||'s1';
+function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
+function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+
+/* ---------- 상태 ---------- */
+const AIN={claude:{name:'Claude',g:'●'},chatgpt:{name:'ChatGPT',g:'◆'}};
+const S={sim:'normal',map:{world:'claude',ctx:'claude',dir:'claude',exp:'chatgpt',check:'claude'},level:'L1',autoFb:false,reqN:0,
+  genres:[],mixW:60,rel:'translate',acc:'loose',logline:'',rules:[]};
+const GENRES=[
+ {id:'fantasy',n:'판타지',d:'마법·종족·왕국',c:'--g-fantasy'},
+ {id:'hunter',n:'헌터물',d:'게이트·각성·등급',c:'--g-hunter'},
+ {id:'wuxia',n:'무협',d:'문파·경지·강호',c:'--g-wuxia'},
+ {id:'history',n:'역사물',d:'시대·신분·고증',c:'--g-history'}];
+const REASONS=[['mismatch','설정과 안 맞음','설정 충돌 없는 안만 제안'],['obvious','너무 뻔함','뻔한 전개 대신 변주 위주'],['wild','너무 과격함','파격 안도 수위를 낮춰서'],['voice','내 문체와 안 맞음','시연 문장은 짧은 평어체 기준'],['known','이미 생각한 것','이미 쓴 방향은 제외'],['genre','장르 어긋남','장르 관용 어휘를 우선']];
+
+function aiStatus(ai){
+  if(S.sim==='helper_off')return 'helper';
+  if(S.sim==='limit_claude'&&ai==='claude')return 'limit';
+  if(S.sim==='login_chatgpt'&&ai==='chatgpt')return 'login';
+  return 'ok';
+}
+function errHtml(kind,ai,retryAct){
+  const n=AIN[ai]?AIN[ai].name:'AI', other=ai==='claude'?'chatgpt':'claude';
+  if(kind==='helper')return `<div class="card errbox"><b>룬북 도우미가 꺼져 있어요</b><p>이 PC에서 도우미를 실행하면 다시 연결됩니다. 입력한 내용은 그대로예요.</p><div class="actions"><button class="btn sm" data-act="${retryAct}">다시 시도</button><button class="btn sm ghost" data-act="go" data-to="s7">연결 설정으로</button></div></div>`;
+  if(kind==='login')return `<div class="card errbox"><b>${n} 로그인이 풀렸어요</b><p>공식 도구에서 다시 로그인한 뒤 연결 테스트를 눌러 주세요.</p><div class="actions"><button class="btn sm" data-act="go" data-to="s7">연결 설정으로</button><button class="btn sm ghost" data-act="${retryAct}" data-ai="${other}">${AIN[other].name}로 다시 묻기</button></div></div>`;
+  return `<div class="card errbox"><b>${n} 사용 한도에 도달했어요</b><p>한도가 풀리면 이어서 쓸 수 있어요. 진행 상태는 보존됩니다.</p><div class="actions"><button class="btn sm" data-act="${retryAct}" data-ai="${other}">${AIN[other].name}로 이번 요청만 묻기</button><button class="btn sm ghost" data-act="later">나중에 보내기</button></div><p class="muted" style="font-size:12.5px">${AIN[other].name}로 보내면 이번 요청의 내용이 그 회사로 전송됩니다.</p></div>`;
+}
+
+/* ---------- 화면 전환 ---------- */
+const SCREENS=[['s1','시작'],['s2','장르·컨셉'],['s3','위저드'],['s4','집필'],['s5','추천 패널'],['s6','설정집'],['s7','AI 연결']];
+let cur='s1';
+function renderNav(){
+  $('#nav').innerHTML=SCREENS.map(([id,n],i)=>`<button type="button" data-act="go" data-to="${id}" aria-current="${cur===id}">S${i+1} ${n}</button>`).join('');
+}
+function go(id){
+  const real=id==='s5'?'s4':id;
+  $$('.screen').forEach(s=>{s.hidden=s.id!==real});
+  cur=id; document.body.dataset.screen=real;
+  renderNav();
+  if(real!=='s4'){document.body.classList.remove('focus');$('#pop').hidden=true;$('#selchip').hidden=true}
+  if(id==='s1')renderHome();
+  if(id==='s2')renderGenres();
+  if(id==='s3')renderWiz();
+  if(real==='s4'){
+    if(id==='s5'){P.tab='dir';if(!P.res.dir.length)P.res.dir.unshift({ai:'claude',sec:16,ts:0});if(!P.res.ctx.length)P.res.ctx.unshift({ai:'claude',sec:14,ts:0});setSheet('full')}
+    renderTree();renderRec();countChars();
+  }
+  if(id==='s6')renderLib();
+  if(id==='s7')renderSettings();
+  window.scrollTo(0,0);
+}
+
+/* ---------- S1 ---------- */
+function aiChip(ai){
+  const st=aiStatus(ai), n=AIN[ai];
+  const map={ok:['ok','✓ 연결됨'],login:['warn','▲ 로그인 필요'],limit:['warn','▲ 한도 도달'],helper:['bad','■ 연결 안 됨']};
+  const [cls,txt]=map[st];
+  return `<button class="chip" type="button" data-act="go" data-to="s7"><span class="badge ${ai}">${n.g} ${n.name}</span> <span class="pill ${cls}">${txt}</span></button>`;
+}
+function renderHome(){
+  $('#aiChips').innerHTML=aiChip('claude')+aiChip('chatgpt');
+  const P2=[['균열 아래 청운문','헌터 + 무협','--g-hunter','방금 · 3,210자',true],['붉은 달의 서약','판타지','--g-fantasy','3일 전 · 18,400자',false],['임진년 이면사','역사 + 판타지','--g-history','2주 전 · 52,900자',false]];
+  $('#projList').innerHTML=P2.map(([t,g,c,m,open])=>`<button class="card proj" type="button" style="border-left-color:var(${c})" data-act="openProj" data-open="${open}"><div><b>${esc(t)}</b><div class="meta">${esc(g)} · ${esc(m)}</div></div></button>`).join('');
+}
+
+/* ---------- S2 ---------- */
+function renderGenres(){
+  $('#gcards').innerHTML=GENRES.map(g=>`<button class="card gcard" type="button" style="--gc:var(${g.c})" data-act="genre" data-id="${g.id}" aria-pressed="${S.genres.includes(g.id)}"><b>${g.n}</b><span class="muted">${g.d}</span></button>`).join('')
+   +`<button class="card gcard" type="button" data-act="genreMix" aria-pressed="${S.genres.length===2}"><b>혼합형</b><span class="muted">현대 무림, 사극 판타지, 빙의·회귀…</span></button>`;
+  $('#mixBox').hidden=S.genres.length<2;
+  $('#logline').value=S.logline;
+  const [a,b]=S.genres.map(id=>GENRES.find(g=>g.id===id).n);
+  if(S.genres.length===2)$('#mixNote').textContent=`${a} ${S.mixW} : ${b} ${100-S.mixW}. 전투 장면은 ${/무협/.test(a+b)?'무협체':'장르체'}, 사회 장면은 현대체로 어휘 구역을 나눕니다.`;
+  $('#mixWv').textContent=`${S.mixW} : ${100-S.mixW}`;
+  $$('#segRel button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===S.rel));
+  $$('#segAcc button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===S.acc));
+  const ok=S.genres.length>0&&S.logline.trim().length>0;
+  $('#btnStartWiz').disabled=!ok;
+}
+
+/* ---------- S3 위저드 ---------- */
+const TURNS=[
+ {step:'세계의 뿌리',card:'세계 · 뿌리',req:true,w:2,q:'게이트와 무림은 어떤 관계인가요? 이 선택이 이야기 전체의 비밀이 돼요.',
+  ack:'게이트가 무림의 잔해라면, 힘의 규칙부터 정해볼까요?',
+  sets:[[
+   {t:'무너진 무림의 잔해',d:'7년 전 서울 지하에서 하나의 무림이 통째로 눌려 들어왔고, 게이트는 그 균열이다.',r:'무림 규모를 설명하느라 초반이 무거워질 수 있음'},
+   {t:'같은 힘의 두 이름',d:'마나와 내공은 같은 기(氣)이고, 현대는 그것을 ‘규격화’했을 뿐이다.',r:'체계 충돌에서 오는 갈등이 약해짐'},
+   {t:'무림이 만든 감옥',d:'옛 무림이 무언가를 가두려 만든 봉인이 깨지며 게이트가 열렸다.',r:'가둔 존재가 후반 떡밥을 독점할 수 있음'}],[
+   {t:'평행 세계의 문',d:'게이트 너머는 무림이 끝나지 않은 평행 세계이고, 이쪽의 마나가 그쪽의 내공이다.',r:'세계가 둘이 되어 설정 관리가 늘어남'},
+   {t:'사라진 문파들의 무덤',d:'각 게이트는 멸문한 문파 하나씩의 무덤이고, 석비는 그 묘비다.',r:'게이트마다 사연이 필요해짐'},
+   {t:'인공 균열',d:'협회가 7년 전 실험으로 만든 균열이 무림의 기억을 불러냈다.',r:'협회가 일찍 악역으로 굳을 수 있음'}]]},
+ {step:'힘의 규칙',card:'힘의 규칙',w:1,q:'헌터의 마나와 무협의 내공이 만나면 힘의 규칙은 어떻게 될까요?',
+  ack:'두 체계가 겹친다면 누가 그 틈을 이용할까요? 세력을 정해 봐요.',
+  sets:[[
+   {t:'이중 등급',d:'협회 등급(E~S)과 경지(삼류~절정)를 같이 표기하고, 둘은 서로 일치하지 않는다.',r:'독자가 수치 두 개를 따라가야 함'},
+   {t:'마나는 연료, 내공은 기술',d:'수치는 마나로 재지만, 쓰는 법은 내공 구결로만 늘 수 있다.',r:'성장 상한이 빨리 보일 수 있음'},
+   {t:'각성 방식 차이',d:'헌터는 각성으로 얻고, 내공은 수련으로 쌓아 협회가 측정하지 못한다.',r:'주인공이 너무 유리해질 수 있음'}],[
+   {t:'대가형 이중 체계',d:'내공을 쓰면 마나 수치가 깎이고, 마나를 쓰면 경맥이 닳는다.',r:'전투마다 선택 비용이 생겨 템포가 느려짐'},
+   {t:'등급 위장',d:'협회 측정기는 마나만 읽으므로, 내공이 높을수록 낮은 등급으로 보인다.',r:'초반 사이다는 쉽지만 반복되면 식상함'},
+   {t:'석비 해금제',d:'힘은 석비 앞에서만 올라가며, 석비는 문파별로 하나뿐이다.',r:'이동이 잦은 전개가 어려워짐'}]]},
+ {step:'세력',card:'세력',w:1,q:'서울에서 이 비밀을 두고 맞서는 세력은 누구인가요?',
+  ack:'판이 짜였으니, 그 한가운데 설 사람을 만들어 볼게요.',
+  sets:[[
+   {t:'한국헌터협회',d:'게이트를 관리하되 무림의 흔적을 기밀로 묻고 있다.',r:'협회가 악역으로 굳을 수 있음'},
+   {t:'청운문의 잔존자',d:'숨어 사는 계승자들이 협회 몰래 석비를 지킨다.',r:'조력 세력이 일찍 노출됨'},
+   {t:'암천회',d:'무림의 힘을 상품화하려는 사설 집단이다.',r:'적이 많아져 초반 초점이 흐려짐'}],[
+   {t:'중개 길드 〈대로〉',d:'협회와 무림 사이에서 정보를 파는 사설 길드다.',r:'세력 관계가 복잡해짐'},
+   {t:'무림맹 재건파',d:'협회 안에서 무림의 부활을 노리는 내부 파벌이다.',r:'협회 내부 설정을 더 만들어야 함'},
+   {t:'시민 연대',d:'게이트 피해 유족이 만든 감시 단체로, 양쪽 모두를 의심한다.',r:'전투력이 없어 위협감이 약함'}]]},
+ {step:'주인공',card:'인물 · 주인공',req:true,w:2,q:'주인공은 어떤 사람인가요? 약점부터 정해볼까요?',
+  ack:'약점이 분명하니, 곁에 둘 사람이 중요해요.',
+  sets:[[
+   {t:'낡은 공책을 가진 E급',d:'한도윤(29). 마나 수치가 낮은 E급이지만 할아버지의 낡은 공책을 갖고 있다.',r:'공책이 만능 열쇠가 되면 긴장이 사라짐'},
+   {t:'퇴출 위기의 말단 짐꾼',d:'한도윤(29). 협회에서 퇴출 위기인 말단 짐꾼이며, 빚이 있다.',r:'초반이 어둡게 흐를 수 있음'},
+   {t:'몰락한 전직 사범',d:'한도윤(29). 전직 무술 사범이 몰락한 뒤 헌터로 재취업했다.',r:'무협 쪽 실력이 처음부터 높아 보일 수 있음'}],[
+   {t:'기억이 빈 생존자',d:'한도윤(29). 게이트 사고 생존자로, 사고 당일의 기억이 비어 있다.',r:'기억 회복이 후반 한 방에 몰릴 수 있음'},
+   {t:'세 번 떨어진 재수생',d:'한도윤(29). 협회 시험에 세 번 떨어졌고, 무술은 독학이다.',r:'독학 설정이 경지와 어긋나지 않게 관리 필요'},
+   {t:'모르는 후계자',d:'한도윤(29). 청운문 마지막 문하의 손자지만 본인은 그 사실을 모른다.',r:'정체 반전을 어디서 쓸지 일찍 정해야 함'}]]},
+ {step:'곁사람',card:'인물 · 조연',w:1,q:'곁에 두고 싶은 사람, 혹은 맞서야 할 사람을 하나 정해볼까요?',
+  ack:'이제 이야기를 시작시킬 첫 사건만 남았어요.',
+  sets:[[
+   {t:'백 노인',d:'석비 근처 포장마차 주인. 정체는 청운문의 마지막 문지기.',r:'정체 공개 시점이 가장 큰 떡밥'},
+   {t:'윤세아',d:'협회 감사관으로, 원칙주의자이며 도윤을 의심한다.',r:'도윤을 감시하는 구도가 반복될 수 있음'},
+   {t:'강지후',d:'같은 E급 동기로, 도윤의 비밀을 먼저 눈치챈다.',r:'조력자가 너무 일찍 비밀을 안다'}],[
+   {t:'소재희',d:'사설 연구소 연구원으로 석비의 글자를 해독하려 한다.',r:'설명 담당으로 굳을 위험'},
+   {t:'오 팀장',d:'말단 도윤을 아끼는 협회 현장 팀장이지만 배신 가능성이 있다.',r:'배신 시점 설계가 필요'},
+   {t:'무명',d:'도윤의 꿈에만 나타나는 검객으로, 석비와 연결되어 있다.',r:'실존 여부를 오래 숨겨야 함'}]]},
+ {step:'첫 사건',card:'첫 사건',w:1,q:'1화에서 이야기를 시작시킬 첫 사건은 무엇인가요?',
+  ack:'여기까지 정하면 집필을 시작할 수 있어요.',
+  sets:[[
+   {t:'심층 3층 석비 발견',d:'단독 임무 중 교신이 끊기고 석비 앞에 선다.',r:'고립 설정이라 초반 조력자 등장이 늦어짐'},
+   {t:'공책의 글자가 빛남',d:'퇴근길 집에서 할아버지 공책이 게이트 반응에 공명한다.',r:'게이트 밖에서 시작해 헌터물 맛이 약함'},
+   {t:'부상 헌터 구조',d:'구조 중 우연히 벽에 새겨진 문양을 본다.',r:'구조 사건이 석비 발견보다 약할 수 있음'}],[
+   {t:'정기 검진에서 측정기가 터진다',d:'협회 정기 검진 중 도윤의 수치를 재던 측정기가 터진다.',r:'일찍 주목받아 숨는 서사가 어려워짐'},
+   {t:'지하철에서 들리는 균열음',d:'퇴근길 지하철 안에서 아무도 못 듣는 균열 소리가 들린다.',r:'도입이 느슨해질 수 있음'},
+   {t:'동기의 장례식',d:'동기의 장례식장에서 석비 탁본을 전해 받는다.',r:'감정선 중심이라 장르 쾌감이 늦음'}]]}
+];
+let W,wtimer=null;
+function wizInit(){W={i:0,set:0,prevSet:null,sel:null,checks:[],merged:null,edit:null,draft:null,loading:false,err:null,done:TURNS.map(()=>null),hist:[],chat:[],undoAsk:null,fresh:-1,showPrev:false}}
+wizInit();
+const sentence=s=>s.split(/(?<=[.다요])\s/)[0].replace(/\.$/,'');
+function totals(){let tot=0,got=0;TURNS.forEach((t,k)=>{tot+=t.w;const d=W.done[k];if(d&&!d.skip)got+=d.auto?t.w*.5:t.w});return {tot,got,pct:Math.round(got/tot*100)}}
+function canStart(){return [0,1,3].every(k=>W.done[k]&&!W.done[k].skip)}
+function curCands(){return TURNS[W.i].sets[W.set]}
+function renderWiz(){
+  const {tot,got,pct}=totals(), n=W.done.filter(Boolean).length;
+  $('#wizProg').innerHTML=`<b>${n}/${TURNS.length} 단계</b> <span class="muted">· 진행률 ${pct}%</span><div class="prog"><i style="width:${pct}%"></i></div>${canStart()?'<span class="pill ok">✓ 집필 시작 가능</span>':'<span class="muted" style="font-size:12.5px">필수 단계를 채우면 집필을 시작할 수 있어요</span>'}<p class="muted" style="font-size:12px;margin-block:6px">시안은 대표 6단계만 보여 줍니다. 실제 앱은 11단계입니다.</p>`;
+  $('#wizSteps').innerHTML=TURNS.map((t,k)=>{const d=W.done[k];const finished=!!W.fin;const st=d?(d.skip?'skip':'done'):(k===W.i&&!finished?'now':'todo');const mk={done:'✓',skip:'◌',now:'●',todo:'○'}[st];return `<button type="button" class="step ${st}" data-act="goStep" data-k="${k}" ${st==='todo'?'disabled':''}><span class="mk" aria-hidden="true">${mk}</span><span>${esc(t.step)}</span>${t.req?'<em>필수</em>':''}${d&&d.auto?'<em class="ai">AI</em>':''}</button>`}).join('');
+  $('#wizCards').innerHTML=TURNS.map((t,k)=>{const d=W.done[k];
+    if(!d)return `<div class="sum slot">${esc(t.card)}<br><span style="font-size:12.5px">아직 안 정했어요</span></div>`;
+    if(d.skip)return `<div class="sum slot">${esc(t.card)}<br><span style="font-size:12.5px">나중에 정하기로 했어요</span><div class="tools"><button class="btn sm" data-act="goStep" data-k="${k}">지금 정하기</button></div></div>`;
+    const ask=W.undoAsk===k?`<p style="margin-top:6px;font-size:12.5px">이후 ${W.done.slice(k+1).filter(Boolean).length}개 설정이 이 설정을 참조해요. 같이 되돌릴까요?</p><div class="tools"><button class="btn sm" data-act="undoOne" data-k="${k}">이 카드만</button><button class="btn sm" data-act="undoAll" data-k="${k}">같이</button></div>`:'';
+    return `<div class="sum ${d.auto?'aifill':''} ${W.fresh===k?'fresh':''}"><h4>${esc(t.card)}${d.auto?'<span class="tag">AI 임의 설정</span>':''}${d.review?'<span class="tag rev">재검토 필요</span>':''}</h4><p><b style="color:var(--text)">${esc(d.c.t)}</b> — ${esc(d.c.d)}</p><div class="tools"><button class="btn sm ghost" data-act="editDone" data-k="${k}">수정</button><button class="btn sm ghost" data-act="undoAsk" data-k="${k}">되돌리기</button></div>${ask}</div>`}).join('');
+  $('#wizMain').innerHTML=wizMain();
+  W.fresh=-1;
+}
+function wizMain(){
+  if(W.fin)return finHtml();
+  const t=TURNS[W.i], ai=S.map.world, last=W.hist.length?W.hist[W.hist.length-1]:-1;
+  const ackLine=(W.i>0&&last>=0&&TURNS[last]&&last<W.i)?`<p class="ack">${AIN[ai].g} ${AIN[ai].name}: ${esc(TURNS[last].ack)}</p>`:'';
+  const head=`<div class="card qbox"><div class="actions"><span class="badge ${ai}"><span aria-hidden="true">${AIN[ai].g}</span> ${AIN[ai].name}</span><span class="muted">단계 ${W.i+1}/${TURNS.length} · ${esc(t.step)}</span>${t.req?'<span class="chip">필수</span>':''}</div>${ackLine}<p class="q">${esc(t.q)}</p></div>`;
+  if(W.loading)return `<div class="turn">${head}<div class="cands"><div class="skel"></div><div class="skel"></div><div class="skel"></div></div><div class="actions"><span class="muted">후보 3개 만드는 중 (실제는 보통 10~30초)</span><button class="btn sm" data-act="cancelLoad">취소</button></div></div>`;
+  if(W.err)return `<div class="turn">${head}${errHtml(W.err.kind,W.err.ai,'retryWiz')}<div class="actions"><button class="btn sm" data-act="ownWrite">직접 입력으로 계속</button></div></div>`;
+  const cs=curCands(), L='ABC';
+  const merged=W.merged?`<article class="cand merged ${W.sel==='m'?'sel':''}" data-act="pick" data-n="m"><header><span class="letter">합친 안</span><span class="chip">모의 합치기</span></header><h4>${esc(W.merged.t)}</h4><p>${esc(W.merged.d)}</p><footer><button class="btn sm primary" data-act="confirmM">이 안으로 확정</button><button class="btn sm" data-act="editCand" data-n="m">고쳐쓰기</button><button class="btn sm ghost" data-act="remerge">다시 합치기</button></footer></article>`:'';
+  const cards=cs.map((c,n)=>{
+    const sel=W.sel===n, editing=W.edit===n, dim=!!W.merged;
+    const body=editing?`<input type="text" id="editT" value="${esc(W.draft.t)}" aria-label="제목"><textarea id="editD" rows="4" aria-label="내용">${esc(W.draft.d)}</textarea>`:`<h4>${esc(c.t)}</h4><p>${esc(c.d)}</p><p class="risk">위험: ${esc(c.r)}</p>`;
+    return `<article class="cand ${sel?'sel':''} ${dim?'dim':''}" data-act="pick" data-n="${n}"><header><label class="ck"><input type="checkbox" data-act="check" data-n="${n}" ${W.checks.includes(n)?'checked':''}> <span style="font-size:12.5px">합치기</span></label><span class="letter">${L[n]}</span></header>${body}<footer><button class="btn sm" data-act="pickBtn" data-n="${n}" ${dim?'disabled':''}>고르기</button><button class="btn sm ghost" data-act="editCand" data-n="${n}" ${dim?'disabled':''}>고쳐쓰기</button></footer></article>`}).join('');
+  const own=W.edit==='own'?`<article class="cand own sel"><header><span class="letter">직접 쓰기</span></header><input type="text" id="editT" value="${esc(W.draft.t)}" placeholder="제목" aria-label="제목"><textarea id="editD" rows="4" placeholder="내용을 직접 적어 주세요" aria-label="내용">${esc(W.draft.d)}</textarea></article>`:`<article class="cand own" data-act="ownWrite"><header><span class="letter">+</span></header><h4>직접 쓰기</h4><p class="risk">후보 대신 내가 적습니다.</p></article>`;
+  const canConfirm=W.edit?true:(W.sel!==null&&W.sel!=='m');
+  const confirmTxt=W.edit?'수정본으로 확정':'이대로 확정';
+  const chat=W.chat.map(m=>`<div class="bubble ${m.me?'me':''}">${esc(m.t)}</div>`).join('');
+  const prev=W.prevSet!==null?`<button class="btn sm ghost" data-act="togglePrev">${W.showPrev?'새 후보 보기':'이전 후보 보기'}</button>`:'';
+  const skipDis=t.req?'disabled title="필수 단계는 직접 고르거나 적어 주세요"':'';
+  return `<div class="turn">${head}${chat}${merged}<div class="cands">${cards}${own}</div>
+  <div class="actions"><button class="btn primary" data-act="confirm" ${canConfirm?'':'disabled'}>${confirmTxt}</button>
+   <button class="btn" data-act="mergeBtn" ${W.checks.length>=2&&!W.merged?'':'disabled'}>선택한 것 합치기</button>
+   <button class="btn" data-act="regen">다시 제안 ↻</button>${prev}
+   <span class="grow"></span>
+   <button class="btn sm ghost" data-act="skipLater" ${skipDis}>나중에</button><button class="btn sm ghost" data-act="skipAi" ${skipDis}>건너뛰기: AI가 알아서</button></div>
+  ${t.req?'<p class="muted" style="font-size:12.5px">필수 단계는 “AI가 알아서”를 쓸 수 없어요. 후보를 고르거나 직접 적어 주세요.</p>':''}
+  <form class="talk" data-act="talk"><label class="sr" for="talkIn">AI에게 직접 말하기</label><input id="talkIn" type="text" placeholder="직접 말하기… 예: 더 어둡게, 협회는 악역이 아니게" autocomplete="off"><button class="btn" type="submit">보내기</button></form></div>`;
+}
+function finHtml(){
+  const skipped=TURNS.filter((t,k)=>W.done[k]&&W.done[k].skip).map(t=>t.step), auto=W.done.filter(d=>d&&d.auto).length;
+  return `<div class="turn"><div class="card qbox"><h2 style="font-size:19px">집필을 시작할 수 있어요</h2><p class="muted" style="margin-top:6px">${TURNS.length}단계를 지나왔어요. AI 임의 설정 ${auto}건${skipped.length?`, 나중에 정하기로 한 단계: ${esc(skipped.join(', '))}`:''}. 설정집에서 언제든 고칠 수 있습니다.</p>
+  <div class="actions" style="margin-top:12px"><button class="btn primary" data-act="go" data-to="s4">집필 화면으로</button><button class="btn" data-act="go" data-to="s6">설정집 보기</button></div></div></div>`;
+}
+function nextIndex(){for(let k=W.i+1;k<TURNS.length;k++)if(!W.done[k])return k;for(let k=0;k<TURNS.length;k++)if(!W.done[k])return k;return -1}
+function resetTurn(){W.set=0;W.prevSet=null;W.sel=null;W.checks=[];W.merged=null;W.edit=null;W.draft=null;W.loading=false;W.err=null;W.chat=[];W.undoAsk=null;W.showPrev=false}
+function commit(c,opts){
+  const k=W.i, was=W.done[k];
+  W.done[k]=Object.assign({c:{t:c.t,d:c.d}},opts||{});
+  if(was)for(let j=k+1;j<TURNS.length;j++)if(W.done[j]&&!W.done[j].skip)W.done[j].review=true;
+  W.hist=W.hist.filter(x=>x!==k);W.hist.push(k);W.fresh=k;
+  const nx=nextIndex(); resetTurn();
+  if(nx<0){W.fin=true}else{W.i=nx;W.fin=false}
+  renderWiz();
+}
+function aiCall(then){
+  const ai=S.map.world, st=aiStatus(ai);
+  W.loading=true;W.err=null;renderWiz();
+  clearTimeout(wtimer);
+  wtimer=sleep(800,()=>{W.loading=false;S.reqN++;if(st!=='ok'){W.err={kind:st,ai};}else{then&&then()}renderWiz()});
+}
+function readDraft(){const t=$('#editT'),d=$('#editD');if(t&&d){W.draft={t:t.value,d:d.value}}}
+
+/* ---------- S4 집필 ---------- */
+const P={tab:'ctx',ai:'auto',res:{ctx:[],dir:[],exp:[]},load:{ctx:null,dir:null,exp:null},err:{ctx:null,dir:null,exp:null},sbs:false,warn:{on:true,sol:false},memo:[],pins:{},rc:{},sugg:null,open:{},sel:'',fbOpen:{}};
+const TREE=[['1화',null,'3,210','●'],['  장면 1 · 게이트 진입','1','820','✓'],['  장면 2 · 협회 브리핑','2','1,140','✓'],['  장면 3 · 석비 발견','3','1,250','●'],['  장면 4 · 교신 두절','4','—','○'],['2화',null,'—','○']];
+function renderTree(){
+  $('#treeList').innerHTML=TREE.map(([n,id,c,st],i)=>`<li><button type="button" ${i===3?'aria-current="true"':''} ${n.startsWith(' ')?'style="padding-left:26px"':''}><span aria-hidden="true">${st}</span><span>${esc(n.trim())}</span>${P.pins[id]?'<span class="chip" title="저장한 방향이 있어요">방향 저장</span>':''}<span class="cnt">${c}</span></button></li>`).join('');
+  filterQuick();
+}
+const LIB=[
+ {id:'world_root',cat:'세계',t:'세계 · 뿌리',x:'게이트는 7년 전 서울 지하로 눌려 들어온 무림의 균열이다.',links:3,al:'게이트'},
+ {id:'power_rule',cat:'세계',t:'힘의 규칙',x:'협회 등급(E~S)과 무림 경지가 이중으로 존재하며 서로 일치하지 않는다.',links:4,al:'경지, 등급'},
+ {id:'faction_main',cat:'세력',t:'한국헌터협회',x:'게이트를 관리하고 무림의 흔적을 기밀로 한다. 관제 지연은 최대 3분(2화).',links:2,al:'협회'},
+ {id:'faction_cheongun',cat:'세력',t:'청운문',x:'숨어 지내는 잔존 문파. 석비를 지킨다.',links:1,al:'靑雲, 청운'},
+ {id:'char_main',cat:'인물',t:'한도윤',x:'29세 E급 헌터. 할아버지의 공책 「청운」을 가졌다.',links:9,al:'도윤'},
+ {id:'char_side',cat:'인물',t:'백 노인',x:'석비 근처 포장마차 주인이자 청운문의 마지막 문지기.',links:0,al:'',ai:true},
+ {id:'event_first',cat:'사건',t:'첫 사건',x:'심층 3층 석비 발견, 교신 단절.',links:1,al:''},
+ {id:'place_gangnam',cat:'장소',t:'강남 게이트존',x:'강남존. 심층 3층에 청운문 석비가 있다.',links:2,al:'강남존'},
+ {id:'item_notebook',cat:'물건',t:'할아버지의 공책',x:'표지에 靑雲 두 글자. 미회수 떡밥(1화~).',links:2,al:'공책'},
+ {id:'item_stele',cat:'물건',t:'청운문 석비',x:'게이트 심층 3층. 손을 대면 단전이 반응한다.',links:3,al:'석비'}];
+const WMAP={world_root:0,power_rule:1,faction_main:2,char_main:3,char_side:4,event_first:5};
+function libCards(){
+  return LIB.map(c=>{const k=WMAP[c.id];if(k===undefined||!W.done[k]||W.done[k].skip)return Object.assign({},c);
+    const d=W.done[k];return Object.assign({},c,{x:d.c.d,t:c.id==='char_main'||c.id==='char_side'||c.id==='faction_main'?d.c.t:c.t,ai:!!d.auto,review:!!d.review})})
+}
+function filterQuick(){
+  const q=($('#qsearch').value||'').trim();
+  const list=libCards().filter(c=>!q||(c.t+c.al).includes(q));
+  $('#qlist').innerHTML=list.slice(0,6).map(c=>`<li><button type="button" data-act="openCard" data-id="${c.id}">${esc(c.t)} <span class="muted" style="font-size:12px">${c.cat}</span></button></li>`).join('')||'<li class="muted" style="padding:4px 8px">일치하는 카드가 없어요</li>';
+}
+function countChars(){const n=$('#ms').innerText.replace(/\s/g,'').length;$('#cnt').textContent=n.toLocaleString()+'자'}
+
+/* 추천 패널 모의 데이터 */
+const CTX={
+ claude:`<dl class="kv"><dt>지금 위치</dt><dd>1부 도입 3번째 장면. 도윤이 ‘靑雲’을 발견했고 협회 교신이 끊긴 상태입니다.</dd><dt>단계·긴장</dt><dd>전개 · 긴장 4/5 ▲ (직전 장면보다 상승). 근거: 교신 두절과 석비 발견이 한 장면에 겹침</dd><dt>독자 기대</dt><dd>① 석비의 정체 ② 교신 단절의 위험. 둘 다 열려 있어 긴장이 유지됩니다.</dd><dt>미회수 떡밥</dt><dd>할아버지 공책(1화) · E급 판정(1화)</dd><dt>위험 신호</dt><dd>설명 과다 없음. 최근 5회: 고구마 2 · 사이다 2 · 중립 1</dd></dl><p class="muted">확신도 높음 · 읽은 것: 최근 3장면 + 설정 카드 7장</p>`,
+ chatgpt:`<dl class="kv"><dt>지금 위치</dt><dd>1부 도입 3번째 장면. 발견과 고립이 겹치는 지점입니다.</dd><dt>단계·긴장</dt><dd>전개 후반 · 긴장 4/5 ▲. 석비 반응 직전에서 끊어 두면 다음 장면 기대가 커집니다.</dd><dt>독자 기대</dt><dd>① 靑雲의 의미 ② 교신이 끊긴 이유. 공책과의 연결이 아직 한 번도 풀리지 않았습니다.</dd><dt>미회수 떡밥</dt><dd>할아버지 공책(경과 2회) · E급 판정</dd><dt>위험 신호</dt><dd>대사 비중이 낮아 모바일에서 문단이 길게 보일 수 있음</dd></dl><p class="muted">확신도 중간 · 읽은 것: 최근 3장면 + 설정 카드 6장</p>`};
+const DIR={
+ claude:[
+  {l:'A',ty:'안정',t:'조용한 귀환',b:'석비 반응을 숨기고 교신을 복구한 뒤, 글자만 챙겨 돌아온다. 협회는 아직 아무것도 모른다.',g:['떡밥 보존','관계 유지'],r:'긴장이 한 번 풀린다.',c:'ok',cn:'공책·협회 설정과 충돌 없음',s:'고구마 +1 · 훅 후보: 질문'},
+  {l:'B',ty:'반전',t:'보이지 않는 질문',b:'석비 뒤에서 “그 공책의 주인은 어디 있느냐”는 노인의 목소리가 들린다.',g:['세계관 확장','사이다 가능'],r:'백 노인의 정체가 일찍 드러난다.',c:'bad',cn:'인물 · 백 노인의 위치는 게이트 밖 포장마차입니다. 심층 3층 등장은 위치 설정과 충돌합니다. (설정 수정 또는 의도된 반전으로 확정)',s:'사이다 +1 · 훅 후보: 폭로'},
+  {l:'C',ty:'파격',t:'끊긴 이유',b:'관제실이 일부러 교신을 끊었고, 이어폰에서 낯선 목소리가 도윤의 이름을 부른다.',g:['긴장↑','협회 내부 갈등'],r:'협회가 악역으로 굳을 수 있다.',c:'warn',cn:'세력 · 협회의 “기밀 유지” 목표와 맞춰야 합니다.',s:'고구마 +1 · 훅 후보: 위기'}],
+ chatgpt:[
+  {l:'A',ty:'안정',t:'탁본을 뜬다',b:'도윤이 석비의 글자를 탁본으로 남기고, 교신이 돌아오기 전에 자리를 뜬다.',g:['떡밥 신설','복귀 동선'],r:'석비 반응의 인상이 약해진다.',c:'ok',cn:'충돌 없음',s:'중립 · 훅 후보: 예고'},
+  {l:'B',ty:'반전',t:'석비가 문을 연다',b:'손바닥을 대자 석비 아래로 계단이 드러난다. 올라온 길은 닫힌다.',g:['세계관 확장','긴장↑'],r:'게이트 규칙(제한시간)과 부딪힌다.',c:'warn',cn:'세계 철칙에 “게이트 안 구조 변화” 규칙이 아직 없습니다.',s:'사이다 보류 · 훅 후보: 위기'},
+  {l:'C',ty:'파격',t:'관제실의 거짓말',b:'교신이 끊긴 게 아니라 관제실이 도윤에게 거짓 안내를 하고 있었음이 드러난다.',g:['반전','협회 의심'],r:'너무 이른 시기에 협회를 의심하게 된다.',c:'warn',cn:'협회 카드와의 정합성을 확인해야 합니다.',s:'고구마 +1 · 훅 후보: 폭로'}]};
+const EXP={
+ chatgpt:{d:'이 장면의 핵심은 정적과 발견입니다. 설명보다 감각을 하나씩 지우는 쪽이 긴장을 키웁니다.',t:[
+  {h:'정적을 묘사하라',a:'교신이 끊긴 순간 “아무 소리도 나지 않았다” 대신, 소리가 사라지는 순서(물방울, 발소리, 숨)를 한 문장씩 지웁니다.',e:'물방울 소리가 멎었다. 그다음엔 자기 숨소리가 멎은 것처럼 들렸다.',w:'한 번만 쓰세요. 반복하면 장식이 됩니다.'},
+  {h:'무협 어휘는 한 방울만',a:'단전 반응에 ‘기혈’ 같은 한자어를 쓰되, 바로 뒤에 현대적 비교를 붙여 거리감을 줄입니다.',e:'단전이 데운 수돗물처럼 천천히 따뜻해졌다.',w:'혼합 정책상 무림 구역 어휘는 전투·수련 장면 중심으로 씁니다.'},
+  {h:'마지막 문장은 짧게',a:'긴 문장 두 개 뒤에 6~8자 문장을 놓아 리듬을 끊습니다.',e:'손바닥이 석비에 닿았다. 석비가 숨을 쉬었다.',w:'장면 끝 훅과 겹치면 한 번만 쓰세요.'}],
+  x:[['시점','3인칭 제한(도윤) 유지'],['템포','문단 1~3문장, 대사:서술 3:7'],['대사 톤','관제실은 건조한 존댓말, 도윤은 대답하지 않음'],['피할 클리셰','“마치 게임 속 같았다” → 몸의 반응으로 대체']]},
+ claude:{d:'교신음과 석비의 정적을 대비시키면 장면의 긴장이 선명해집니다.',t:[
+  {h:'동작을 대사 앞에',a:'관제실 대사를 바로 붙이지 말고, 도윤이 이어폰을 만지는 동작을 먼저 둡니다.',e:'도윤은 이어폰을 눌렀다. 잡음뿐이었다.',w:'동작 앞뒤 문단은 짧게 유지하세요.'},
+  {h:'반응을 한 박자 늦춘다',a:'석비가 반응한 뒤 인물의 자각을 한 박자 늦춰 독자가 먼저 알아채게 합니다.',e:'한 박자 늦게야, 손바닥이 떨린다는 걸 알았다.',w:'절정 구간에서만 쓰세요.'},
+  {h:'감각을 하나로 좁힌다',a:'장면 첫 문단에서 시각 대신 냄새나 촉감 한 가지만 남깁니다.',e:'젖은 쇠 냄새 사이로 이끼의 비린내가 올라왔다.',w:'첫 문장이 이미 냄새라 중복에 주의하세요.'}],
+  x:[['시점','3인칭 제한 유지, 내면 서술은 한 줄 이내'],['템포','긴 문장 2개 뒤 짧은 문장 1개'],['대사 톤','관제실 존댓말, 도윤 무응답'],['피할 클리셰','“심장이 터질 듯 뛰었다” → 손의 떨림으로 대체']]}};
+const SELALT=['석비 위에 손을 얹자 단전이 한 번, 천천히 뒤척였다.','손바닥이 닿는 순간, 오래 잠든 것이 몸속에서 돌아누웠다.'];
+
+function pickAI(tab){return P.ai==='auto'?S.map[tab]:P.ai}
+function request(tab,forceAi,opts){
+  const ai=forceAi||pickAI(tab), st=aiStatus(ai);
+  P.load[tab]={ai};P.err[tab]=null;renderRec();
+  clearTimeout(P.load[tab+'t']);
+  P.load[tab+'t']=sleep(800,()=>{
+    P.load[tab]=null;S.reqN++;
+    if(st!=='ok'){P.err[tab]={kind:st,ai}}
+    else{const sec={ctx:14,dir:16,exp:11}[tab]+(ai==='chatgpt'?-3:0);P.res[tab].unshift({ai,sec,sel:opts&&opts.sel||''})}
+    renderRec();
+  });
+}
+function recFor(tab){return P.res[tab]}
+function copyText(txt){
+  const done=()=>toast('복사했어요');
+  const fb=()=>{try{const ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();const ok=document.execCommand('copy');ta.remove();ok?done():toast('복사하지 못했어요. 직접 선택해 복사해 주세요')}catch(e){toast('복사하지 못했어요. 직접 선택해 복사해 주세요')}};
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(done).catch(fb)}else fb();
+}
+function head(r,i){
+  const other=r.ai==='claude'?'chatgpt':'claude';
+  return `<header><span class="badge ${r.ai}"><span aria-hidden="true">${AIN[r.ai].g}</span> ${AIN[r.ai].name}</span><span class="muted">${r.sec}초</span><span class="grow"></span><button class="btn sm ghost" data-act="askOther" data-ai="${other}">${AIN[other].name}에게도 물어보기</button></header>`;
+}
+function ctxCard(r,i){return `<article class="card rcard">${head(r,i)}${CTX[r.ai]}<div class="actions"><button class="btn sm" data-act="copyCard" data-tab="ctx" data-i="${i}">복사</button><button class="btn sm" data-act="memoCard" data-tab="ctx" data-i="${i}">장면 메모에 저장</button><button class="btn sm ghost" data-act="dropCard" data-tab="ctx" data-i="${i}">버리기</button></div></article>`}
+function dirCard(r,i){
+  const opts=DIR[r.ai].map(o=>{const key=r.ai+i+o.l, hid=P.rc[key]==='hide';if(hid)return `<div class="muted" style="font-size:12.5px">${o.l}안 “${esc(o.t)}”을 숨겼어요 <button class="btn sm ghost" data-act="unhide" data-key="${key}">되돌리기</button></div>`;
+    const pill={ok:['ok','✓ OK'],warn:['warn','▲ 주의'],bad:['bad','■ 충돌']}[o.c];
+    const fb=P.rc[key]==='like'?'<span class="pill ok">✓ 쓸만함</span>':`<button class="btn sm" data-act="like" data-key="${key}">쓸만함</button>`;
+    const why=P.fbOpen[key]?`<div class="why">${REASONS.map(([id,n])=>`<button class="chip" data-act="why" data-key="${key}" data-id="${id}">${n}</button>`).join('')}</div>`:'';
+    return `<div class="opt"><h5><span class="l">${o.l}</span><span class="chip">${o.ty}</span>${esc(o.t)}${P.pins[key]?' <span class="chip on">채택함</span>':''}</h5><p>${esc(o.b)}</p><div class="fb">${o.g.map(x=>`<span class="chip on">${esc(x)}</span>`).join('')}</div><p class="muted" style="font-size:13px">위험: ${esc(o.r)}</p><p style="font-size:13px"><span class="pill ${pill[0]}">${pill[1]}</span> ${esc(o.cn)}</p><p class="muted" style="font-size:12.5px">연재 영향: ${esc(o.s)}</p>
+    <div class="fb"><button class="btn sm primary" data-act="adopt" data-key="${key}" data-t="${esc(o.t)}">다음 장면 목적으로 채택</button>${fb}<button class="btn sm" data-act="dislike" data-key="${key}">별로</button><button class="btn sm ghost" data-act="hide" data-key="${key}">숨기기</button><button class="btn sm ghost" data-act="copyOpt" data-key="${key}" data-ai="${r.ai}" data-l="${o.l}">복사</button></div>${why}</div>`}).join('');
+  return `<article class="card rcard">${head(r,i)}<p class="muted" style="font-size:12.5px">추천 이유는 접어 두었어요. 채택해도 본문에는 아무것도 들어가지 않고 장면 메모의 “목적”만 바뀝니다.</p>${opts}</article>`;
+}
+function expCard(r,i){
+  const E=EXP[r.ai];
+  const sel=r.sel?`<div class="tech"><span class="lab">선택한 문장 (${r.sel.replace(/\s/g,'').length}자) 기준 대안 2개 — 시안: 선택 문장과 무관한 모의 대안</span><p class="muted" style="font-size:13px">“${esc(r.sel.length>60?r.sel.slice(0,60)+'…':r.sel)}”</p>${SELALT.map(a=>`<div class="ex" style="font-family:var(--serif);background:var(--bg);border-left:3px solid var(--accent);padding:6px 10px;border-radius:4px">${esc(a)}</div><div><button class="btn sm" data-act="copyTxt" data-txt="${esc(a)}">복사</button></div>`).join('')}</div>`:'';
+  const techs=E.t.map(t=>`<div class="tech"><b>${esc(t.h)}</b><p style="font-size:13.5px">${esc(t.a)}</p><span class="lab">시연 문장 (시연용 · 80자 이내)</span><div class="ex">${esc(t.e)}</div><p class="muted" style="font-size:12.5px">주의: ${esc(t.w)}</p><div class="actions"><button class="btn sm" data-act="copyTxt" data-txt="${esc(t.e)}">문장 복사</button><button class="btn sm ghost" data-act="memoTxt" data-txt="${esc(t.h+': '+t.e)}">장면 메모에 저장</button></div></div>`).join('');
+  return `<article class="card rcard">${head(r,i)}${sel}<p style="font-size:13.5px"><b>진단</b> · ${esc(E.d)}</p>${techs}<details><summary>시점·템포·대사 톤·피할 클리셰</summary><dl class="kv" style="margin-top:8px">${E.x.map(([k,v])=>`<dt>${k}</dt><dd>${esc(v)}</dd>`).join('')}</dl></details></article>`;
+}
+function warnCard(){
+  if(!P.warn.on)return '';
+  return `<article class="card warncard"><div class="actions"><span class="pill warn">▲ 설정 확인 필요 1건</span><span class="muted" style="font-size:12.5px">규칙 엔진</span></div><p>본문의 “교신이 <b>15분째</b>”와 설정 “관제 지연 최대 <b>3분</b>”(협회 카드, 2화)이 맞지 않습니다.</p>
+  ${P.warn.sol?`<div class="tech"><span class="lab">${AIN[S.map.check].g} ${AIN[S.map.check].name} · 설정 점검 해결안 3개</span><p><b>① 원고 수정</b> — “15분째”를 “3분째” 또는 “평소보다 오래”로 바꿉니다.</p><p><b>② 설정 수정</b> — 협회 카드의 관제 지연 한도를 “최대 15분”으로 고치고 2화 장면을 확인합니다.</p><p><b>③ 의도된 반전</b> — 지연이 비정상임을 드러내는 이상 징후로 남기고 장면 메모에 이유를 적습니다.</p></div>`:''}
+  <div class="actions"><button class="btn sm" data-act="solve">해결안 보기</button><button class="btn sm ghost" data-act="intended">의도한 것으로 확정</button></div></article>`;
+}
+function renderRec(){
+  $$('#tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===P.tab));
+  $$('#aiSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===P.ai));
+  const tab=P.tab, res=P.res[tab], names={ctx:'맥락',dir:'방향',exp:'표현'};
+  const loading=P.load[tab], err=P.err[tab];
+  const wide=window.matchMedia('(min-width:1200px)').matches;
+  const hasBoth=tab==='dir'&&res.some(r=>r.ai==='claude')&&res.some(r=>r.ai==='chatgpt');
+  const sbsOn=P.sbs&&wide&&tab==='dir';
+  $('#shell').classList.toggle('sbs',sbsOn&&!document.body.classList.contains('focus'));
+  let html=warnCard();
+  if(P.sugg)html+=`<article class="card sugg"><b>선호 규칙 제안</b><p>같은 이유가 3번 쌓였어요: “${esc(P.sugg.rule)}”</p><div class="actions"><button class="btn sm primary" data-act="addRule">규칙에 추가</button><button class="btn sm ghost" data-act="skipRule">무시</button></div></article>`;
+  html+=`<div class="rtop"><button class="btn sm" data-act="req" data-tab="${tab}" ${loading?'disabled':''}>이 장면으로 새로 받기</button>${tab==='dir'&&wide?`<button class="btn sm ghost" data-act="sbs" aria-pressed="${P.sbs}" ${hasBoth?'':'disabled title="두 AI의 답이 모두 있을 때 쓸 수 있어요"'}>나란히 보기 ${P.sbs?'끄기':''}</button>`:''}<span class="muted" style="font-size:12.5px">자동 호출은 없어요</span></div>`;
+  if(loading){html+=`<div class="card rcard"><span class="badge ${loading.ai}"><span aria-hidden="true">${AIN[loading.ai].g}</span> ${AIN[loading.ai].name}</span><span>읽는 중 · 최근 3장면 + 설정 카드 7장</span><div class="skel"></div><div class="actions"><button class="btn sm" data-act="cancelRec" data-tab="${tab}">취소</button><span class="muted" style="font-size:12.5px">본문은 계속 쓸 수 있어요</span></div></div>`}
+  if(err)html+=errHtml(err.kind,err.ai,'retryRec');
+  if(!res.length&&!loading&&!err){
+    html+=`<div class="card empty"><p>막힐 때 눌러 보세요.<br>지금 쓰는 장면과 설정 카드 7장을 읽고 ${names[tab]} 추천을 드려요.</p><button class="btn primary" data-act="req" data-tab="${tab}">${names[tab]} 추천 받기</button></div>`;
+  }else if(sbsOn){
+    const col=ai=>res.map((r,i)=>[r,i]).filter(([r])=>r.ai===ai).map(([r,i])=>dirCard(r,i)).join('')||'<div class="muted">아직 답이 없어요</div>';
+    html+=`<div class="sbs2"><div>${col('claude')}</div><div>${col('chatgpt')}</div></div>`;
+  }else{
+    const f={ctx:ctxCard,dir:dirCard,exp:expCard}[tab];
+    html+=res.map((r,i)=>i===0?f(r,i):`<details class="old"><summary>이전 답 · ${AIN[r.ai].name}</summary>${f(r,i)}</details>`).join('');
+  }
+  $('#recBody').innerHTML=html;
+}
+function memoAdd(txt){P.memo.push(txt);$('#memoList').innerHTML=P.memo.map(m=>`<li>${esc(m)}</li>`).join('');$('#memoN').textContent=P.memo.length;$('#memoBox').open=true;toast('장면 메모에 저장했어요')}
+function showPop(el){
+  const c=LIB.find(x=>x.id===el.dataset.card);if(!c)return;
+  const pop=$('#pop'), r=el.getBoundingClientRect();
+  pop.innerHTML=`<h4>${esc(c.t)} <span class="chip">${c.cat}</span></h4><p>${esc(c.x)}</p><button class="btn sm" type="button" data-act="openCard" data-id="${c.id}">설정집에서 열기</button>`;
+  pop.hidden=false;
+  const w=pop.offsetWidth,h=pop.offsetHeight;
+  let x=Math.min(Math.max(8,r.left),window.innerWidth-w-8), y=r.bottom+6;
+  if(y+h>window.innerHeight-8)y=Math.max(8,r.top-h-6);
+  pop.style.left=x+'px';pop.style.top=y+'px';
+}
+function setSheet(v){$('#rec').dataset.sheet=v;$('#shell').dataset.sheet=v}
+
+/* ---------- S6 ---------- */
+let L={cat:'전체',sel:'char_main'};
+function renderLib(){
+  const all=libCards(), cats=['전체','세계','인물','세력','장소','물건','사건','AI 임의 설정'];
+  const cnt=c=>c==='전체'?all.length:c==='AI 임의 설정'?all.filter(x=>x.ai).length:all.filter(x=>x.cat===c).length;
+  $('#cats').innerHTML=cats.map(c=>`<button type="button" data-act="cat" data-c="${c}" aria-pressed="${L.cat===c}"><span>${c}</span><span class="muted">${cnt(c)}</span></button>`).join('');
+  const list=all.filter(x=>L.cat==='전체'||(L.cat==='AI 임의 설정'?x.ai:x.cat===L.cat));
+  $('#lgrid').innerHTML=list.length?list.map(c=>`<button type="button" class="card lc ${c.ai?'aifill':''}" data-act="selCard" data-id="${c.id}" aria-pressed="${L.sel===c.id}"><b>${esc(c.t)}${c.ai?' <span class="tag">AI 임의 설정</span>':''}${c.review?' <span class="tag rev">재검토 필요</span>':''}</b><span style="font-size:13px">${esc(c.x)}</span><small>${c.cat} · 연결된 본문 ${c.links}곳</small></button>`).join(''):'<div class="card empty">위저드에서 만든 설정이 여기 모여요.</div>';
+  const c=all.find(x=>x.id===L.sel)||all[0];
+  $('#ldet').innerHTML=c?`<div class="det"><h2 style="font-size:16px">${esc(c.t)} <span class="chip">${c.cat}</span></h2>
+   ${c.ai?'<div class="sum aifill"><span class="tag">AI 임의 설정</span><p style="margin-top:4px">AI가 알아서 채운 항목이에요. 확인하면 꼬리표가 사라집니다.</p><div class="tools"><button class="btn sm" data-act="confirmAi" data-id="'+c.id+'">내용 확인하고 확정</button></div></div>':''}
+   <label for="detTx" style="font-weight:600">요약</label><textarea id="detTx">${esc(c.x)}</textarea>
+   <div class="muted" style="font-size:12.5px">별칭: ${esc(c.al||'없음')} · 연결된 본문 ${c.links}곳</div>
+   <div class="actions"><button class="btn sm" data-act="saveCard">저장</button><button class="btn sm ghost" data-act="go" data-to="s4">집필 화면으로</button></div></div>`:'';
+}
+
+/* ---------- S7 ---------- */
+function connCard(ai){
+  const st=aiStatus(ai), n=AIN[ai];
+  const map={ok:['ok','✓ 연결됨','마지막 확인: 방금 (모의)'],login:['warn','▲ 로그인 필요','공식 도구에서 다시 로그인해 주세요.'],limit:['warn','▲ 사용 한도 도달','한도가 풀릴 때까지 다른 AI를 쓸 수 있어요.'],helper:['bad','■ 연결 안 됨','도우미가 꺼져 있어요.']}[st];
+  return `<header><h2 style="font-size:15px"><span class="badge ${ai}"><span aria-hidden="true">${n.g}</span> ${n.name}</span></h2><span class="pill ${map[0]}">${map[1]}</span></header><p class="muted">${map[2]}</p><div class="actions"><button class="btn sm" data-act="testConn" data-ai="${ai}">연결 테스트</button></div><div class="muted" id="test-${ai}" style="font-size:12.5px"></div>`;
+}
+function renderSettings(){
+  const hs=S.sim==='helper_off';
+  $('#helperCard').innerHTML=`<header><h2 style="font-size:15px">룬북 도우미</h2><span class="pill ${hs?'bad':'ok'}">${hs?'■ 꺼짐':'✓ 실행 중'}</span></header><p class="muted">${hs?'도우미가 꺼져 있으면 AI 호출이 모두 멈춥니다.':'이 PC 안에서만 응답합니다. 외부에서는 접근할 수 없습니다. (모의)'}</p>`;
+  $('#claudeCard').innerHTML=connCard('claude');
+  $('#gptCard').innerHTML=connCard('chatgpt');
+  const rows=[['world','세계관·인물 만들기'],['ctx','맥락 진단'],['dir','방향 선택지'],['exp','표현 추천'],['check','설정 점검']];
+  $('#mapTbl').innerHTML=rows.map(([k,n])=>`<label for="m-${k}">${n}</label><select id="m-${k}" data-map="${k}"><option value="claude" ${S.map[k]==='claude'?'selected':''}>● Claude</option><option value="chatgpt" ${S.map[k]==='chatgpt'?'selected':''}>◆ ChatGPT</option></select>`).join('')
+   +`<label for="lvl">표현 추천의 시연 문장</label><select id="lvl"><option value="L0" ${S.level==='L0'?'selected':''}>L0 · 문장 없음, 패턴만</option><option value="L1" ${S.level==='L1'?'selected':''}>L1 · 항목당 2문장 80자 (기본)</option><option value="L2" ${S.level==='L2'?'selected':''}>L2 · 한 단락 300자, 복사만</option></select>`;
+  $('#autoFb').checked=S.autoFb;
+  $('#reqN').textContent=S.reqN;
+  $('#sim').value=S.sim;
+  $('#prefCard').innerHTML=`<h2 style="font-size:15px">선호 규칙 <span class="muted" style="font-weight:400">· 다음 호출에 한 줄씩 전달됩니다 (최대 12줄)</span></h2>${S.rules.length?`<ul style="margin:0;padding-left:18px">${S.rules.map((r,i)=>`<li>${esc(r)} <button class="btn sm ghost" data-act="delRule" data-i="${i}">삭제</button></li>`).join('')}</ul>`:'<p class="muted">아직 없어요. 추천 카드에 “별로” 이유를 같은 것으로 3번 남기면 제안이 떠요.</p>'}`;
+}
+
+/* ---------- 이벤트 ---------- */
+document.addEventListener('click',e=>{
+  const t=e.target;
+  if(!t.closest('#pop')&&!t.closest('.ent'))$('#pop').hidden=true;
+  if(!t.closest('#fab'))closeFab();
+  const a=t.closest('[data-act]');
+  if(!a){return}
+  const act=a.dataset.act;
+  // 후보 카드 본문 클릭
+  if(act==='pick'){
+    if(t.closest('button,input,textarea,label'))return;
+    if(W.merged&&a.dataset.n!=='m')return;
+    if(W.edit&&W.edit!==a.dataset.n)return;
+    W.sel=a.dataset.n==='m'?'m':+a.dataset.n;renderWiz();return;
+  }
+  if(act==='check')return; // change 이벤트에서 처리
+  switch(act){
+  case 'go':go(a.dataset.to);break;
+  case 'openProj':if(a.dataset.open==='true')go('s4');else toast('시안에서는 첫 작품만 열려요');break;
+  case 'genre':{const id=a.dataset.id,i=S.genres.indexOf(id);if(i>=0)S.genres.splice(i,1);else if(S.genres.length<2)S.genres.push(id);else toast('장르는 두 개까지 고를 수 있어요');renderGenres();break}
+  case 'genreMix':S.genres=['hunter','wuxia'];renderGenres();break;
+  case 'goStep':{const k=+a.dataset.k;if(W.fin)W.fin=false;resetTurn();W.i=k;
+    if(W.done[k]&&!W.done[k].skip){W.edit='own';W.draft={t:W.done[k].c.t,d:W.done[k].c.d};W.sel=null}
+    renderWiz();break}
+  case 'pickBtn':W.sel=+a.dataset.n;renderWiz();break;
+  case 'editCand':{readDraft();const n=a.dataset.n==='m'?'m':+a.dataset.n;const c=n==='m'?W.merged:curCands()[n];W.edit=n;W.sel=n;W.draft={t:c.t,d:c.d};renderWiz();break}
+  case 'ownWrite':W.err=null;W.edit='own';W.sel=null;W.draft=W.draft||{t:'',d:''};renderWiz();break;
+  case 'confirm':{
+    readDraft();
+    if(W.edit){const d=W.draft;if(!d.t.trim()&&!d.d.trim()){toast('내용을 적어 주세요');break}commit({t:d.t.trim()||'직접 입력',d:d.d.trim()},{});break}
+    if(W.sel===null||W.sel==='m')break;
+    commit(curCands()[W.sel],{});break}
+  case 'confirmM':if(W.merged)commit(W.merged,{});break;
+  case 'mergeBtn':{
+    const picks=W.checks.slice().sort().map(n=>curCands()[n]);
+    aiCall(()=>{W.merged={t:picks.map(p=>p.t).join(' + '),d:picks.map(p=>sentence(p.d)).join('. ')+'.'};W.sel='m'});break}
+  case 'remerge':{const picks=W.checks.slice().sort().reverse().map(n=>curCands()[n]);aiCall(()=>{W.merged={t:picks.map(p=>p.t).join(' + '),d:picks.map(p=>sentence(p.d)).join('. ')+'.'};W.sel='m'});break}
+  case 'regen':case 'retryWiz':{
+    if(a.dataset.ai)S.map.world=a.dataset.ai;
+    const hint=$('#talkIn')?$('#talkIn').value.trim():'';
+    const old=W.set;aiCall(()=>{W.prevSet=old;W.set=(old+1)%TURNS[W.i].sets.length;W.sel=null;W.checks=[];W.merged=null;W.edit=null;W.showPrev=false;if(hint)W.chat.push({me:true,t:hint})});break}
+  case 'togglePrev':{const tmp=W.set;W.set=W.prevSet;W.prevSet=tmp;W.showPrev=!W.showPrev;W.sel=null;W.checks=[];W.merged=null;renderWiz();break}
+  case 'cancelLoad':clearTimeout(wtimer);W.loading=false;renderWiz();break;
+  case 'skipLater':if(!TURNS[W.i].req){commit({t:'',d:''},{skip:true})}break;
+  case 'skipAi':if(!TURNS[W.i].req){const rec=curCands()[0];commit(rec,{auto:true})}break;
+  case 'undoAsk':{const k=+a.dataset.k;const later=W.done.slice(k+1).filter(Boolean).length;if(later){W.undoAsk=k;renderWiz()}else{W.done[k]=null;W.hist=W.hist.filter(x=>x!==k);W.fin=false;resetTurn();W.i=k;renderWiz()}break}
+  case 'undoOne':{const k=+a.dataset.k;for(let j=k+1;j<TURNS.length;j++)if(W.done[j]&&!W.done[j].skip)W.done[j].review=true;W.done[k]=null;W.hist=W.hist.filter(x=>x!==k);W.fin=false;resetTurn();W.i=k;renderWiz();break}
+  case 'undoAll':{const k=+a.dataset.k;for(let j=k;j<TURNS.length;j++)W.done[j]=null;W.hist=W.hist.filter(x=>x<k);W.fin=false;resetTurn();W.i=k;renderWiz();break}
+  case 'editDone':{const k=+a.dataset.k;W.fin=false;resetTurn();W.i=k;W.edit='own';W.draft={t:W.done[k].c.t,d:W.done[k].c.d};renderWiz();break}
+  case 'later':toast('요청을 저장했어요 (시안)');break;
+  case 'req':request(a.dataset.tab);break;
+  case 'retryRec':request(P.tab,a.dataset.ai||null);break;
+  case 'cancelRec':clearTimeout(P.load[a.dataset.tab+'t']);P.load[a.dataset.tab]=null;renderRec();break;
+  case 'askOther':request(P.tab,a.dataset.ai);break;
+  case 'sbs':P.sbs=!P.sbs;renderRec();break;
+  case 'copyCard':{const el=a.closest('.rcard').cloneNode(true);$$('button',el).forEach(b=>b.remove());copyText(el.innerText.replace(/\n{2,}/g,'\n').trim());break}
+  case 'memoCard':{const el=a.closest('.rcard').cloneNode(true);$$('button',el).forEach(b=>b.remove());memoAdd(el.innerText.replace(/\s+/g,' ').trim().slice(0,90)+'…');break}
+  case 'dropCard':P.res[a.dataset.tab].splice(+a.dataset.i,1);renderRec();break;
+  case 'copyTxt':copyText(a.dataset.txt);break;
+  case 'memoTxt':memoAdd(a.dataset.txt);break;
+  case 'copyOpt':{const o=DIR[a.dataset.ai].find(x=>x.l===a.dataset.l);copyText(`${o.l}. ${o.t} — ${o.b}`);break}
+  case 'adopt':{P.pins[a.dataset.key]=true;P.pins['3']=true;memoAdd('다음 장면 목적: '+a.dataset.t);renderTree();renderRec();break}
+  case 'like':P.rc[a.dataset.key]='like';renderRec();toast('좋은 신호로 기록했어요');break;
+  case 'dislike':P.fbOpen[a.dataset.key]=!P.fbOpen[a.dataset.key];renderRec();break;
+  case 'hide':P.rc[a.dataset.key]='hide';renderRec();break;
+  case 'unhide':delete P.rc[a.dataset.key];renderRec();break;
+  case 'why':{const id=a.dataset.id;P.fbOpen[a.dataset.key]=false;P.rc[a.dataset.key]='hide';P.reasonN=P.reasonN||{};P.reasonN[id]=(P.reasonN[id]||0)+1;
+    if(P.reasonN[id]>=3){const r=REASONS.find(x=>x[0]===id);P.sugg={rule:r[2]};P.reasonN[id]=0}else toast('반영했어요. 같은 이유가 3번 쌓이면 규칙을 제안해요 ('+P.reasonN[id]+'/3)');
+    renderRec();break}
+  case 'addRule':if(P.sugg){if(S.rules.length<12)S.rules.push(P.sugg.rule);P.sugg=null;toast('선호 규칙에 추가했어요');renderRec()}break;
+  case 'skipRule':P.sugg=null;renderRec();break;
+  case 'solve':{S.reqN++;P.warn.sol=false;renderRec();const st=aiStatus(S.map.check);if(st!=='ok'){toast('AI 연결 상태를 확인해 주세요');break}sleep(700,()=>{P.warn.sol=true;renderRec()});break}
+  case 'intended':P.warn.on=false;$('#edot').classList.add('off');renderRec();toast('의도한 것으로 확정했어요. 이 경고는 다시 뜨지 않아요');break;
+  case 'openCard':L.sel=a.dataset.id;L.cat='전체';$('#pop').hidden=true;go('s6');break;
+  case 'cat':L.cat=a.dataset.c;renderLib();break;
+  case 'selCard':L.sel=a.dataset.id;renderLib();break;
+  case 'confirmAi':{const c=LIB.find(x=>x.id===a.dataset.id);const k=WMAP[a.dataset.id];if(k!==undefined&&W.done[k]){W.done[k].auto=false}toast('확정했어요');renderLib();break}
+  case 'saveCard':toast('저장했어요 (시안)');break;
+  case 'testConn':{const ai=a.dataset.ai,out=$('#test-'+ai);out.textContent='테스트 중…';const st=aiStatus(ai);S.reqN++;sleep(700,()=>{out.textContent=st==='ok'?'응답 확인 · 1.8초 (모의)':st==='login'?'로그인이 필요해요':st==='limit'?'사용 한도에 도달했어요':'도우미에 연결할 수 없어요';$('#reqN').textContent=S.reqN});break}
+  case 'delRule':S.rules.splice(+a.dataset.i,1);renderSettings();break;
+  }
+});
+document.addEventListener('change',e=>{
+  const t=e.target;
+  if(t.matches('[data-act="check"]')){const n=+t.dataset.n;const i=W.checks.indexOf(n);if(t.checked&&i<0)W.checks.push(n);if(!t.checked&&i>=0)W.checks.splice(i,1);if(W.merged)W.merged=null;readDraft();renderWiz();return}
+  if(t.id==='sim'){S.sim=t.value;toast('상태를 바꿨어요');renderSettings();renderNav();return}
+  if(t.id==='autoFb'){S.autoFb=t.checked;return}
+  if(t.id==='lvl'){S.level=t.value;return}
+  if(t.dataset.map){S.map[t.dataset.map]=t.value;return}
+  if(t.id==='mixW'){S.mixW=+t.value;renderGenres();return}
+});
+document.addEventListener('submit',e=>{
+  const f=e.target.closest('[data-act="talk"]');if(!f)return;e.preventDefault();
+  const v=$('#talkIn').value.trim();if(!v)return;
+  readDraft();
+  const old=W.set;
+  W.chat.push({me:true,t:v});W.chat.push({me:false,t:'알겠어요. “'+v.slice(0,24)+(v.length>24?'…':'')+'” 방향을 반영해 후보를 다시 만들어 볼게요.'});
+  aiCall(()=>{W.prevSet=old;W.set=(old+1)%TURNS[W.i].sets.length;W.sel=null;W.checks=[];W.merged=null;W.edit=null});
+});
+document.addEventListener('input',e=>{
+  const t=e.target;
+  if(t.id==='logline'){S.logline=t.value;const ok=S.genres.length>0&&S.logline.trim().length>0;$('#btnStartWiz').disabled=!ok}
+  if(t.id==='qsearch')filterQuick();
+  if(t.id==='ms'||t.closest('#ms')){countChars();$('#edSave').textContent='저장 중…';clearTimeout(window.__sv);window.__sv=setTimeout(()=>{$('#edSave').textContent='저장됨 (시안: 실제 저장 없음)'},900)}
+});
+$('#segRel').addEventListener('click',e=>{const b=e.target.closest('button');if(b){S.rel=b.dataset.v;renderGenres()}});
+$('#segAcc').addEventListener('click',e=>{const b=e.target.closest('button');if(b){S.acc=b.dataset.v;renderGenres()}});
+$('#mixAi').addEventListener('click',()=>{S.mixW=60;S.rel='translate';S.acc='loose';renderGenres();toast('AI 추천값으로 맞췄어요')});
+$('#btnEx').addEventListener('click',()=>{S.logline='E급 헌터 한도윤이 게이트 심층에서 사라진 무림 문파 ‘청운문’의 석비를 발견하고, 서울 지하에 봉인된 무림의 마지막 계승자가 된다.';if(!S.genres.length)S.genres=['hunter','wuxia'];renderGenres()});
+$('#btnStartWiz').addEventListener('click',()=>{wizInit();go('s3')});
+$('#aiSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(b){P.ai=b.dataset.v;renderRec()}});
+$('#tabs').addEventListener('click',e=>{const b=e.target.closest('button');if(b){P.tab=b.dataset.tab;renderRec();if($('#rec').dataset.sheet==='peek')setSheet('half')}});
+$('#handle').addEventListener('click',()=>{const o=['peek','half','full'];const c=$('#rec').dataset.sheet;setSheet(o[(o.indexOf(c)+1)%3])});
+$('#btnTree').addEventListener('click',()=>$('#tree').classList.toggle('open'));
+$('#btnFocus').addEventListener('click',()=>toggleFocus());
+function toggleFocus(on){const b=document.body;const v=on===undefined?!b.classList.contains('focus'):on;b.classList.toggle('focus',v);$('#btnFocus').setAttribute('aria-pressed',v);$('#btnFocus').textContent=v?'집중 모드 끝내기':'집중 모드';renderRec()}
+function closeFab(){$('#fabMenu').hidden=true;$('#btnStuck').setAttribute('aria-expanded','false')}
+$('#btnStuck').addEventListener('click',e=>{e.stopPropagation();const m=$('#fabMenu');m.hidden=!m.hidden;$('#btnStuck').setAttribute('aria-expanded',String(!m.hidden))});
+$('#fabMenu').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;closeFab();P.tab=b.dataset.pick;document.body.classList.remove('focus');$('#btnFocus').textContent='집중 모드';$('#btnFocus').setAttribute('aria-pressed','false');if($('#rec').dataset.sheet==='peek')setSheet('half');
+  const sel=window.getSelection().toString().trim();
+  request(P.tab,null,{sel:b.dataset.pick==='exp'?sel:''})});
+$('#ms').addEventListener('click',e=>{const en=e.target.closest('.ent');if(en){e.stopPropagation();showPop(en);return}
+  const d=e.target.closest('#edot');if(d){e.preventDefault();P.tab='ctx';if($('#rec').dataset.sheet==='peek')setSheet('half');renderRec();$('#recBody').scrollTop=0;toast('“15分째” ↔ 관제 지연 최대 3분')}});
+$('#edot').addEventListener('mouseenter',()=>{$('#edot').title='“15분째” ↔ 협회 카드의 관제 지연 최대 3분'});
+function selCheck(){
+  const s=window.getSelection();const chip=$('#selchip');
+  if(!s||s.isCollapsed||!$('#ms').contains(s.anchorNode)){chip.hidden=true;return}
+  const txt=s.toString().trim();if(txt.length<2){chip.hidden=true;return}
+  const r=s.getRangeAt(0).getBoundingClientRect();P.sel=txt;
+  chip.hidden=false;chip.style.left=Math.min(Math.max(8,r.left),window.innerWidth-110)+'px';chip.style.top=Math.max(8,r.top-40)+'px';
+}
+$('#ms').addEventListener('mouseup',()=>setTimeout(selCheck,0));
+$('#ms').addEventListener('keyup',selCheck);
+$('#selchip').addEventListener('pointerdown',e=>e.preventDefault());
+$('#selBtn').addEventListener('click',()=>{P.tab='exp';document.body.classList.remove('focus');if($('#rec').dataset.sheet==='peek')setSheet('half');request('exp',null,{sel:P.sel});$('#selchip').hidden=true});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){$('#pop').hidden=true;closeFab();if(document.body.classList.contains('focus'))toggleFocus(false)}
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'&&cur==='s3'&&!/INPUT|TEXTAREA/.test((e.target.tagName||''))){
+    const k=W.hist.pop();if(k!==undefined){W.done[k]=null;W.fin=false;resetTurn();W.i=k;renderWiz();toast('직전 확정을 되돌렸어요');e.preventDefault()}}
+});
+window.addEventListener('resize',()=>{if(cur==='s4'||cur==='s5')renderRec()});
+$('#btnTheme').addEventListener('click',()=>{const o=['system','light','dark'];const c=document.documentElement.dataset.theme||'system';setTheme(o[(o.indexOf(c)+1)%3])});
+function setTheme(m){const r=document.documentElement;if(m==='system')r.removeAttribute('data-theme');else r.dataset.theme=m;$('#btnTheme').textContent='테마: '+({system:'시스템',light:'라이트',dark:'다크'}[m]);lsSet('rb-theme',m)}
+$('#btnFont').addEventListener('click',()=>{const c=document.body.dataset.font==='serif'?'sans':'serif';document.body.dataset.font=c;$('#btnFont').textContent='본문: '+(c==='serif'?'명조':'고딕');lsSet('rb-font',c)});
+const t0=lsGet('rb-theme');if(t0&&t0!=='system')setTheme(t0);
+const f0=lsGet('rb-font');if(f0==='sans'){document.body.dataset.font='sans';$('#btnFont').textContent='본문: 고딕'}
+
+/* 시작 */
+renderNav();renderHome();countChars();
+window.__rb={go,S,W:()=>W,P};
+})();
+</script>
+</body>
+</html>
