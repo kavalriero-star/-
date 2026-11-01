@@ -164,3 +164,35 @@ test('회차 요약: 받아들이면 기억에 저장, 요약에서 빠진 상�
   const src = await wr.loadMemorySources(st, w);
   assert.equal(src.summaries.episodes[1].text, '석비를 찾았다');
 });
+
+test('긴 연재: 아크 요약이 덮지 않는 오래된 회차는 빼지 않고 첫 문장으로 줄인다', () => {
+  const src = sources();
+  src.summaries.episodes = Object.fromEntries(Array.from({ length: 30 }, (_, i) => [i + 1, { text: `${i + 1}화의 첫 문장이다. 그리고 긴 뒷부분 ${'설명 '.repeat(200)}` }]));
+  src.episodes = [{ no: 31, scenes: [{ id: 'sc_0009', text: '' }] }];
+  const noArc = assembleMemory(src, { ep: 31, sceneId: 'sc_0009', budget: 8000 });
+  const t1 = noArc.blocks.find((b) => b.key === 'episodes').text;
+  assert.ok(t1.includes('1화: 1화의 첫 문장이다.'), '아크가 없으면 첫 문장은 남긴다');
+  src.summaries.arcs = [{ from: 1, to: 20, title: '1부', text: '1부 아크 요약' }];
+  const withArc = assembleMemory(src, { ep: 31, sceneId: 'sc_0009', budget: 8000 });
+  const t2 = withArc.blocks.find((b) => b.key === 'episodes').text;
+  assert.ok(!t2.includes('1화: 1화의'), '아크가 덮는 회차는 뺀다');
+  assert.ok(t2.includes('21화: 21화의 첫 문장이다.'));
+  assert.ok(withArc.blocks.find((b) => b.key === 'arcs').text.includes('1부 아크 요약'));
+});
+
+test('아크 요약: 10화가 쌓이면 후보, 저장 시 빠진 상태 변화 알림', async () => {
+  const { st, w } = await writingWork();
+  for (let n = 1; n <= 10; n++) {
+    await wr.createEpisode(st, w, {});
+    await wr.acceptEpisodeSummary(st, w, { ep: wr.epId(n), text: `${n}화 요약` });
+  }
+  const next = await wr.arcCandidates(st, w);
+  assert.deepEqual(next, { from: 1, to: 10 });
+  const prep = await wr.prepareArcSummary(st, w, next);
+  const parsed = wr.parseArcSummary(prep.prompt.mockText);
+  assert.equal(parsed.ok, true);
+  await st.appendJsonl(st.wp(w, 'memory/state_log.jsonl'), { ep: 3, name: '한도윤', field: '부상', value: '골절' });
+  const r = await wr.acceptArcSummary(st, w, { ...next, title: parsed.value.title, text: '석비를 찾았다' });
+  assert.deepEqual(r.missing, ['한도윤(3화 부상)']);
+  assert.equal(await wr.arcCandidates(st, w), null);
+});

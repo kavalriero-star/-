@@ -336,11 +336,15 @@ function memPanel() {
     <div class="card rcard"><b>미회수 떡밥 ${openThreads.length}개</b>${openThreads.map((t) => `<p class="small">• ${esc(t.title)} <span class="muted">(${t.planted_ep}화)</span></p>`).join('') || '<p class="muted small">없음</p>'}</div>
     <div class="card rcard"><b>최근 상태 변화</b>${(m.stateLog || []).slice(-10).reverse().map((s) => `<p class="small">${s.ep}화 · ${esc(s.name || s.entity)} ${esc(s.field)} = ${esc(s.value)}</p>`).join('') || '<p class="muted small">없음</p>'}</div>
     <div class="card rcard"><b>새 설정 후보 ${pending.length}개</b>${pending.map((c) => `<div class="row small"><span>${esc(c.kind)} · <b>${esc(c.name)}</b> ${esc(c.desc)}</span><button class="btn sm" data-act="candAccept" data-id="${esc(c.id)}">카드로 만들기</button><button class="btn sm ghost" data-act="candDismiss" data-id="${esc(c.id)}">버리기</button></div>`).join('') || '<p class="muted small">없음</p>'}</div>
+    <div class="card rcard"><b>아크 요약 ${(m.summaries?.arcs || []).length}개</b>${(m.summaries?.arcs || []).map((a) => `<p class="small"><b>${a.from}~${a.to}화 ${esc(a.title || '')}</b> ${esc(a.text)}</p>`).join('') || '<p class="muted small">회차 요약이 10개 쌓이면 아크 요약으로 접을 수 있어요. 오래된 회차를 짧게 기억하게 해서 긴 연재에서도 잊지 않게 해요.</p>'}
+      ${m.arcNext ? `<button class="btn sm" data-act="arcPropose" data-from="${m.arcNext.from}" data-to="${m.arcNext.to}">${m.arcNext.from}~${m.arcNext.to}화 아크 요약 만들기</button>` : ''}${ui.wr.arcJob ? jobBox(ui.wr.arcJob, '아크 요약 중') : ''}
+      ${ui.wr.arcDraft ? `<div class="draft"><input type="text" id="arcTitle" value="${esc(ui.wr.arcDraft.title)}" aria-label="아크 제목"><textarea id="arcText" rows="6" style="width:100%">${esc(ui.wr.arcDraft.text)}</textarea><div class="actions"><button class="btn sm primary" data-act="acceptArc">기억에 저장</button><button class="btn sm ghost" data-act="dropArc">버리기</button></div></div>` : ''}</div>
     <div class="card rcard"><b>회차 요약</b>${Object.entries(m.summaries?.episodes || {}).map(([no, s]) => `<p class="small"><b>${esc(no)}화</b> ${esc(s.text || s)}</p>`).join('') || '<p class="muted small">회차를 끝내면 “회차 요약”으로 만들어 두세요. 다음 회차를 쓸 때 기억으로 들어가요.</p>'}</div></div>`;
 }
 
 async function loadMem() {
   ui.wr.mem = await api('GET', `/works/${ui.w}/memory`);
+  ui.wr.mem.arcNext = (await api('GET', `/works/${ui.w}/memory/arc`)).next;
   ui.wr.bible = await api('GET', `/works/${ui.w}/bible`);
   if (ui.wr.tab === 'mem') setRec(memPanel);
 }
@@ -588,6 +592,18 @@ const ACT = {
   },
   acceptSummary: async () => { const r = await api('POST', `/works/${ui.w}/episodes/${ui.wr.ep}/summary`, { text: $('#sumText').value, events: ui.wr.sumDraft.events }); ui.wr.sumDraft = null; ui.wr.mem = null; toast(r.missing.length ? `요약에 빠진 변화: ${r.missing.join(', ')}` : '회차 요약을 기억에 저장했어요'); await screenWrite(ui.wr.ep); },
   dropSummary: () => { ui.wr.sumDraft = null; drawWrite(); },
+  arcPropose: async (el) => {
+    const range = { from: Number(el.dataset.from), to: Number(el.dataset.to) };
+    try {
+      const j = await startJob('POST', `/works/${ui.w}/memory/arc/propose`, range);
+      if (!j) return;
+      ui.wr.arcJob = j; setRec(memPanel);
+      const done = await waitJob(j.id, (x) => { ui.wr.arcJob = x; });
+      ui.wr.arcDraft = { ...range, ...done.result };
+    } catch (e) { toast(errText(e)); } finally { ui.wr.arcJob = null; setRec(memPanel); }
+  },
+  acceptArc: async () => { const d = ui.wr.arcDraft; const r = await api('POST', `/works/${ui.w}/memory/arc`, { from: d.from, to: d.to, title: $('#arcTitle').value, text: $('#arcText').value }); ui.wr.arcDraft = null; ui.wr.mem = null; toast(r.missing.length ? `요약에 빠진 변화: ${r.missing.slice(0, 3).join(', ')}` : '아크 요약을 기억에 저장했어요'); setRec(memPanel); },
+  dropArc: () => { ui.wr.arcDraft = null; setRec(memPanel); },
   savePins: async () => { const m = ui.wr.mem; const add = $('#pinCard').value; const cards = [...(m.pins?.cards || []), ...(add ? [add] : [])]; await api('PUT', `/works/${ui.w}/memory/pins`, { cards, notes: $('#pinNotes').value.split('\n') }); ui.wr.mem = null; toast('고정 기억을 저장했어요'); setRec(memPanel); },
   unpin: async (el) => { const m = ui.wr.mem; await api('PUT', `/works/${ui.w}/memory/pins`, { cards: (m.pins.cards || []).filter((x) => x !== el.dataset.id), notes: m.pins.notes || [] }); ui.wr.mem = null; setRec(memPanel); },
   saveStyle: async () => { await api('PATCH', `/works/${ui.w}/style`, { pov: $('#stPov').value || null, rules: $('#stRules').value.split('\n'), samples: $('#stSample').value.split(/\n\s*\n\s*\n/).map((x) => x.trim()), art_style: $('#stArt').value }); ui.wr.mem = null; ui.wr.bible = null; ui.wr.bible = await api('GET', `/works/${ui.w}/bible`); toast('문체 가이드를 저장했어요'); setRec(memPanel); },

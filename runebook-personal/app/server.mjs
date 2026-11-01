@@ -289,6 +289,12 @@ export async function startServer(options = {}) {
     last.sort((a, b) => String(b.at).localeCompare(String(a.at)));
     return { summaries: src.summaries, stateLog: src.stateLog.slice(-200), pins: src.pins, plan: src.plan, ledgers: last.slice(0, 10), threads: src.bible.thread };
   });
+  route('GET', '/works/:w/memory/arc', async ({ params }) => ({ next: await wr.arcCandidates(store, params.w) }));
+  route('POST', '/works/:w/memory/arc/propose', async ({ params, body }) => {
+    const prep = await wr.prepareArcSummary(store, params.w, body);
+    return jobs.create({ provider: providerFor('summary'), kind: 'arc', prompt: prep.prompt, confirmOverCap: !!body.confirmOverCap, parse: wr.parseArcSummary });
+  });
+  route('POST', '/works/:w/memory/arc', async ({ params, body }) => wr.acceptArcSummary(store, params.w, body));
   route('PUT', '/works/:w/memory/pins', async ({ params, body }) => {
     const cards = Array.isArray(body.cards) ? body.cards.filter((x) => /^[a-z]{2}_\d{4}$/.test(x)).slice(0, 20) : [];
     const notes = Array.isArray(body.notes) ? body.notes.filter((x) => typeof x === 'string' && x.trim()).map((x) => x.slice(0, 300)).slice(0, 30) : [];

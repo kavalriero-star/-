@@ -235,9 +235,17 @@ export function assembleMemory(src, opt) {
   }
   const eps = blocks.find((b) => b.key === 'episodes');
   if (total() > budget && eps && epSum.length > 5) {
-    eps.text = `${epSum.length - 5}개 회차는 아크 요약으로 대신함\n${epSum.slice(-5).map(([no, s]) => `${no}화: ${typeof s === 'string' ? s : s.text}`).join('\n')}`;
+    // 아크 요약이 덮는 오래된 회차는 빼고, 덮지 않는 회차는 첫 문장만 남긴다(빼지 않는다).
+    const arcsList = summaries.arcs || [];
+    const covered = (no) => arcsList.some((a) => no >= a.from && no <= a.to);
+    const older = epSum.slice(0, -5);
+    const firstSentence = (t) => (String(t).split(/(?<=[.!?다])\s/)[0] || '').slice(0, 120);
+    const kept = older.filter(([no]) => !covered(no)).map(([no, s]) => `${no}화: ${firstSentence(typeof s === 'string' ? s : s.text)}`);
+    const recentEp = epSum.slice(-5).map(([no, s]) => `${no}화: ${typeof s === 'string' ? s : s.text}`);
+    const droppedN = older.length - kept.length;
+    eps.text = [droppedN ? `(${droppedN}개 회차는 위 아크 요약에 들어 있음)` : '', ...kept, ...recentEp].filter(Boolean).join('\n');
     eps.mode = 'folded';
-    notes.push('오래된 회차 요약을 접음');
+    notes.push(kept.length ? `오래된 회차 요약 ${kept.length}개를 첫 문장으로 줄임(아크 요약을 만들면 더 짧아져요)` : '오래된 회차 요약을 아크 요약으로 접음');
   }
   for (const b of blocks.filter((x) => x.layer === 'M2')) {
     if (total() <= budget) break;
