@@ -55,6 +55,8 @@ const DEFAULT_SETTINGS = {
   hourlyCap: 20,
   autoFallback: false,
   mockMode: 'ok',
+  imageProvider: 'manual',
+  memoryBudget: 60000,
 };
 
 // 엔티티 종류별 저장 위치. file: 개체마다 파일 하나, list: 목록 파일의 items[]
