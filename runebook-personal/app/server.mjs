@@ -3,6 +3,7 @@
 import http from 'node:http';
 import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
+import { realpathSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
@@ -396,13 +397,30 @@ export async function startServer(options = {}) {
 }
 
 function openBrowser(url) {
-  const cmd = process.platform === 'win32' ? ['cmd', ['/c', 'start', '""', url]] : process.platform === 'darwin' ? ['open', [url]] : ['xdg-open', [url]];
+  // Windows: 주소에는 cmd 특수문자가 없다(토큰은 16진수). 따옴표가 그대로 전달되도록 verbatim으로 넘긴다.
+  const cmd = process.platform === 'win32' ? [process.env.ComSpec || 'cmd.exe', ['/d', '/c', 'start', '""', url]] : process.platform === 'darwin' ? ['open', [url]] : ['xdg-open', [url]];
   try {
-    spawn(cmd[0], cmd[1], { stdio: 'ignore', detached: true, windowsHide: true }).unref();
+    const child = spawn(cmd[0], cmd[1], { stdio: 'ignore', detached: true, windowsHide: true, windowsVerbatimArguments: process.platform === 'win32' });
+    child.on('error', () => { /* 브라우저를 못 열면 주소를 직접 연다 */ });
+    child.unref();
   } catch { /* 브라우저를 못 열면 주소를 직접 연다 */ }
 }
 
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+function isMain() {
+  if (!process.argv[1]) return false;
+  let a = path.resolve(process.argv[1]);
+  let b = fileURLToPath(import.meta.url);
+  try { a = realpathSync(a); b = realpathSync(b); } catch { /* 그대로 비교 */ }
+  // Windows는 드라이브 문자·경로 대소문자를 구분하지 않는다
+  return process.platform === 'win32' ? a.toLowerCase() === b.toLowerCase() : a === b;
+}
+
+if (isMain()) {
+  const major = Number(process.versions.node.split('.')[0]);
+  if (major < 22) {
+    console.error(`Node.js ${process.version}는 너무 오래됐어요. 22 이상을 https://nodejs.org 에서 설치한 뒤 다시 실행해 주세요.`);
+    process.exit(1);
+  }
   const o = parseArgs(process.argv.slice(2));
   startServer(o).then(({ url, store }) => {
     console.log('룬북 도우미가 켜졌어요.');
