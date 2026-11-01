@@ -1,0 +1,13 @@
+{
+  "$comment": "공동 집필 출력의 ===기억=== 뒤 JSON. CONCEPT_V3.md 2.4절. 앱은 형식에 맞지 않는 항목만 버리고 나머지는 쓴다.",
+  "type": "object",
+  "properties": {
+    "장면요약": { "type": "string", "maxLength": 500 },
+    "등장": { "type": "array", "maxItems": 20, "items": { "type": "string", "maxLength": 30 } },
+    "상태변화": { "type": "array", "maxItems": 20, "items": { "type": "object", "required": ["이름", "항목", "값"], "properties": { "이름": { "type": "string", "maxLength": 30 }, "항목": { "type": "string", "maxLength": 20 }, "값": { "type": "string", "maxLength": 100 } } } },
+    "새설정후보": { "type": "array", "maxItems": 10, "items": { "type": "object", "required": ["종류", "이름"], "properties": { "종류": { "type": "string", "maxLength": 10 }, "이름": { "type": "string", "maxLength": 30 }, "설명": { "type": "string", "maxLength": 200 } } } },
+    "떡밥": { "type": "object", "properties": { "심음": { "type": "array", "maxItems": 10, "items": { "type": "string", "maxLength": 60 } }, "회수": { "type": "array", "maxItems": 10, "items": { "type": "string", "maxLength": 60 } } } },
+    "훅유형": { "type": "string", "enum": ["질문", "위기", "반전", "폭로", "예고"] },
+    "확인필요": { "type": "array", "maxItems": 10, "items": { "type": "string", "maxLength": 200 } }
+  }
+}

@@ -1,0 +1,14 @@
+{"schemaVersion":1,"questions":[
+ {"qid":"hunter.ladder","step":"W3","order":10,"label":"등급","question":"등급은?","genres":["hunter"],"required":false,"input":"ai",
+  "target":{"entity":"system","slot":"hunter","kind":"awakening","path":"","merge":"set"},"depends":["world.premise"],
+  "value_schema":{"type":"object","additionalProperties":false,"required":["ladder"],"properties":{"name":{"type":"string","maxLength":20},"ladder":{"type":"array","items":{"type":"object","additionalProperties":false,"required":["rank","name"],"properties":{"rank":{"type":"integer"},"name":{"type":"string","maxLength":20}}}}}},"hint":"",
+  "examples":[{"title":"F~S","desc":"","value":{"name":"각성 등급","ladder":[{"rank":1,"name":"F"},{"rank":2,"name":"E"}]}},{"title":"별","desc":"","value":{"ladder":[{"rank":1,"name":"1성"}]}},{"title":"색","desc":"","value":{"ladder":[{"rank":1,"name":"흑"}]}}]},
+ {"qid":"wuxia.ladder","step":"W3","order":20,"label":"경지","question":"경지는?","genres":["wuxia"],"required":false,"input":"ai",
+  "target":{"entity":"system","slot":"wuxia","kind":"internal_energy","path":"","merge":"set"},"depends":[],
+  "value_schema":{"type":"object","additionalProperties":false,"required":["ladder"],"properties":{"ladder":{"type":"array","items":{"type":"object","required":["rank","name"],"properties":{"rank":{"type":"integer"},"name":{"type":"string","maxLength":20}}}}}},"hint":"",
+  "examples":[{"title":"삼류~절정","desc":"","value":{"ladder":[{"rank":1,"name":"삼류"}]}},{"title":"b","desc":"","value":{"ladder":[{"rank":1,"name":"이류"}]}},{"title":"c","desc":"","value":{"ladder":[{"rank":1,"name":"일류"}]}}]},
+ {"qid":"mix.system_relation","step":"W3","order":5,"label":"체계 관계","question":"두 체계의 관계는?","genres":["mix"],"required":false,"input":"ai",
+  "target":{"entity":"work","slot":null,"path":"mix_policy","merge":"set"},"depends":[],
+  "value_schema":{"type":"object","additionalProperties":false,"required":["system_relation"],"properties":{"system_relation":{"type":"string","enum":["replace","layer","parallel","translate"]}}},"hint":"",
+  "examples":[{"title":"대응","desc":"","value":{"system_relation":"translate"}},{"title":"병존","desc":"","value":{"system_relation":"parallel"}},{"title":"겹침","desc":"","value":{"system_relation":"layer"}}]}
+]}

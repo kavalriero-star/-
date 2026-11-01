@@ -1,0 +1,9 @@
+{
+  "$comment": "다듬기 모드 출력. CONCEPT_V3.md 2.1절.",
+  "type": "object",
+  "required": ["대안"],
+  "properties": {
+    "작업": { "type": "string" },
+    "대안": { "type": "array", "minItems": 1, "maxItems": 2, "items": { "type": "object", "required": ["본문"], "properties": { "본문": { "type": "string", "maxLength": 6000 }, "바꾼점": { "type": "string", "maxLength": 200 } } } }
+  }
+}
