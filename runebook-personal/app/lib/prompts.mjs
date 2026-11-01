@@ -35,12 +35,18 @@ export function newNonce() {
 
 const clip = (s, n) => (s.length > n ? `${s.slice(0, n)}…` : s);
 
+const ENUM_KO = {
+  first: '1인칭', third_limited: '3인칭 제한', omniscient: '전지', replace: '대체', layer: '겹침', parallel: '병존', translate: '대응표(번역)',
+  strict: '고증 엄격', loose: '고증 느슨', alt_history: '대체역사', off: '고증 끔', modern: '현대', historical: '역사', fantasy: '판타지',
+};
+
 // 값 객체를 사람이 읽는 한 줄로 줄인다(화면 요약과 프롬프트 맥락에 같이 쓴다).
 export function summarize(value, max = 160) {
   const parts = [];
   const walk = (v) => {
     if (v === null || v === undefined || v === '') return;
-    if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean') { parts.push(String(v)); return; }
+    if (typeof v === 'boolean') { parts.push(v ? '예' : '아니오'); return; }
+    if (typeof v === 'string' || typeof v === 'number') { parts.push(ENUM_KO[v] || String(v)); return; }
     if (Array.isArray(v)) { v.forEach(walk); return; }
     if (typeof v === 'object') {
       const pick = v.text ?? v.name ?? v.title;

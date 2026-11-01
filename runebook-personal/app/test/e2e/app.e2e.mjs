@@ -42,7 +42,7 @@ try {
   await page.waitForSelector('text=진행률');
   let rounds = 0;
   let edited = false;
-  while (rounds++ < 40) {
+  while (rounds++ < 150) {
     if (await page.isVisible('text=모든 문항을 지나왔어요')) break;
     if (await page.isVisible('[data-act="propose"]')) {
       await page.click('[data-act="propose"]');
