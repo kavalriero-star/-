@@ -1,7 +1,9 @@
 // 맥락 기억 장치. 기준: docs/CONCEPT_V3.md 4절.
 // AI는 호출 사이에 아무것도 기억하지 않으므로, 앱이 기억을 층으로 조립해 매번 넣는다.
 // 고정 기억(M0)과 이번 작업(M5)은 예산이 부족해도 빼지 않고, 원문(M4)부터 줄인다.
-import { summarize } from './prompts.mjs';
+import { summarize, genreLabel } from './prompts.mjs';
+
+const SYSTEM_KO = { magic: '마법', awakening: '각성', internal_energy: '내공', history_anchor: '시대 기준', status_ladder: '신분' };
 
 export const LAYER_LABEL = {
   M0: '고정 기억', M1: '이야기 지도', M2: '관련 카드', M3: '연속성', M4: '원문', M5: '이번 작업',
@@ -139,7 +141,7 @@ export function assembleMemory(src, opt) {
   // M0 고정
   const charter = [
     `제목: ${work.title || ''}`,
-    `장르: ${(work.genres || []).join(' + ')}${work.tags?.length ? ` · 꼬리표: ${work.tags.join(', ')}` : ''}`,
+    `장르: ${(work.genres || []).map(genreLabel).join(' + ')}${work.tags?.length ? ` · 꼬리표: ${work.tags.join(', ')}` : ''}`,
     `한 줄 컨셉: ${work.logline || ''}`,
     work.usp ? `차별점: ${work.usp}` : '',
     work.tone?.length ? `톤: ${work.tone.join(', ')}` : '',
@@ -153,7 +155,7 @@ export function assembleMemory(src, opt) {
     w.era ? `시대: ${val(w.era)}` : '',
     w.public_knowledge ? `일반인이 아는 것: ${w.public_knowledge}` : '',
   ].filter(Boolean).join('\n'));
-  for (const s of bible.system || []) push('M0', s.id, `체계 ${s.name || s.kind}`, cardText('체계', s));
+  for (const s of bible.system || []) push('M0', s.id, `체계 ${s.name || SYSTEM_KO[s.kind] || s.kind}`, cardText('체계', { ...s, kind: SYSTEM_KO[s.kind] || s.kind }));
   const style = work.style || {};
   push('M0', 'style', '문체 가이드', [
     style.pov ? `시점: ${{ first: '1인칭', third_limited: '3인칭 제한', omniscient: '전지' }[style.pov] || style.pov}` : '',

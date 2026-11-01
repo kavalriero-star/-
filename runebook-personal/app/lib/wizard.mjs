@@ -4,7 +4,7 @@ import path from 'node:path';
 import { validate } from './validate.mjs';
 import { extractJson } from './extract.mjs';
 import { ENTITY, HttpError, nextIdIn } from './store.mjs';
-import { summarize, wizardContext, wizardBatchPrompt } from './prompts.mjs';
+import { summarize, wizardContext, wizardBatchPrompt, genreLabel } from './prompts.mjs';
 
 export const STEPS = [
   { id: 'W0', label: '장르·톤' }, { id: 'W1', label: '한 줄 컨셉' }, { id: 'W2', label: '세계 규칙' },
@@ -370,7 +370,7 @@ export async function view(store, w, bank) {
         qid: q.qid, label: q.label, question: q.question, hint: q.hint, required: !!q.required, input: q.input,
         value_schema: q.value_schema, example: q.examples[0] || null,
         status: status[q.qid].status, needsReview: !!status[q.qid].needsReview,
-        value: status[q.qid].value, summary: status[q.qid].value ? summarize(status[q.qid].value) : '',
+        value: status[q.qid].value, summary: !status[q.qid].value ? '' : (q.qid === 'work.genres' ? (status[q.qid].value.genres || []).map((g) => `${genreLabel(g)}${status[q.qid].value.genre_weights?.[g] ? ` ${status[q.qid].value.genre_weights[g]}%` : ''}`).join(' + ') : summarize(status[q.qid].value)),
         hasDependents: questions.some((x) => x.depends.includes(q.qid)),
       })),
     })),

@@ -5,6 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { nextIdIn } from './store.mjs';
 import { currentState } from './memory.mjs';
+import { genreLabel } from './prompts.mjs';
 import { runCli, cleanEnv } from './runner.mjs';
 import { tempDir, rmDir, fail, classify } from './adapters/common.mjs';
 
@@ -57,7 +58,7 @@ export function buildImagePrompt({ kind, bible, stateLog = [], summaries = {}, r
   const lines = [
     `[화풍] ${work.style?.art_style || '선명한 디지털 페인팅, 웹소설 삽화풍, 부드러운 조명'}`,
     `[종류] ${k.frame}`,
-    `[세계 분위기] 장르: ${(work.genres || []).join(' + ')} · 시대: ${world.era ? (world.era.label || world.era.kind || '') : '미정'} · 전제: ${one(world.premise, 100)}`,
+    `[세계 분위기] 장르: ${(work.genres || []).map(genreLabel).join(' + ')} · 시대: ${world.era ? (world.era.label || world.era.kind || '') : '미정'} · 전제: ${one(world.premise, 100)}`,
   ];
   if (kind === 'map') {
     const ps = world.places || [];
