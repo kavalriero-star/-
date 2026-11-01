@@ -1,0 +1,488 @@
+{
+  "schemaVersion": 1,
+  "questions": [
+    {
+      "qid": "hunter.awaken",
+      "step": "W3",
+      "order": 20,
+      "label": "각성 규칙·대가",
+      "question": "누가, 언제, 어떻게 각성하고, 각성에는 어떤 대가가 따르나요?",
+      "genres": [
+        "hunter"
+      ],
+      "required": false,
+      "input": "ai",
+      "target": {
+        "entity": "system",
+        "slot": "hunter",
+        "kind": "awakening",
+        "path": "",
+        "merge": "set"
+      },
+      "depends": [
+        "world.rules"
+      ],
+      "value_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "awaken_rule",
+          "cost"
+        ],
+        "properties": {
+          "awaken_rule": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "cost": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          }
+        }
+      },
+      "hint": "각성 조건과 대가를 한 줄씩. 재각성 가능 여부도 정하면 좋아요.",
+      "examples": [
+        {
+          "title": "첫 게이트 무작위",
+          "desc": "대각성형. 첫 게이트가 열린 날 무작위로 깨어났다.",
+          "value": {
+            "awaken_rule": "첫 게이트가 열린 날 반경 안에 있던 사람 중 1%가 무작위로 각성했다",
+            "cost": "각성 직후 사흘간 고열, 이를 못 넘기면 사망"
+          }
+        },
+        {
+          "title": "성인 검사 고정",
+          "desc": "제도형. 성인이 되면 검사받고 등급이 평생 고정된다.",
+          "value": {
+            "awaken_rule": "만 18세에 협회 각성 검사를 받고 등급은 평생 고정된다",
+            "cost": "미각성 판정자는 사회적 낙인이 찍힌다"
+          }
+        },
+        {
+          "title": "죽음 직전 재각성",
+          "desc": "역전형. 죽을 고비마다 다시 각성할 수 있다.",
+          "value": {
+            "awaken_rule": "죽음 직전까지 몰리면 각성하며, 같은 방식으로 재각성이 가능하다",
+            "cost": "각성할 때마다 소중한 기억 하나를 잃는다"
+          }
+        }
+      ]
+    },
+    {
+      "qid": "hunter.gate_rule",
+      "step": "W3",
+      "order": 21,
+      "label": "게이트 규칙",
+      "question": "게이트는 어떻게 열리고, 방치하면 어떤 일이 벌어지나요?",
+      "genres": [
+        "hunter"
+      ],
+      "required": false,
+      "input": "ai",
+      "target": {
+        "entity": "system",
+        "slot": "hunter",
+        "kind": "awakening",
+        "path": "",
+        "merge": "set"
+      },
+      "depends": [
+        "world.premise"
+      ],
+      "value_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "gate_rule"
+        ],
+        "properties": {
+          "gate_rule": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 150
+          }
+        }
+      },
+      "hint": "열림·등급 판별·공략 기한·브레이크 중 핵심만 적어 주세요.",
+      "examples": [
+        {
+          "title": "던전 브레이크",
+          "desc": "기한형. 제때 못 닫으면 몬스터가 밖으로 쏟아진다.",
+          "value": {
+            "gate_rule": "게이트는 열린 뒤 7일 안에 보스를 잡아야 닫히며, 넘기면 던전 브레이크로 몬스터가 도시로 쏟아진다"
+          }
+        },
+        {
+          "title": "색으로 등급 표시",
+          "desc": "정보형. 입구 색으로 위험도를 미리 알 수 있다.",
+          "value": {
+            "gate_rule": "입구 빛깔로 등급이 드러나고, 게이트 등급보다 한 등급 이상 낮은 헌터는 입장할 수 없다"
+          }
+        },
+        {
+          "title": "닫히는 탑",
+          "desc": "탑형. 매일 한 층씩 열리고 막지 못하면 도시가 먹힌다.",
+          "value": {
+            "gate_rule": "서울 한복판의 탑이 매일 자정 한 층씩 열리고, 하루 안에 층을 돌파하지 못하면 구 하나가 탑에 흡수된다"
+          }
+        }
+      ]
+    },
+    {
+      "qid": "hunter.ladder",
+      "step": "W3",
+      "order": 22,
+      "label": "헌터 등급",
+      "question": "헌터 등급은 어떤 이름으로 몇 단계로 나뉘나요?",
+      "genres": [
+        "hunter"
+      ],
+      "required": false,
+      "input": "ai",
+      "target": {
+        "entity": "system",
+        "slot": "hunter",
+        "kind": "awakening",
+        "path": "",
+        "merge": "set"
+      },
+      "depends": [
+        "hunter.awaken"
+      ],
+      "value_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "ladder"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20
+          },
+          "ladder": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 12,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "rank",
+                "name"
+              ],
+              "properties": {
+                "rank": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 20
+                },
+                "name": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 20
+                }
+              }
+            }
+          }
+        }
+      },
+      "hint": "낮은 등급부터 순서대로. 숫자가 클수록 높아요. F~S가 가장 익숙해요.",
+      "examples": [
+        {
+          "title": "F~S 알파벳",
+          "desc": "가장 익숙한 표준 등급. 독자가 바로 이해한다.",
+          "value": {
+            "name": "헌터 등급",
+            "ladder": [
+              {
+                "rank": 1,
+                "name": "F급"
+              },
+              {
+                "rank": 2,
+                "name": "E급"
+              },
+              {
+                "rank": 3,
+                "name": "D급"
+              },
+              {
+                "rank": 4,
+                "name": "C급"
+              },
+              {
+                "rank": 5,
+                "name": "B급"
+              },
+              {
+                "rank": 6,
+                "name": "A급"
+              },
+              {
+                "rank": 7,
+                "name": "S급"
+              }
+            ]
+          }
+        },
+        {
+          "title": "티어제",
+          "desc": "게임 랭크식. 경쟁·랭킹전 서사와 잘 맞는다.",
+          "value": {
+            "name": "티어",
+            "ladder": [
+              {
+                "rank": 1,
+                "name": "브론즈"
+              },
+              {
+                "rank": 2,
+                "name": "실버"
+              },
+              {
+                "rank": 3,
+                "name": "골드"
+              },
+              {
+                "rank": 4,
+                "name": "플래티넘"
+              },
+              {
+                "rank": 5,
+                "name": "다이아"
+              },
+              {
+                "rank": 6,
+                "name": "마스터"
+              },
+              {
+                "rank": 7,
+                "name": "챌린저"
+              }
+            ]
+          }
+        },
+        {
+          "title": "별 등급과 국가급",
+          "desc": "별 개수 등급 위에 국가가 관리하는 초월자가 있다.",
+          "value": {
+            "name": "성급",
+            "ladder": [
+              {
+                "rank": 1,
+                "name": "1성"
+              },
+              {
+                "rank": 2,
+                "name": "2성"
+              },
+              {
+                "rank": 3,
+                "name": "3성"
+              },
+              {
+                "rank": 4,
+                "name": "4성"
+              },
+              {
+                "rank": 5,
+                "name": "5성"
+              },
+              {
+                "rank": 6,
+                "name": "국가권력급"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "qid": "hunter.economy",
+      "step": "W3",
+      "order": 23,
+      "label": "전리품 경제",
+      "question": "게이트에서 얻는 전리품은 무엇이고, 얼마에 거래되나요?",
+      "genres": [
+        "hunter"
+      ],
+      "required": false,
+      "input": "ai",
+      "target": {
+        "entity": "system",
+        "slot": "hunter",
+        "kind": "awakening",
+        "path": "",
+        "merge": "set"
+      },
+      "depends": [
+        "hunter.ladder"
+      ],
+      "value_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "economy"
+        ],
+        "properties": {
+          "economy": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "loot_unit",
+              "price_by_rank"
+            ],
+            "properties": {
+              "loot_unit": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 20
+              },
+              "price_by_rank": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              }
+            }
+          }
+        }
+      },
+      "hint": "전리품 이름과 등급별 시세 감각을 한 줄로. 돈 문제는 동기가 돼요.",
+      "examples": [
+        {
+          "title": "마석 시세",
+          "desc": "표준형. 등급별 마석 값이 확연히 갈린다.",
+          "value": {
+            "economy": {
+              "loot_unit": "마석",
+              "price_by_rank": "F급 마석 1만 원, C급 300만 원, S급은 경매에서 수십억"
+            }
+          }
+        },
+        {
+          "title": "협회 독점 매입",
+          "desc": "통제형. 협회만 사들일 수 있어 암시장이 생긴다.",
+          "value": {
+            "economy": {
+              "loot_unit": "코어",
+              "price_by_rank": "협회가 독점 매입하며 등급이 하나 오를 때마다 값이 10배, 암시장은 그 두 배"
+            }
+          }
+        },
+        {
+          "title": "시스템 포인트",
+          "desc": "게임형. 현금화가 안 되고 상점에서만 쓴다.",
+          "value": {
+            "economy": {
+              "loot_unit": "포인트",
+              "price_by_rank": "현금화 불가, 상점 전용이며 높은 등급 게이트일수록 포인트 배율이 커진다"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "qid": "hunter.reactions",
+      "step": "W5",
+      "order": 20,
+      "label": "사회 반응",
+      "question": "각성자와 게이트에 대해 사회는 어떻게 반응하고 있나요?",
+      "genres": [
+        "hunter"
+      ],
+      "required": false,
+      "input": "ai",
+      "target": {
+        "entity": "world",
+        "slot": null,
+        "kind": null,
+        "path": "society",
+        "merge": "append"
+      },
+      "depends": [
+        "hunter.awaken"
+      ],
+      "value_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "reactions"
+        ],
+        "properties": {
+          "reactions": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 3,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "text"
+              ],
+              "properties": {
+                "text": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 60
+                }
+              }
+            }
+          }
+        }
+      },
+      "hint": "정치·경제·일상 중 눈에 띄는 반응 1~3개를 적어 주세요.",
+      "examples": [
+        {
+          "title": "정치·제도 갈등",
+          "desc": "병역·등록제 같은 제도 논란이 중심이다.",
+          "value": {
+            "reactions": [
+              {
+                "text": "각성자 병역 특례를 둘러싼 국회 논란"
+              },
+              {
+                "text": "미각성자 단체의 각성자 등록제 의무화 요구 시위"
+              }
+            ]
+          }
+        },
+        {
+          "title": "경제 격변",
+          "desc": "게이트가 부동산과 보험 시장을 뒤흔들었다.",
+          "value": {
+            "reactions": [
+              {
+                "text": "게이트 다발 지역 집값 폭락과 강남 쏠림"
+              },
+              {
+                "text": "게이트 피해 전용 보험 상품 등장"
+              }
+            ]
+          }
+        },
+        {
+          "title": "헌터 셀럽 문화",
+          "desc": "헌터가 연예인처럼 소비되는 사회.",
+          "value": {
+            "reactions": [
+              {
+                "text": "S급 헌터 공략 생중계가 시청률 1위"
+              },
+              {
+                "text": "길드 굿즈와 팬클럽, 헌터 아이돌화"
+              },
+              {
+                "text": "저등급 헌터 비하 표현 확산"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

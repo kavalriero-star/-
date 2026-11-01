@@ -1,0 +1,617 @@
+{
+  "schemaVersion": 1,
+  "questions": [
+    {
+      "qid": "fantasy.source_cost",
+      "step": "W3",
+      "order": 20,
+      "label": "마법의 원천·대가",
+      "question": "이 세계의 마법은 어디서 힘을 끌어오고, 쓰는 사람은 무엇을 치르나요?",
+      "genres": [
+        "fantasy"
+      ],
+      "required": false,
+      "input": "ai",
+      "target": {
+        "entity": "system",
+        "slot": "fantasy",
+        "kind": "magic",
+        "path": "",
+        "merge": "set"
+      },
+      "depends": [
+        "world.rules"
+      ],
+      "value_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "source",
+          "cost"
+        ],
+        "properties": {
+          "source": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "cost": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          }
+        }
+      },
+      "hint": "원천 한 줄, 대가 한 줄이면 충분해요. 대가가 클수록 긴장이 생겨요.",
+      "examples": [
+        {
+          "title": "대기 마나·서클",
+          "desc": "정통 판타지형. 대기의 마나를 몸속 서클에 쌓아 쓴다.",
+          "value": {
+            "source": "대기 중 마나를 호흡으로 받아들여 심장 주위 서클에 쌓는다",
+            "cost": "서클 용량을 넘겨 쓰면 마나 역류로 서클이 깨진다"
+          }
+        },
+        {
+          "title": "신과의 계약",
+          "desc": "신관형. 힘은 빌린 것이라 계율을 어기면 회수된다.",
+          "value": {
+            "source": "신과 맺은 계약으로 신성력을 빌려 쓴다",
+            "cost": "쓸수록 신앙을 증명해야 하고 계율을 어기면 힘을 잃는다"
+          }
+        },
+        {
+          "title": "생명·기억 연소",
+          "desc": "어두운 판타지형. 마법이 곧 자기 소모다.",
+          "value": {
+            "source": "시전자 자신의 생명력과 기억을 불쏘시개로 태운다",
+            "cost": "쓸 때마다 수명이 줄고 기억 한 조각이 사라진다"
+          }
+        }
+      ]
+    },
+    {
+      "qid": "fantasy.limits",
+      "step": "W3",
+      "order": 21,
+      "label": "마법의 한계",
+      "question": "마법으로도 절대 할 수 없는 일은 무엇인가요?",
+      "genres": [
+        "fantasy"
+      ],
+      "required": false,
+      "input": "ai",
+      "target": {
+        "entity": "system",
+        "slot": "fantasy",
+        "kind": "magic",
+        "path": "",
+        "merge": "append"
+      },
+      "depends": [
+        "fantasy.source_cost"
+      ],
+      "value_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "limits"
+        ],
+        "properties": {
+          "limits": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 5,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 60
+            }
+          }
+        }
+      },
+      "hint": "할 수 없는 일 1~5개. 한계가 분명해야 주인공의 꾀가 빛나요.",
+      "examples": [
+        {
+          "title": "생사·시간 불가침",
+          "desc": "가장 흔한 한계. 죽음과 시간은 건드리지 못한다.",
+          "value": {
+            "limits": [
+              "죽은 자는 되살릴 수 없다",
+              "시간은 되돌리거나 멈출 수 없다"
+            ]
+          }
+        },
+        {
+          "title": "물리적 약점",
+          "desc": "철과 소리에 묶인 마법. 전투 전술이 생긴다.",
+          "value": {
+            "limits": [
+              "차가운 철에 닿으면 마법이 흩어진다",
+              "주문은 반드시 소리 내어 외워야 한다",
+              "물 위에서는 시전이 불안정하다"
+            ]
+          }
+        },
+        {
+          "title": "속성 하나만",
+          "desc": "재능이 속성 하나에 고정된다. 상성 싸움이 중심.",
+          "value": {
+            "limits": [
+              "한 사람은 평생 한 속성만 다룰 수 있다",
+              "두 주문을 동시에 유지할 수 없다"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "qid": "fantasy.ladder",
+      "step": "W3",
+      "order": 22,
+      "label": "마법 등급",
+      "question": "마법사의 실력은 어떤 이름의 등급으로 나뉘나요?",
+      "genres": [
+        "fantasy"
+      ],
+      "required": false,
+      "input": "ai",
+      "target": {
+        "entity": "system",
+        "slot": "fantasy",
+        "kind": "magic",
+        "path": "",
+        "merge": "set"
+      },
+      "depends": [
+        "fantasy.source_cost"
+      ],
+      "value_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "ladder"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20
+          },
+          "ladder": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 12,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "rank",
+                "name"
+              ],
+              "properties": {
+                "rank": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 20
+                },
+                "name": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 20
+                }
+              }
+            }
+          }
+        }
+      },
+      "hint": "체계 이름과 낮은 등급부터 순서대로. 숫자가 클수록 높아요.",
+      "examples": [
+        {
+          "title": "서클 체계",
+          "desc": "1서클부터 9서클까지. 독자에게 가장 익숙한 사다리.",
+          "value": {
+            "name": "서클",
+            "ladder": [
+              {
+                "rank": 1,
+                "name": "1서클"
+              },
+              {
+                "rank": 2,
+                "name": "2서클"
+              },
+              {
+                "rank": 3,
+                "name": "3서클"
+              },
+              {
+                "rank": 4,
+                "name": "4서클"
+              },
+              {
+                "rank": 5,
+                "name": "5서클"
+              },
+              {
+                "rank": 6,
+                "name": "6서클"
+              },
+              {
+                "rank": 7,
+                "name": "7서클"
+              },
+              {
+                "rank": 8,
+                "name": "8서클"
+              },
+              {
+                "rank": 9,
+                "name": "9서클"
+              }
+            ]
+          }
+        },
+        {
+          "title": "마탑 직위",
+          "desc": "등급이 곧 조직 내 지위. 정치 갈등과 엮기 좋다.",
+          "value": {
+            "name": "마탑 직위",
+            "ladder": [
+              {
+                "rank": 1,
+                "name": "견습생"
+              },
+              {
+                "rank": 2,
+                "name": "정식 마법사"
+              },
+              {
+                "rank": 3,
+                "name": "상급 마법사"
+              },
+              {
+                "rank": 4,
+                "name": "탑주 후보"
+              },
+              {
+                "rank": 5,
+                "name": "대마법사"
+              },
+              {
+                "rank": 6,
+                "name": "현자"
+              }
+            ]
+          }
+        },
+        {
+          "title": "로브 색 등급",
+          "desc": "겉모습만 봐도 급이 보이는 체계. 시각적 묘사가 쉽다.",
+          "value": {
+            "name": "로브 색",
+            "ladder": [
+              {
+                "rank": 1,
+                "name": "회색 로브"
+              },
+              {
+                "rank": 2,
+                "name": "청색 로브"
+              },
+              {
+                "rank": 3,
+                "name": "적색 로브"
+              },
+              {
+                "rank": 4,
+                "name": "백색 로브"
+              },
+              {
+                "rank": 5,
+                "name": "금색 로브"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "qid": "fantasy.taboo",
+      "step": "W3",
+      "order": 23,
+      "label": "금기·희소성",
+      "question": "마법에 걸린 금기나, 마법이 귀한 이유가 있나요?",
+      "genres": [
+        "fantasy"
+      ],
+      "required": false,
+      "input": "ai",
+      "target": {
+        "entity": "system",
+        "slot": "fantasy",
+        "kind": "magic",
+        "path": "",
+        "merge": "append"
+      },
+      "depends": [
+        "fantasy.limits"
+      ],
+      "value_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "limits"
+        ],
+        "properties": {
+          "limits": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 3,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 60
+            }
+          }
+        }
+      },
+      "hint": "금지된 마법이나 재능·재료가 귀한 이유를 1~3개 적어 주세요.",
+      "examples": [
+        {
+          "title": "금지된 사령술",
+          "desc": "금기형. 흑마법을 쓰면 교단의 이단 심문이 따라온다.",
+          "value": {
+            "limits": [
+              "사령술은 교단이 정한 최대 금기로 쓰면 화형",
+              "금서를 소지만 해도 이단 심문 대상"
+            ]
+          }
+        },
+        {
+          "title": "귀족만의 재능",
+          "desc": "희소성형. 재능이 혈통에 묶여 계급 갈등이 생긴다.",
+          "value": {
+            "limits": [
+              "마법 재능은 만 명 중 한 명, 대부분 귀족 혈통",
+              "평민 마법사는 발견 즉시 귀족가에 입양된다"
+            ]
+          }
+        },
+        {
+          "title": "말라 가는 마력석",
+          "desc": "자원 고갈형. 고위 마법이 점점 사라지는 세계.",
+          "value": {
+            "limits": [
+              "마력석 광맥이 말라 고위 마법은 국가 허가제",
+              "9서클 마법은 백 년째 시전된 적이 없다"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "qid": "fantasy.races",
+      "step": "W5",
+      "order": 20,
+      "label": "종족",
+      "question": "인간 말고 어떤 종족이 살고, 각각 어떤 특징이 있나요?",
+      "genres": [
+        "fantasy"
+      ],
+      "required": false,
+      "input": "ai",
+      "target": {
+        "entity": "world",
+        "slot": null,
+        "kind": null,
+        "path": "society",
+        "merge": "append"
+      },
+      "depends": [
+        "world.premise"
+      ],
+      "value_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "races"
+        ],
+        "properties": {
+          "races": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 4,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "trait"
+              ],
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 20
+                },
+                "trait": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 60
+                }
+              }
+            }
+          }
+        }
+      },
+      "hint": "종족 이름과 한 줄 특징. 인간뿐인 세계라면 그 이유를 적어도 돼요.",
+      "examples": [
+        {
+          "title": "정통 3종족",
+          "desc": "엘프·드워프·오크. 독자가 바로 그림을 떠올린다.",
+          "value": {
+            "races": [
+              {
+                "name": "엘프",
+                "trait": "천 년을 살며 숲 밖 일에 무관심하다"
+              },
+              {
+                "name": "드워프",
+                "trait": "산맥 아래 왕국, 최고의 대장장이"
+              },
+              {
+                "name": "오크",
+                "trait": "부족 단위 전사 문화, 인간과 오랜 전쟁"
+              }
+            ]
+          }
+        },
+        {
+          "title": "수인과 용인",
+          "desc": "동물 특성을 지닌 종족 중심. 차별 서사와 잘 맞는다.",
+          "value": {
+            "races": [
+              {
+                "name": "수인족",
+                "trait": "늑대·여우 혈통, 후각이 뛰어나나 노예로 팔리기도 한다"
+              },
+              {
+                "name": "용인족",
+                "trait": "비늘 피부, 드래곤의 후손을 자처하는 오만한 소수"
+              }
+            ]
+          }
+        },
+        {
+          "title": "인간과 마족",
+          "desc": "종족은 단 둘. 대립 구도가 선명하다.",
+          "value": {
+            "races": [
+              {
+                "name": "마족",
+                "trait": "인간과 똑같이 생겼으나 마기를 품고 태어난다"
+              },
+              {
+                "name": "반마족",
+                "trait": "혼혈, 양쪽 모두에게 배척받는다"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "qid": "fantasy.nations",
+      "step": "W5",
+      "order": 21,
+      "label": "주요 국가",
+      "question": "이야기의 무대가 되는 나라들과 그 통치 방식은 어떤가요?",
+      "genres": [
+        "fantasy"
+      ],
+      "required": false,
+      "input": "ai",
+      "target": {
+        "entity": "world",
+        "slot": null,
+        "kind": null,
+        "path": "society",
+        "merge": "append"
+      },
+      "depends": [
+        "world.premise"
+      ],
+      "value_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "nations"
+        ],
+        "properties": {
+          "nations": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 4,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "polity"
+              ],
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 20
+                },
+                "polity": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 40
+                }
+              }
+            }
+          }
+        }
+      },
+      "hint": "나라 이름과 정체(황제정·신정·의회 등) 한 줄씩이면 돼요.",
+      "examples": [
+        {
+          "title": "제국과 변방",
+          "desc": "거대 제국과 이를 견제하는 세력. 전쟁물에 적합.",
+          "value": {
+            "nations": [
+              {
+                "name": "벨로스 제국",
+                "polity": "황제정, 귀족 원로원"
+              },
+              {
+                "name": "자유도시 연합",
+                "polity": "상인 길드 의회"
+              },
+              {
+                "name": "성국 루미에",
+                "polity": "교황이 다스리는 신정"
+              }
+            ]
+          }
+        },
+        {
+          "title": "분열된 왕국",
+          "desc": "하나였던 왕국이 쪼개진 상태. 왕위 계승 다툼.",
+          "value": {
+            "nations": [
+              {
+                "name": "북부 왕국",
+                "polity": "봉건 왕정, 기사단이 실권"
+              },
+              {
+                "name": "남부 공국",
+                "polity": "대공 세습, 왕국 독립을 선언"
+              }
+            ]
+          }
+        },
+        {
+          "title": "마탑 국가",
+          "desc": "마법사가 통치하는 나라. 마법 중심 세계관에 적합.",
+          "value": {
+            "nations": [
+              {
+                "name": "아스텔 마탑령",
+                "polity": "탑주 회의가 다스리는 마법사 과두정"
+              },
+              {
+                "name": "철의 기사국",
+                "polity": "마법을 금한 군사 왕정"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

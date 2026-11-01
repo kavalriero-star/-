@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>룬북</title>
+<link rel="stylesheet" href="/static/styles.css">
+<script type="module" src="/static/app.js"></script>
+</head>
+<body data-font="serif">
+<div class="wrap">
+  <header class="bar">
+    <span class="brand">룬북<small>AI와 함께 쓰는 집필실</small></span>
+    <nav class="topnav" id="topnav" aria-label="화면"></nav>
+    <span class="grow"></span>
+    <span class="muted small" id="aiState"></span>
+    <button class="btn sm" id="btnTheme" type="button">테마: 시스템</button>
+  </header>
+  <main id="view" aria-live="polite"></main>
+</div>
+<div id="toast" role="status" aria-live="polite" hidden></div>
+</body>
+</html>

@@ -1,0 +1,10 @@
+{
+  "$comment": "회차 요약. CONCEPT_V3.md 4.4절.",
+  "type": "object",
+  "required": ["요약"],
+  "properties": {
+    "작업": { "type": "string" },
+    "요약": { "type": "string", "maxLength": 600 },
+    "핵심사건": { "type": "array", "maxItems": 10, "items": { "type": "object", "required": ["종류", "내용"], "properties": { "종류": { "type": "string", "enum": ["사망", "소속변경", "등급변화", "떡밥", "관계변화", "기타"] }, "내용": { "type": "string", "maxLength": 200 } } } }
+  }
+}
